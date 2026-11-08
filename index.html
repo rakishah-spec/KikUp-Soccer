@@ -1,0 +1,918 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#1D6A3A">
+<meta name="description" content="KikUp Soccer: drills, skill moves and a live camera rep counter for young players.">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon-192.png">
+<style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px/1.4 system-ui,-apple-system,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>KikUp Soccer</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Saira+Condensed:wght@600;700;800&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* Layout: mowed-pitch header band → two-step level picker → skill chips → drill cards. Drills open in a sheet; sessions run full-screen on a night-pitch look. */
+:root{
+  --bg:#EDF2EC; --surface:#FFFFFF; --surface-2:#E1EAE2; --ink:#10241A; --muted:#536759; --rule:#C9D7CC;
+  --pitch:#1D6A3A; --pitch-2:#227740; --chalk:#F4F8F2;
+  --bib:#F26A0F; --bib-ink:#1A0B00; --star:#D99A00; --good:#178A4A; --bad:#C93636;
+  --run-bg:#0E2618; --run-ink:#F4F8F2; --run-muted:#A9C2B1; --run-line:rgba(244,248,242,.18);
+  --display:'Saira Condensed','Arial Narrow',Impact,sans-serif;
+  --body:'Figtree',system-ui,-apple-system,'Segoe UI',sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0C1611; --surface:#14231A; --surface-2:#1C3024; --ink:#E6EFE8; --muted:#94A89B; --rule:#2A4131;
+  --pitch:#17552F; --pitch-2:#1B6136; --chalk:#ECF3EC;
+  --bib:#FF8533; --bib-ink:#1A0B00; --star:#FFC633; --good:#3CC57A; --bad:#FF6B6B; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0C1611; --surface:#14231A; --surface-2:#1C3024; --ink:#E6EFE8; --muted:#94A89B; --rule:#2A4131;
+  --pitch:#17552F; --pitch-2:#1B6136; --chalk:#ECF3EC;
+  --bib:#FF8533; --bib-ink:#1A0B00; --star:#FFC633; --good:#3CC57A; --bad:#FF6B6B; color-scheme:dark}
+
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.5}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,.card:focus-visible{outline:3px solid var(--bib);outline-offset:2px}
+h1,h2,h3{font-family:var(--display);line-height:1.05;text-wrap:balance;margin:0;letter-spacing:.01em}
+.wrap{max-width:1080px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.muted{color:var(--muted)}
+
+/* Header */
+.hdr{background:repeating-linear-gradient(90deg,var(--pitch) 0 56px,var(--pitch-2) 56px 112px);color:var(--chalk);position:relative;overflow:hidden}
+.hdr::after{content:"";position:absolute;right:-90px;top:50%;width:220px;height:220px;border:3px solid rgba(255,255,255,.22);border-radius:50%;transform:translateY(-50%)}
+.hdr::before{content:"";position:absolute;right:20px;top:0;bottom:0;border-left:3px solid rgba(255,255,255,.22)}
+.hdr .wrap{padding-block:28px 24px;display:flex;flex-wrap:wrap;gap:16px 24px;align-items:flex-end;justify-content:space-between;position:relative;z-index:1}
+.brand h1{font-size:clamp(44px,8vw,72px);font-weight:800;text-transform:uppercase;letter-spacing:.02em}
+.brand h1 span{color:var(--bib)}
+.brand p{margin:2px 0 0;font-weight:500;opacity:.9}
+.hdr-stats{display:flex;gap:10px;flex-wrap:wrap}
+.pill{display:inline-flex;align-items:center;gap:6px;background:rgba(0,0,0,.28);border:1px solid rgba(255,255,255,.2);padding:6px 12px;border-radius:999px;font-weight:600;font-size:14px}
+.pill b{font-family:var(--display);font-size:18px;font-variant-numeric:tabular-nums}
+
+main .wrap{padding-block:24px 56px;display:grid;gap:28px}
+
+/* Level picker */
+.level{display:grid;gap:16px;background:var(--surface);border:1px solid var(--rule);border-radius:14px;padding:20px}
+.level h2{font-size:28px;text-transform:uppercase}
+.level p{margin:4px 0 0}
+.step{display:grid;gap:8px}
+.step-label{font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.seg{display:grid;gap:8px;grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
+#tierSeg{grid-template-columns:repeat(auto-fit,minmax(104px,1fr))}
+.opt{text-align:left;background:var(--surface-2);border:2px solid transparent;border-radius:10px;padding:10px 12px;display:grid;gap:0}
+.opt strong{font-family:var(--display);font-size:20px;font-weight:700;text-transform:uppercase;letter-spacing:.02em}
+.opt small{color:var(--muted);font-size:13px}
+.opt[aria-pressed="true"]{background:var(--bib);color:var(--bib-ink);border-color:var(--bib)}
+.opt[aria-pressed="true"] small{color:var(--bib-ink);opacity:.8}
+
+.progress{display:grid;gap:8px}
+.progress-row{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;font-weight:600;font-size:14px}
+.bar{height:10px;background:var(--surface-2);border-radius:99px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--star);border-radius:99px;transition:width .4s}
+.levelup{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;background:var(--surface-2);border:2px dashed var(--star);border-radius:10px;padding:12px 14px;font-weight:600}
+
+/* Chips */
+.drills-head{display:flex;flex-wrap:wrap;gap:12px;align-items:baseline;justify-content:space-between}
+.drills-head h2{font-size:32px;text-transform:uppercase}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{background:transparent;border:1.5px solid var(--rule);border-radius:999px;padding:6px 14px;font-weight:600;font-size:14px}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+
+/* Cards */
+.grid{display:grid;gap:14px;grid-template-columns:repeat(auto-fill,minmax(260px,1fr))}
+.card{text-align:left;background:var(--surface);border:1px solid var(--rule);border-radius:12px;padding:0;overflow:hidden;display:flex;flex-direction:column;transition:transform .15s,border-color .15s}
+.card:hover{transform:translateY(-2px);border-color:var(--bib)}
+.card svg{display:block;width:100%;height:auto;aspect-ratio:200/110}
+.card-body{padding:12px 14px 14px;display:grid;gap:6px;flex:1}
+.tag{font-size:11px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--muted)}
+.card h3{font-size:24px;font-weight:700;text-transform:uppercase}
+.card .goal{font-size:14px;color:var(--ink)}
+.card-foot{display:flex;justify-content:space-between;align-items:center;margin-top:auto;padding-top:6px;font-size:13px;color:var(--muted);font-weight:600}
+.stars{letter-spacing:2px;font-size:18px;color:var(--rule)}
+.stars .on{color:var(--star)}
+.badge{display:inline-block;background:var(--bib);color:var(--bib-ink);font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:2px 7px;border-radius:5px;margin-left:6px;vertical-align:2px}
+.tabs{display:flex;gap:4px;border-bottom:2px solid var(--rule)}
+.tab{background:none;border:0;border-bottom:4px solid transparent;margin-bottom:-2px;padding:8px 14px 10px;font-family:var(--display);font-size:clamp(24px,6vw,32px);font-weight:800;text-transform:uppercase;color:var(--muted)}
+.tab[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--bib)}
+.video{display:flex;gap:16px;align-items:center;justify-content:space-between;flex-wrap:wrap;background:var(--pitch);color:var(--chalk);border-radius:12px;padding:16px 18px}
+.video h3{font-size:24px;text-transform:uppercase}
+.video p{margin:2px 0 0;font-size:14px;opacity:.9;max-width:52ch}
+.video a{text-decoration:none;display:inline-flex;align-items:center;gap:8px;font-size:18px;padding:10px 18px}
+.move{text-align:left;background:var(--surface);border:1px solid var(--rule);border-radius:12px;padding:14px;display:grid;grid-template-columns:auto 1fr;gap:4px 14px;align-items:start;transition:transform .15s,border-color .15s}
+.move:hover{transform:translateY(-2px);border-color:var(--bib)}
+.move .lv{grid-row:span 3;width:56px;height:56px;border-radius:10px;background:var(--surface-2);display:grid;place-items:center;font-family:var(--display);line-height:1}
+.move .lv b{font-size:26px;font-weight:800;display:block;text-align:center}
+.move .lv small{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.move.new .lv{background:var(--bib);color:var(--bib-ink)}
+.move.new .lv small{color:var(--bib-ink)}
+.move h3{font-size:22px;font-weight:700;text-transform:uppercase}
+.move .goal{font-size:14px}
+.move .foot{display:flex;justify-content:space-between;align-items:center;font-size:13px;color:var(--muted);font-weight:600}
+.move.locked{opacity:.55;cursor:default}
+.move.locked:hover{transform:none;border-color:var(--rule)}
+.dots{display:inline-flex;gap:3px;vertical-align:middle}
+.dots i{width:7px;height:7px;border-radius:50%;background:var(--rule)}
+.dots i.on{background:var(--bib)}
+.empty{padding:24px;border:1.5px dashed var(--rule);border-radius:12px;color:var(--muted)}
+
+/* Buttons */
+.btn-primary{background:var(--bib);color:var(--bib-ink);border:0;border-radius:10px;padding:12px 20px;font-family:var(--display);font-size:22px;font-weight:800;text-transform:uppercase;letter-spacing:.04em}
+.btn-ghost{background:transparent;border:1.5px solid currentColor;border-radius:10px;padding:10px 16px;font-weight:700}
+
+/* Sheet */
+.sheet-wrap{position:fixed;inset:0;background:rgba(5,15,9,.6);z-index:20;display:flex;align-items:flex-end;justify-content:center}
+.sheet{background:var(--bg);width:100%;max-width:640px;max-height:92%;overflow:auto;border-radius:18px 18px 0 0;padding:0 0 calc(20px + env(safe-area-inset-bottom,0px))}
+@media (min-width:700px){.sheet-wrap{align-items:center}.sheet{border-radius:18px;max-height:90%}}
+.sheet svg{display:block;width:100%;height:auto;aspect-ratio:200/110}
+.sheet-in{padding:18px max(20px,env(safe-area-inset-left,0px)) 0 max(20px,env(safe-area-inset-right,0px));display:grid;gap:18px}
+.sheet-top{position:relative}
+.x{position:absolute;top:10px;right:10px;width:40px;height:40px;border-radius:50%;border:0;background:rgba(0,0,0,.45);color:#fff;font-size:20px}
+.sheet h2{font-size:36px;text-transform:uppercase}
+.goalbox{background:var(--surface);border:2px solid var(--bib);border-radius:12px;padding:14px 16px;display:grid;gap:6px}
+.goalbox .lbl{font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.goalbox .big{font-family:var(--display);font-size:26px;font-weight:700;line-height:1.1}
+.goalbox ul{margin:0;padding-left:18px}
+.sheet h3{font-size:20px;text-transform:uppercase;margin-bottom:6px}
+.sheet ol,.sheet ul{margin:0;padding-left:20px;display:grid;gap:4px}
+.note{font-size:14px;color:var(--muted);border-top:1px solid var(--rule);padding-top:12px}
+.sheet .btn-primary{width:100%}
+
+/* Runner (deliberate single night-pitch look) */
+.runner{position:fixed;inset:0;z-index:30;background:var(--run-bg);color:var(--run-ink);display:flex;flex-direction:column;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.run-top{display:flex;justify-content:space-between;align-items:center;gap:10px;padding-block:12px}
+.run-top .t{font-family:var(--display);font-size:20px;font-weight:700;text-transform:uppercase;text-align:center;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.run-top button{background:rgba(255,255,255,.1);border:1px solid var(--run-line);color:var(--run-ink);border-radius:8px;padding:8px 12px;font-weight:700;font-size:14px}
+.run-body{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:0;overflow:auto;padding-bottom:12px}
+.run-center{display:grid;gap:14px;justify-items:center;text-align:center;width:100%;max-width:480px}
+.run-goal{color:var(--run-muted);font-weight:600}
+.run-goal b{color:var(--run-ink)}
+.clock{font-family:var(--display);font-weight:800;font-size:clamp(64px,18vw,120px);line-height:1;font-variant-numeric:tabular-nums}
+.count-label{font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--run-muted);font-weight:700}
+.count-num{font-family:var(--display);font-weight:800;font-size:56px;line-height:1;color:var(--bib);font-variant-numeric:tabular-nums}
+.count-row{display:flex;gap:12px;align-items:center;justify-content:center;flex-wrap:wrap}
+.tap{width:132px;height:132px;border-radius:50%;border:0;background:var(--bib);color:var(--bib-ink);font-family:var(--display);font-size:44px;font-weight:800}
+.tap:active{transform:scale(.96)}
+.round{color:var(--run-ink);border-color:var(--run-line);min-width:64px}
+.runner .btn-primary.big{min-width:220px}
+.runner .btn-ghost{color:var(--run-ink);border-color:var(--run-line)}
+.run-steps{text-align:left;color:var(--run-muted);margin:0;padding-left:20px;display:grid;gap:6px}
+.cd{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:var(--run-bg);font-family:var(--display);font-weight:800;font-size:min(50vw,260px);z-index:2}
+.cue-stage{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;z-index:1}
+.cue{font-family:var(--display);font-weight:800;line-height:.9;font-size:min(46vw,46vh);display:flex;gap:.15em;align-items:center}
+.cue small{font-size:.6em;color:var(--bib)}
+.cue-stage.flash{background:var(--bib);color:var(--bib-ink)}
+.cue-stage.flash .cue small{color:var(--bib-ink)}
+.cue-stage.go{background:#1FA454;color:#06210F}
+.cue-stage.stop{background:#D63A3A;color:#fff}
+.cue-time{position:absolute;bottom:16px;left:0;right:0;text-align:center;font-family:var(--display);font-size:24px;font-variant-numeric:tabular-nums;opacity:.7}
+.phase{width:100%;max-width:480px;border-radius:20px;padding:28px 16px;display:grid;gap:4px;justify-items:center}
+.phase.go{background:var(--bib);color:var(--bib-ink)}
+.phase.rest{background:rgba(255,255,255,.08)}
+.phase .p{font-family:var(--display);font-size:56px;font-weight:800;text-transform:uppercase;line-height:1}
+.result h2{font-size:44px;text-transform:uppercase}
+.result p{margin:0;color:var(--run-muted)}
+.result .pb{color:var(--star);font-weight:700}
+.stars-big{font-size:64px;letter-spacing:6px;color:rgba(255,255,255,.18)}
+.stars-big .on{color:#FFC633}
+.rate{display:grid;gap:10px;width:100%;max-width:340px}
+.rate button{background:rgba(255,255,255,.08);border:1px solid var(--run-line);color:var(--run-ink);border-radius:12px;padding:14px;font-weight:700;font-size:17px}
+
+/* Find the Gap */
+.gap-hud{display:flex;justify-content:space-between;width:100%;max-width:460px;font-weight:700;font-size:15px;color:var(--run-muted);font-variant-numeric:tabular-nums}
+.gap-hud b{color:var(--run-ink)}
+.gap-canvas{display:block;border-radius:12px;touch-action:manipulation;max-width:100%}
+.timebar{width:100%;max-width:460px;height:8px;background:rgba(255,255,255,.12);border-radius:99px;overflow:hidden}
+.timebar i{display:block;height:100%;background:var(--bib);width:100%}
+.gap-msg{min-height:3em;font-weight:600;max-width:460px;text-align:center}
+.gap-msg.ok{color:#5BE08F}.gap-msg.no{color:#FF8A8A}
+.legend{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;font-size:13px;color:var(--run-muted)}
+.legend span::before{content:"";display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:5px;vertical-align:-1px;background:var(--c)}
+
+/* Coach feedback */
+.fb{max-width:520px}
+.fb h2{font-size:36px;text-transform:uppercase}
+.fb-btns{display:grid;gap:10px;width:100%;max-width:340px}
+.fb-btns label{display:block;text-align:center;cursor:pointer}
+.fb-btns label.btn-ghost{color:var(--run-ink);border-color:var(--run-line)}
+.small{font-size:13px}
+.thumbs{display:flex;gap:6px;overflow-x:auto;max-width:100%;padding-bottom:4px}
+.thumbs img{height:64px;border-radius:6px;flex:none}
+.fb-out{width:100%;text-align:left;background:rgba(255,255,255,.07);border:1px solid var(--run-line);border-radius:14px;padding:16px 18px;display:grid;gap:6px;line-height:1.5}
+.fb-out h4{margin:8px 0 0;font-family:var(--display);font-size:20px;text-transform:uppercase;color:var(--bib)}
+.fb-out h4:first-child{margin-top:0}
+.fb-out p{margin:0}
+.fb-out .thinking{color:var(--run-muted)}
+.sheet .fb-link{width:100%;color:var(--ink);text-align:center}
+
+/* Live camera counter */
+.cam-box{width:100%;display:grid;gap:8px}
+.cam{position:relative;width:100%;border-radius:14px;overflow:hidden;background:#000;aspect-ratio:4/3;max-height:52vh}
+.cam video,.cam canvas{position:absolute;inset:0;width:100%;height:100%;object-fit:contain}
+.cam .mirror{transform:scaleX(-1)}
+.cam-hud{position:absolute;top:8px;left:10px;right:10px;display:flex;justify-content:space-between;align-items:flex-start;pointer-events:none}
+.cam-count{font-family:var(--display);font-weight:800;font-size:clamp(64px,20vw,110px);line-height:.9;color:var(--bib);text-shadow:0 2px 12px rgba(0,0,0,.6);font-variant-numeric:tabular-nums}
+.cam-count.pop{animation:pop .25s ease-out}
+@keyframes pop{0%{transform:scale(1.35)}100%{transform:scale(1)}}
+.cam-clock{font-family:var(--display);font-weight:800;font-size:clamp(32px,9vw,52px);color:#fff;text-shadow:0 2px 10px rgba(0,0,0,.6);font-variant-numeric:tabular-nums}
+.cam-sub{position:absolute;bottom:8px;left:10px;font-family:var(--display);font-size:24px;font-weight:700;color:#fff;text-shadow:0 2px 8px rgba(0,0,0,.7)}
+.cam-status{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:center;font-size:14px;color:var(--run-muted)}
+.cam-status .dot{display:inline-flex;align-items:center;gap:5px;font-weight:700;color:var(--run-muted)}
+.cam-status .dot::before{content:"";width:10px;height:10px;border-radius:50%;background:#D64545}
+.cam-status .dot.on{color:var(--run-ink)}
+.cam-status .dot.on::before{background:#3CC57A}
+.cam-opts{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+.cam-opts .btn-ghost,.cam-toggle{color:var(--run-ink);border-color:var(--run-line);font-size:14px;padding:8px 14px}
+.cam-toggle{border-color:var(--bib);color:var(--bib)}
+.badge.cam-b{background:transparent;color:var(--muted);border:1px solid var(--rule)}
+
+@media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+
+
+<header class="hdr">
+  <div class="wrap">
+    <div class="brand">
+      <h1>Kik<span>Up</span></h1>
+      <p>Soccer training on your own. Level up.</p>
+    </div>
+    <div class="hdr-stats">
+      <span class="pill" id="pillLevel"></span>
+      <span class="pill"><b id="pillStars">0</b> stars</span>
+      <span class="pill">Streak <b id="pillStreak">0</b> days</span>
+    </div>
+  </div>
+</header>
+
+<main>
+  <div class="wrap">
+    <section class="level" aria-labelledby="lvlh">
+      <div>
+        <h2 id="lvlh">Your level</h2>
+        <p class="muted">Pick your age group, then your skill level. The drills and goals change to match.</p>
+      </div>
+      <div class="step"><span class="step-label">Step 1 · Age group</span><div class="seg" id="ageSeg"></div></div>
+      <div class="step"><span class="step-label">Step 2 · Skill level</span><div class="seg" id="tierSeg"></div></div>
+      <div class="progress">
+        <div class="progress-row"><span id="progLabel"></span><span id="progNum"></span></div>
+        <div class="bar"><i id="progBar" style="width:0"></i></div>
+      </div>
+      <div id="levelUp"></div>
+    </section>
+
+    <section style="display:grid;gap:14px">
+      <div class="tabs" role="tablist" aria-label="Sections">
+        <button class="tab" role="tab" data-tab="drills" id="tabDrills">Drills</button>
+        <button class="tab" role="tab" data-tab="moves" id="tabMoves">Skill Moves</button>
+      </div>
+      <div class="drills-head">
+        <p class="muted" id="secIntro" style="margin:0;max-width:60ch"></p>
+        <div class="chips" id="chips"></div>
+      </div>
+      <div id="videoSlot"></div>
+      <div class="grid" id="grid"></div>
+    </section>
+  </div>
+</main>
+
+<div class="sheet-wrap" id="sheet" hidden>
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle" id="sheetInner"></div>
+</div>
+
+<div class="runner" id="runner" hidden>
+  <div class="run-top">
+    <button id="runClose">End</button>
+    <div class="t" id="runTitle"></div>
+    <button id="runSound">Sound: on</button>
+  </div>
+  <div class="run-body" id="runBody" style="position:relative"></div>
+</div>
+
+<script>
+/* ---------- Data ---------- */
+const AGES=[
+  {name:'Little Kickers',range:'Ages 4–8'},
+  {name:'Juniors',range:'Ages 9–12'},
+  {name:'Teens',range:'Ages 13+'}];
+const TIERS=[
+  {name:'Beginner',blurb:'New, or still learning control'},
+  {name:'Developing',blurb:'Plays on a team, has the basics'},
+  {name:'Advanced',blurb:'Confident, wants a challenge'}];
+const SKILLS={gamesense:'Game Sense',scanning:'Scanning',touch:'First Touch',passing:'Passing',dribbling:'Dribbling',mastery:'Ball Mastery',weakfoot:'Weak Foot',fitness:'Fitness'};
+const T=(tbl,a,t)=>tbl[a][t];
+const by=(arr,a)=>arr[a];
+
+const DRILLS=[
+{id:'cone-dribble',name:'Cone Dribble',skill:'dribbling',mode:'count',auto:'trips',ages:[0,1],minutes:2,
+ setup:['Put 5 cones in a line, one big step apart.','Dribble in and out of the cones to the end, then back.','Count every trip down and back.'],
+ tips:['Little touches keep the ball close.','Use both feet.','Look up between cones.'],
+ kid:{steps:['Line up 5 cones (or shoes).','Dribble in and out to the end and back. That\'s 1!'],tip:'Little touches! Keep the ball close to your feet.'},
+ diagram:{cones:[[30,60],[65,60],[100,60],[135,60],[170,60]],path:'M14,60 Q30,40 47,60 Q65,80 82,60 Q100,40 117,60 Q135,80 152,60 Q170,40 186,60',dur:4},
+ plan(a,t){const n=T([[2,3,4],[4,6,8]],a,t);
+  return {seconds:60,target:n,unit:'trips',summary:`${n} trips in 60 seconds`,detail:[a===0?['Walk with the ball','Jog with the ball','Go fast!'][t]:['Inside of the foot only','Both feet','Outside of the foot only']]};}},
+{id:'find-gap',name:'Find the Gap',skill:'gamesense',mode:'gap',ages:[1,2,3],minutes:3,interactive:true,
+ setup:['You are the orange player with the ball. White players are teammates, red players are defenders.','Each round, tap the teammate you would pass to before the clock runs out.','After each pick, the lanes light up: green is the best pass, red is blocked.'],
+ tips:['Check the lane first: can the ball get there without going near a defender?','Then check the receiver: is a defender right on them?','Forward passes that get past defenders beat safe sideways ones.','In a real game you get about a second. Train fast here so it\'s automatic there.'],
+ diagram:{carrier:[100,108],mates:[[42,38],[150,30],[172,84]],defs:[[132,58],[156,40],[176,96],[92,62]],path:'M100,108 L42,38',dur:1.6},
+ plan(a,t){const def=T([[1,1,2],[2,3,4],[3,4,5],[4,6,7]],a,t),sec=T([[8,7,6],[6,5,4],[5,4,3],[4,3,2]],a,t),mates=t===2?4:3;
+  return {defs:def,secs:sec,mates,rounds:10,summary:`10 decisions · ${sec}s each`,detail:[`${def} defenders, ${mates} teammates`,'Get 8 right for 3 stars, 6 for 2 stars']};}},
+{id:'scan-turn',name:'Scan & Turn',skill:'scanning',mode:'scan',ages:[0,1,2,3],minutes:2,interactive:true,
+ setup:['Prop the phone up 3–4 big steps away, where you can see it.','Pass against a wall or have someone feed you. Little Kickers can just dribble.','Each time the screen flashes, react to it with your next touch.'],
+ tips:['Glance at the screen before the ball arrives, not after.','Open your hips so you can turn either way.','The cue disappears fast on purpose. That\'s how quickly a picture changes in a game.'],
+ kid:{name:'Red Light, Green Light',skill:'dribbling',steps:['Dribble the ball around.','GREEN means go! RED means stop the ball with your foot.'],tip:'Stop the ball with the bottom of your foot, like stepping on a bug.'},
+ diagram:{wall:true,player:[100,78],phone:[166,98],path:'M100,76 L100,12 L100,76 L58,92',dur:2.6},
+ plan(a,t){const dur=T([[45,60,60],[60,60,90],[60,90,90],[90,90,120]],a,t),show=T([[2500,2000,1600],[1500,1200,900],[1200,900,700],[1000,700,500]],a,t),gap=[[4,6],[3,5],[2,4]][t];
+  const mode=a===0?'traffic':(a===3&&t>=1)||(a===2&&t===2)?'arrownum':'arrow';
+  const how={traffic:'GREEN means dribble. RED means stop the ball under your foot.',arrow:'Turn the way the arrow points as you receive. Up means play forward.',arrownum:'Turn the way the arrow points and shout the number out loud.'}[mode];
+  return {dur,show:mode==='traffic'?0:show,gap,mode,summary:mode==='traffic'?`${dur}s of Go / Stop`:`${dur}s · cues flash for ${show/1000}s`,detail:[how]};}},
+{id:'gate-hunt',name:'Gate Hunt',skill:'gamesense',mode:'count',ages:[1,2,3],minutes:2,
+ setup:['Make 6 gates: two cones (or shoes) one big step apart. Spread them around.','Dribble through as many gates as you can before time is up.','You can\'t go through the same gate twice in a row.'],
+ tips:['Keep your head up. Pick your next gate before you get through this one.','Change speed: slow near the gate, burst out of it.','Use both feet and the outside of your foot to change direction.'],
+ diagram:{gates:[[30,24,30,40],[150,18,166,18],[92,62,108,62],[40,98,56,98],[166,92,166,108],[118,104,134,104]],path:'M30,48 L30,16 Q60,10 100,54 L100,70 Q120,98 126,104 Q150,112 166,100 Q190,60 158,18 Q110,-4 30,32',dur:5},
+ plan(a,t){const s=T([[30,45,60],[45,60,60],[60,60,60],[60,60,60]],a,t),g=T([[5,8,10],[8,12,15],[12,16,20],[15,20,25]],a,t);
+  return {seconds:s,target:g,unit:'gates',summary:`${g} gates in ${s}s`,detail:[t===2?'Say your next gate out loud before you reach the current one':'Count each gate you dribble through']};}},
+{id:'tight-box',name:'Tight Box',skill:'dribbling',mode:'count',auto:'touches',ages:[1,2,3],minutes:2,
+ setup:['Put 4 cones in a small square.','Keep the ball inside the box and moving the whole time.','Use every surface: inside, outside, sole, laces. Count your touches.'],
+ tips:['Small touches. The ball should never be more than a foot away.','Stay on your toes with your knees bent.','Midfielders live in tight spaces. This is that, with no defenders yet.'],
+ diagram:{box:[66,30,68,64],path:'M88,58 L112,50 L118,76 L86,82 L94,60 L122,64 Z',dur:3.2},
+ plan(a,t){const m=T([[5,4,4],[5,4,3],[4,3,2.5],[3,2.5,2]],a,t),s=by([30,45,60,60],a),n=T([[30,45,60],[50,70,90],[70,90,110],[90,110,130]],a,t);
+  return {seconds:s,target:n,unit:'touches',summary:`${m}m box · ${n} touches in ${s}s`,detail:[`Box is ${m} meters on each side`,'Ball leaves the box? Bring it back and keep going']};}},
+{id:'wall-pass',name:'Wall Pass Rush',skill:'passing',mode:'count',auto:'kicks',ages:[0,1,2,3],minutes:2,
+ setup:['Stand facing a wall (a rebounder or a friend works too).','Pass, control, pass. Count every pass that hits the wall.'],
+ tips:['Lock your ankle and strike through the middle of the ball.','Point your standing foot at your target.','Every pass should be firm enough that you have to work to control it.'],
+ kid:{name:'Kick to the Wall',steps:['Kick the ball at a wall.','Stop it, then kick it again!'],tip:'Kick with the inside of your foot.'},
+ diagram:{wall:true,player:[100,100],path:'M100,96 L100,12 L100,96',dur:1.6},
+ plan(a,t){const d=T([[2,3,3],[3,4,5],[4,5,6],[5,6,8]],a,t),s=by([30,30,45,60],a),n=T([[8,12,15],[15,20,25],[20,28,35],[30,40,50]],a,t),r=['Two or three touches is fine','Two touches max','One touch only, alternate feet'][t];
+  return {seconds:s,target:n,unit:'passes',summary:`${n} passes in ${s}s`,detail:[`Stand ${d} big steps from the wall`,r]};}},
+{id:'receive-turn',name:'Receive & Open Up',skill:'touch',mode:'count',ages:[1,2,3],minutes:2,
+ setup:['Pass to the wall.','As it comes back, receive it across your body with your back foot so you end up facing a new direction.','Take one more touch into space, then come back and repeat.'],
+ tips:['Open your body before the ball arrives, like you\'re showing the ball where to go.','First touch goes away from where a defender would be.','Scan over your shoulder before every receive.'],
+ diagram:{wall:true,player:[100,96],path:'M100,92 L100,12 L100,92 Q86,100 64,92 L44,70',dur:2.6},
+ plan(a,t){const n=T([null,[8,12,15],[12,16,20],[16,22,28]],a,t);
+  return {seconds:60,target:n,unit:'clean turns',summary:`${n} clean turns in 60s`,detail:[t===2?'Check over your shoulder before every single receive':'Alternate turning left and right','Only count turns where your first touch sets you up']};}},
+{id:'check-away',name:'Check Away, Check In',skill:'touch',mode:'count',ages:[2,3],minutes:2,
+ setup:['Put a cone between you and the wall. That\'s your defender.','Jog away from the wall, then sharply check back toward it to "lose" the cone.','Receive the rebound on the half-turn and play away from the cone.'],
+ tips:['The check-away is a fake. Sell it, then explode back.','Receive side-on so you can see the wall and the space behind you.','This is how midfielders get free to receive in a game.'],
+ diagram:{wall:true,cones:[[100,64]],player:[132,84],path:'M100,12 L132,82 L178,112',dur:2.4},
+ plan(a,t){const n=T([null,null,[8,12,16],[12,16,20]],a,t);
+  return {seconds:90,target:n,unit:'reps',summary:`${n} reps in 90s`,detail:[['Two touches to turn is fine','Turn with your first touch','Turn with your first touch, play out with your weak foot'][t]]};}},
+{id:'weak-foot',name:'Weak Foot Wall',skill:'weakfoot',mode:'count',auto:'kicks',weak:true,ages:[1,2,3],minutes:2,
+ setup:['Same as Wall Pass Rush, but your strong foot is not allowed to touch the ball.','Count every weak-foot pass that hits the wall.'],
+ tips:['Go slower at first. Clean beats fast.','Same technique as your good foot: ankle locked, standing foot pointed at the target.','Coaches notice players who can use both feet.'],
+ diagram:{wall:true,player:[88,98],path:'M84,94 L100,12 L84,94',dur:1.6},
+ plan(a,t){const n=T([null,[8,12,15],[12,18,25],[20,30,40]],a,t);
+  return {seconds:60,target:n,unit:'passes',summary:`${n} weak-foot passes in 60s`,detail:[['Inside of the foot, two touches','Two touches max','One touch, weak foot only'][t]]};}},
+{id:'juggle',name:'Juggle Ladder',skill:'mastery',mode:'count',auto:'juggle',ages:[0,1,2,3],minutes:3,best:true,
+ setup:['Juggle for the whole time. When you drop it, start again.','At the end, enter your best streak.'],
+ tips:['Soft ankle, toes up slightly, hit the ball with your laces.','Keep the ball below your waist so it\'s easier to control.','Little and often: 5 minutes a day adds up fast.'],
+ kid:{name:'Drop, Kick, Catch',steps:['Drop the ball onto your foot.','Kick it up and catch it!'],tip:'Kick it soft, not hard.'},
+ diagram:{player:[100,92],path:'M100,90 L100,46 L100,90',dur:1.2},
+ plan(a,t){const n=T([[2,4,6],[5,10,20],[10,25,40],[20,40,75]],a,t),r=T([['Drop, one kick, catch','Drop, kick, bounce, kick','Kick it up twice before it bounces'],['Bounces allowed','One bounce allowed','No bounces'],['Feet only','Both feet','Both feet and thighs'],['Strong foot and thighs','Alternate feet','Feet, thighs and head']],a,t);
+  return {seconds:120,target:n,unit:'in a row',summary:`Best streak: ${n} in a row`,detail:[r]};}},
+{id:'juggle-check',name:'Juggle & Check',skill:'scanning',mode:'count',auto:'checks',ages:[2,3],minutes:2,
+ setup:['Juggle. Every few juggles, look over one shoulder, then the other.','Count every shoulder check you make without losing the ball.'],
+ tips:['Look up for a split second. Your feet keep working.','Name something you see each time you check. That keeps it honest.','Great midfielders check their shoulders 6–8 times in the 10 seconds before they get the ball.'],
+ diagram:{player:[100,90],looks:true,path:'M100,88 L100,50 L100,88',dur:1.2},
+ plan(a,t){const e=[5,4,3][t],n=T([null,null,[4,8,12],[6,12,18]],a,t);
+  return {seconds:90,target:n,unit:'checks',summary:`${n} shoulder checks in 90s`,detail:[`Check every ${e} juggles`]};}},
+{id:'toe-taps',name:'Toe Taps',skill:'mastery',mode:'count',auto:'taps',ages:[0,1,2],minutes:1,
+ setup:['Put the ball in front of you.','Tap the top of the ball with one foot, then the other, like you\'re running in place.','Count every tap.'],
+ tips:['Stay on the balls of your feet.','Light taps. Don\'t push the ball away.','Look up at the end for a bonus challenge.'],
+ kid:{steps:['Put the ball in front of you.','Tap the top with one foot, then the other!'],tip:'Tiny taps, like the ball is hot.'},
+ diagram:{ballOnly:[100,74],path:'M92,74 L108,74 L92,74',dur:.8},
+ plan(a,t){const n=T([[15,25,35],[30,45,60],[50,70,90],null],a,t);
+  return {seconds:30,target:n,unit:'taps',summary:`${n} taps in 30s`,detail:[['Look at the ball','Try not to look down','Eyes up the whole time'][t]]};}},
+{id:'repeats',name:'Box-to-Box Repeats',skill:'fitness',mode:'intervals',ages:[1,2,3],minutes:5,
+ setup:['Mark two cones about 20 big steps apart.','Sprint hard on GO. Walk or jog back on REST.','Midfielders cover the most ground on the team. Build the engine.'],
+ tips:['Arms drive forward and back, not across your body.','Push hard on the last rep. That\'s where fitness gets built.','Bring a ball at Advanced: dribble the sprints.'],
+ diagram:{cones:[[30,64],[170,64]],player:[30,64],path:'M30,64 L170,64 L30,64',dur:2.4},
+ plan(a,t){const r=T([null,[4,5,6],[5,6,8],[6,8,10]],a,t),w=by([0,8,10,12],a),rest=[25,20,15][t];
+  return {rounds:r,work:w,rest,summary:`${r} sprints · ${w}s on, ${rest}s rest`,detail:[t===2?'Dribble the ball during every sprint':'Full speed on every GO']};}}
+];
+
+/* ---------- Skill moves ladder ----------
+   Level index = age group × 3 + skill level (0 = Little Kickers Beginner … 11 = Teens Advanced).
+   A move unlocks at its "from" level and gets more reps and more speed as you go up. */
+const MOVES=[
+{id:'sole-stop',name:'Sole Stop',from:0,steps:['Dribble forward slowly.','Put the bottom of your foot on top of the ball to stop it.'],tip:'Toes up, heel down, like stepping on a bug gently.'},
+{id:'side-taps',name:'Side-to-Side Taps',from:0,steps:['Stand over the ball.','Tap it from one foot to the other with the insides of your feet.'],tip:'Stay on your tiptoes.'},
+{id:'pull-back',name:'Pull Back',from:1,steps:['Put your foot on top of the ball.','Roll it back toward you.','Turn around and go the other way.'],tip:'Pull the ball back, then turn fast.'},
+{id:'inside-cut',name:'Inside Cut',from:2,steps:['Dribble forward.','Use the inside of your foot to cut the ball across your body.','Go the new way.'],tip:'Plant your other foot just past the ball before you cut.'},
+{id:'outside-cut',name:'Outside Cut',from:3,steps:['Dribble forward.','Use the outside of your foot to push the ball away from your body.','Burst away in that direction.'],tip:'Drop your shoulder the other way first.'},
+{id:'body-feint',name:'Body Feint',from:4,steps:['Dribble toward a cone. That\'s your defender.','Dip your shoulder and lean like you\'re going one way.','Take the ball the other way with the outside of your other foot.'],tip:'Sell it with your upper body. The ball doesn\'t move until the fake is done.'},
+{id:'step-over',name:'Step-Over',from:4,steps:['Dribble toward a cone.','Swing your foot around the front of the ball, inside to outside, without touching it.','Push the ball away with the outside of your other foot.'],tip:'The move is only as good as the burst after it.'},
+{id:'cruyff',name:'Cruyff Turn',from:5,steps:['Fake a pass or shot.','Instead, drag the ball behind your standing leg with the inside of your foot.','Turn and speed away.'],tip:'Make the fake look real: arm out, head down, like you\'re really kicking.'},
+{id:'scissors',name:'Scissors',from:6,steps:['Dribble toward a cone at speed.','Swing your foot around the front of the ball, outside to inside, without touching it.','Take the ball away with the outside of your other foot.'],tip:'It\'s the opposite direction to a step-over. Do it close to the defender.'},
+{id:'croqueta',name:'La Croqueta',from:7,steps:['Ball in front of you, defender ahead.','Push the ball sideways with the inside of one foot.','Catch it with the inside of your other foot in one quick motion and go.'],tip:'Two quick touches, one rhythm: tap-tap. Great for slipping between two defenders in midfield.'},
+{id:'roulette',name:'Roulette (360 Spin)',from:8,steps:['Put your sole on the ball and drag it back as you start to spin.','Keep turning your back to the defender.','Finish by dragging the ball forward with your other sole, then go.'],tip:'Keep your body between the defender and the ball the whole spin.'},
+{id:'chop',name:'Ronaldo Chop',from:9,steps:['Dribble forward with the ball on your right side.','Step past the ball with your left foot.','Use the inside of your right foot to chop the ball behind your left leg and change direction.'],tip:'Use it when a defender is running beside you. They can\'t stop that fast.'},
+{id:'elastico',name:'Elastico',from:10,steps:['Push the ball out with the outside of your foot.','Before your foot lands, snap it back with the inside of the same foot.','Burst away the other way.'],tip:'Start slow, outside then inside, and speed it up until it\'s one motion.'},
+{id:'rainbow',name:'Rainbow Flick',from:11,steps:['Roll the ball up the back of your standing leg with your other foot.','Flick it up with the heel of your standing foot.','The ball arcs over your head. Run onto it.'],tip:'Practice standing still first. Accuracy before speed.'},
+{id:'combo',name:'Combo Chain',from:11,steps:['Step-over, La Croqueta, then Elastico in one run.','Do it through a line of cones without stopping.','Finish with a pass or a shot.'],tip:'In a game, moves are linked. Chain them smoothly at full speed.'}
+];
+/* Videos: add more here. "levels" uses the same 0–11 level index. */
+const VIDEOS=[
+];
+/* The 3 age groups × 3 skill levels = 9 app levels. Each maps onto a point of the 0–11 difficulty
+   scale that drill goals and moves are written against (4–8 uses 0–2, 9–12 uses 4/7/8, 13+ uses 9–11). */
+const SCALE=[0,1,2,4,7,8,9,10,11];
+const appLevel=()=>state.age*3+state.tier;
+const levelIdx=()=>SCALE[appLevel()];
+const oldAT=()=>[Math.floor(levelIdx()/3),levelIdx()%3];
+const levelName=n=>`${AGES[Math.floor(n/3)].name} · ${TIERS[n%3].name}`;
+const unlockLevel=m=>SCALE.findIndex(v=>v>=m.from);
+function movePlan(m){const i=levelIdx(),over=i-m.from;
+  if(state.age===0){const n=[5,8,10][state.tier];return {seconds:45,target:n,unit:'times',summary:`Do it ${n} times`,detail:['Go slow and have fun']};}
+  const each=Math.min(20,5+over*2),speed=['Go slow and get it right','Jogging speed, toward a cone','Full speed at a cone, then explode away'][state.tier];
+  return {seconds:60,target:each*2,unit:'reps',summary:`${each} each foot in 60s`,detail:[speed,over>=3?'Add it to a combo with another move you know':'Count both feet']};}
+function moveAsDrill(m){return {id:'move-'+m.id,name:m.name,skill:'moves',mode:'count',ages:[0,1,2,3],setup:m.steps,tips:[m.tip],plan:()=>movePlan(m)};}
+/* Little Kickers get simpler names, steps and a single tip */
+function view(d){const kid=state.age===0&&d.kid;
+  return {name:(kid&&d.kid.name)||d.name,skill:(kid&&d.kid.skill)||d.skill,setup:kid?d.kid.steps:d.setup,tips:kid?[d.kid.tip]:d.tips};}
+
+/* ---------- State ---------- */
+const KEY='kikup:v2';
+function load(){try{return JSON.parse(localStorage.getItem(KEY))||{}}catch(e){return {}}}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(state))}catch(e){}}
+const state=Object.assign({age:2,tier:2,skill:'all',tab:'drills',stars:{},best:{},streak:0,lastDay:null},load());
+const k=(d)=>`${d.id}|${state.age}|${state.tier}`;
+const dayStr=(dt)=>`${dt.getFullYear()}-${dt.getMonth()+1}-${dt.getDate()}`;
+function bumpStreak(){const today=dayStr(new Date()),y=new Date();y.setDate(y.getDate()-1);
+  if(state.lastDay===today)return; state.streak=state.lastDay===dayStr(y)?(state.streak||0)+1:1; state.lastDay=today;}
+function liveStreak(){const today=dayStr(new Date()),y=new Date();y.setDate(y.getDate()-1);
+  return (state.lastDay===today||state.lastDay===dayStr(y))?state.streak:0;}
+
+/* ---------- Diagrams ---------- */
+const reduceMotion=matchMedia('(prefers-reduced-motion: reduce)').matches;
+function diagram(s){
+  let g=`<rect width="200" height="110" fill="#1D6A3A"/>`;
+  for(let i=0;i<5;i++)g+=`<rect x="${i*40}" y="0" width="20" height="110" fill="#227740"/>`;
+  if(s.wall)g+=`<rect x="24" y="3" width="152" height="8" rx="2" fill="#C9D3CB"/><text x="100" y="22" fill="rgba(255,255,255,.6)" font-size="7" text-anchor="middle" font-family="sans-serif">WALL</text>`;
+  if(s.box){const[x,y,w,h]=s.box;g+=`<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="none" stroke="rgba(255,255,255,.5)" stroke-dasharray="3 3"/>`;[[x,y],[x+w,y],[x,y+h],[x+w,y+h]].forEach(c=>g+=cone(c));}
+  (s.gates||[]).forEach(([a,b,c,d])=>{g+=`<line x1="${a}" y1="${b}" x2="${c}" y2="${d}" stroke="rgba(255,255,255,.45)" stroke-dasharray="2 2"/>`+cone([a,b])+cone([c,d]);});
+  (s.cones||[]).forEach(c=>g+=cone(c));
+  if(s.path)g+=`<path d="${s.path}" fill="none" stroke="rgba(255,255,255,.55)" stroke-width="1.4" stroke-dasharray="4 3"/>`;
+  if(s.looks){const[x,y]=s.player;g+=`<path d="M${x-8},${y-6} L${x-40},${y-22} M${x+8},${y-6} L${x+40},${y-22}" stroke="#FFC633" stroke-width="1.5" stroke-dasharray="2 3"/>`;}
+  (s.defs||[]).forEach(([x,y])=>g+=`<circle cx="${x}" cy="${y}" r="6" fill="#E04848" stroke="#fff" stroke-width="1"/>`);
+  (s.mates||[]).forEach(([x,y],i)=>g+=`<circle cx="${x}" cy="${y}" r="6.5" fill="#F4F8F2"/><text x="${x}" y="${y+2.6}" font-size="7" font-weight="700" text-anchor="middle" fill="#10241A" font-family="sans-serif">${i+1}</text>`);
+  if(s.carrier)g+=`<circle cx="${s.carrier[0]}" cy="${s.carrier[1]}" r="7" fill="#FF8533" stroke="#fff" stroke-width="1.2"/>`;
+  if(s.player)g+=`<circle cx="${s.player[0]}" cy="${s.player[1]+10}" r="7" fill="#FF8533" stroke="#fff" stroke-width="1.2"/><text x="${s.player[0]}" y="${s.player[1]+12.6}" font-size="6.5" font-weight="700" text-anchor="middle" fill="#1A0B00" font-family="sans-serif">YOU</text>`;
+  if(s.phone)g+=`<rect x="${s.phone[0]}" y="${s.phone[1]}" width="12" height="18" rx="2" fill="#10241A" stroke="#fff"/><rect x="${s.phone[0]+2}" y="${s.phone[1]+3}" width="8" height="11" fill="#FF8533"/>`;
+  if(s.path){const start=s.path.match(/M([\d.]+),([\d.]+)/);
+    g+=`<circle r="4" cx="0" cy="0" fill="#fff" stroke="#10241A" stroke-width="1"${reduceMotion?` transform="translate(${start[1]},${start[2]})"`:''}>${reduceMotion?'':`<animateMotion dur="${s.dur||2}s" repeatCount="indefinite" path="${s.path}"/>`}</circle>`;}
+  return `<svg viewBox="0 0 200 110" role="img" aria-label="Drill diagram">${g}</svg>`;
+}
+function cone([x,y]){return `<path d="M${x},${y-4} L${x+3.5},${y+3} L${x-3.5},${y+3} Z" fill="#FF8533"/>`;}
+
+/* ---------- Home ---------- */
+const $=(s,el=document)=>el.querySelector(s);
+const available=()=>DRILLS.filter(d=>d.ages.includes(oldAT()[0]));
+function starsHtml(n){return `<span class="stars" aria-label="${n} of 3 stars">${[1,2,3].map(i=>`<span class="${i<=n?'on':''}">★</span>`).join('')}</span>`;}
+
+function renderHome(){
+  $('#ageSeg').innerHTML=AGES.map((a,i)=>`<button class="opt" data-age="${i}" aria-pressed="${state.age===i}"><strong>${a.name}</strong><small>${a.range}</small></button>`).join('');
+  $('#tierSeg').innerHTML=TIERS.map((t,i)=>`<button class="opt" data-tier="${i}" aria-pressed="${state.tier===i}"><strong>${t.name}</strong><small>${t.blurb}</small></button>`).join('');
+  const lvl=`${AGES[state.age].name} · ${TIERS[state.tier].name}`;
+  $('#pillLevel').textContent=lvl;
+  const total=Object.values(state.stars).reduce((s,n)=>s+n,0);
+  $('#pillStars').textContent=total; $('#pillStreak').textContent=liveStreak();
+  const av=available(), mv=MOVES.filter(m=>m.from<=levelIdx()).map(moveAsDrill), all=[...av,...mv];
+  const max=all.length*3, got=all.reduce((s,d)=>s+(state.stars[k(d)]||0),0);
+  $('#progLabel').textContent=`Stars at ${lvl}`; $('#progNum').textContent=`${got} / ${max}`;
+  $('#progBar').style.width=(max?got/max*100:0)+'%';
+  const lu=$('#levelUp');
+  if(max&&got/max>=.7&&state.tier<2){lu.innerHTML=`<div class="levelup"><span>You've earned ${got} stars. Ready for ${TIERS[state.tier+1].name}?</span><button class="btn-primary" id="luBtn" style="font-size:18px;padding:8px 16px">Move up</button></div>`;
+    $('#luBtn').onclick=()=>{state.tier++;save();renderHome();};}
+  else lu.innerHTML='';
+
+  $('#tabDrills').setAttribute('aria-selected',state.tab==='drills');
+  $('#tabMoves').setAttribute('aria-selected',state.tab==='moves');
+  if(state.tab==='moves'){renderMoves();return;}
+  $('#videoSlot').innerHTML='';
+  $('#secIntro').textContent=state.age===0?'Short, fun drills. Grab a ball and some cones (shoes work too).':'Drills to practice on your own. Tap one to see your goal.';
+  const skillsHere=[...new Set(av.map(d=>view(d).skill))];
+  if(state.skill!=='all'&&!skillsHere.includes(state.skill))state.skill='all';
+  $('#chips').innerHTML=state.age===0?'':[['all','All'],...Object.entries(SKILLS).filter(([s])=>skillsHere.includes(s))].map(([s,n])=>`<button class="chip" data-skill="${s}" aria-pressed="${state.skill===s}">${n}</button>`).join('');
+  const list=av.filter(d=>state.skill==='all'||view(d).skill===state.skill);
+  $('#grid').innerHTML=list.length?list.map(d=>{const p=d.plan(...oldAT()),v=view(d);
+    return `<button class="card" data-id="${d.id}">${diagram(d.diagram)}<div class="card-body"><span class="tag">${SKILLS[v.skill]}${d.interactive?'<span class="badge">On screen</span>':''}${d.auto&&camOK()?'<span class="badge cam-b">Camera counts</span>':''}</span><h3>${v.name}</h3><span class="goal">${p.summary}</span><div class="card-foot"><span>${d.minutes} min</span>${starsHtml(state.stars[k(d)]||0)}</div></div></button>`;}).join('')
+    :`<div class="empty">No drills for this skill at this age yet.</div>`;
+}
+function renderMoves(){
+  const i=levelIdx();
+  $('#chips').innerHTML='';
+  $('#secIntro').textContent=state.age===0?'Fun tricks with the ball. Learn one, then try the next!':`Moves to beat a defender. New ones unlock as you move up, and the moves you already know get faster and harder. Level ${appLevel()+1} of 9.`;
+  const vids=VIDEOS.filter(v=>v.levels.includes(i));
+  $('#videoSlot').innerHTML=vids.map(v=>`<div class="video"><div><h3>${v.title}</h3><p>${v.note}</p></div><a class="btn-primary" href="${v.url}" target="_blank" rel="noopener">▶ Watch on YouTube</a></div>`).join('');
+  const open=MOVES.filter(m=>m.from<=i).sort((a,b)=>b.from-a.from);
+  const next=MOVES.filter(m=>m.from>i).slice(0,2);
+  const dots=m=>{const d=Math.min(5,1+Math.floor(m.from/2.4));return `<span class="dots" aria-label="Difficulty ${d} of 5">${[1,2,3,4,5].map(n=>`<i class="${n<=d?'on':''}"></i>`).join('')}</span>`;};
+  $('#grid').innerHTML=open.map(m=>{const p=movePlan(m),isNew=unlockLevel(m)===appLevel(),d=moveAsDrill(m);
+    return `<button class="move${isNew?' new':''}" data-move="${m.id}"><span class="lv"><span><small>Lvl</small><b>${unlockLevel(m)+1}</b></span></span><span class="tag">${isNew?'New for your level':'Keep it sharp'}</span><h3>${m.name}</h3><span class="goal">${p.summary}</span><span class="foot" style="grid-column:2">${dots(m)}${starsHtml(state.stars[k(d)]||0)}</span></button>`;}).join('')
+    +next.map(m=>`<div class="move locked" aria-disabled="true"><span class="lv"><span><small>Lvl</small><b>${unlockLevel(m)+1}</b></span></span><span class="tag">Locked</span><h3>${m.name}</h3><span class="goal">Unlocks at ${levelName(unlockLevel(m))}</span></div>`).join('');
+}
+function openMove(m){openSheet(moveAsDrill(m),m);}
+document.addEventListener('click',e=>{
+  const tb=e.target.closest('[data-tab]'); if(tb){state.tab=tb.dataset.tab;save();renderHome();return;}
+  const mv=e.target.closest('[data-move]'); if(mv){openMove(MOVES.find(m=>m.id===mv.dataset.move));return;}
+  const a=e.target.closest('[data-age]'); if(a){state.age=+a.dataset.age;save();renderHome();return;}
+  const t=e.target.closest('[data-tier]'); if(t){state.tier=+t.dataset.tier;save();renderHome();return;}
+  const s=e.target.closest('[data-skill]'); if(s){state.skill=s.dataset.skill;save();renderHome();return;}
+  const c=e.target.closest('.card'); if(c){openSheet(DRILLS.find(d=>d.id===c.dataset.id));}
+});
+
+/* ---------- Drill sheet ---------- */
+function openSheet(d,move){
+  const p=d.plan(...oldAT()),v=move?{name:d.name,setup:d.setup,tips:d.tips}:view(d),kid=state.age===0;
+  const vids=move?VIDEOS.filter(x=>x.levels.includes(levelIdx())):[];
+  const top=move?`<div class="sheet-top" style="height:56px"><button class="x" id="sheetX" aria-label="Close" style="background:var(--surface-2);color:var(--ink)">✕</button></div>`
+    :`<div class="sheet-top">${diagram(d.diagram)}<button class="x" id="sheetX" aria-label="Close">✕</button></div>`;
+  $('#sheetInner').innerHTML=`${top}
+  <div class="sheet-in">
+    <div><span class="tag">${move?`Skill move · Level ${unlockLevel(move)+1}`:`${SKILLS[view(d).skill]} · ${d.minutes} min${d.interactive?' · on screen':' · on the field'}`}</span><h2 id="sheetTitle">${v.name}</h2></div>
+    <div class="goalbox"><span class="lbl">Your goal · ${AGES[state.age].name}, ${TIERS[state.tier].name}</span><span class="big">${p.summary}</span><ul>${p.detail.map(x=>`<li>${x}</li>`).join('')}</ul><span>Your best: ${starsHtml(state.stars[k(d)]||0)}</span></div>
+    <div><h3>${kid?'What to do':'How to do it'}</h3><ol>${v.setup.map(x=>`<li>${x}</li>`).join('')}</ol></div>
+    <div><h3>${kid?'Tip':'Coaching points'}</h3><ul>${v.tips.map(x=>`<li>${x}</li>`).join('')}</ul></div>
+    ${vids.map(x=>`<a class="btn-ghost" style="text-align:center;text-decoration:none;color:var(--ink)" href="${x.url}" target="_blank" rel="noopener">▶ Watch the ${x.title.toLowerCase()} on YouTube</a>`).join('')}
+    <button class="btn-primary" id="startBtn">${kid?'Let\'s go!':move?'Start practice':'Start drill'}</button>
+    ${canFeedback(d)?'<button class="btn-ghost fb-link" id="fbSheet">Film it &amp; get coach feedback</button>':''}
+    ${vids.length?'':`<p class="note">Video demo coming soon. Film yourself doing this ${move?'move':'drill'} and we'll add it here.</p>`}
+  </div>`;
+  $('#sheet').hidden=false;
+  $('#sheetX').onclick=closeSheet;
+  $('#startBtn').onclick=()=>{closeSheet();startRun(d);};
+  if($('#fbSheet'))$('#fbSheet').onclick=()=>openFeedback(d,'');
+  $('#startBtn').focus({preventScroll:true});
+}
+function closeSheet(){$('#sheet').hidden=true;}
+$('#sheet').addEventListener('click',e=>{if(e.target.id==='sheet')closeSheet();});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){if(!$('#runner').hidden)closeRunner();else closeSheet();}});
+
+/* ---------- Session helpers ---------- */
+const body=$('#runBody');
+let S={timeouts:[],intervals:[],raf:0,lock:null};
+let sound=true, actx=null;
+function later(fn,ms){S.timeouts.push(setTimeout(fn,ms));}
+function every(fn,ms){S.intervals.push(setInterval(fn,ms));}
+function endSession(){try{S.cam&&S.cam.close();}catch(e){}S.timeouts.forEach(clearTimeout);S.intervals.forEach(clearInterval);cancelAnimationFrame(S.raf);
+  try{S.lock&&S.lock.release();}catch(e){} S={timeouts:[],intervals:[],raf:0,lock:null,cam:null};}
+function beep(f=880,dur=.12){if(!sound)return;try{actx=actx||new (window.AudioContext||window.webkitAudioContext)();
+  const o=actx.createOscillator(),g=actx.createGain();o.frequency.value=f;o.connect(g);g.connect(actx.destination);
+  g.gain.setValueAtTime(.25,actx.currentTime);g.gain.exponentialRampToValueAtTime(.001,actx.currentTime+dur);o.start();o.stop(actx.currentTime+dur);}catch(e){}}
+const fmt=s=>{s=Math.max(0,Math.ceil(s));return `${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`;};
+function setSound(on){sound=on;$('#runSound').textContent=`Sound: ${on?'on':'off'}`;}
+$('#runSound').onclick=()=>setSound(!sound);
+$('#runClose').onclick=closeRunner;
+
+function startRun(d){
+  endSession();
+  $('#runner').hidden=false; $('#runTitle').textContent=view(d).name;
+  try{actx=actx||new (window.AudioContext||window.webkitAudioContext)();actx.resume&&actx.resume();}catch(e){}
+  try{navigator.wakeLock&&navigator.wakeLock.request('screen').then(l=>S.lock=l).catch(()=>{});}catch(e){}
+  const p=d.plan(...oldAT());
+  setSound(d.mode!=='scan'||state.age===0);
+  ({gap:runGap,scan:runScan,count:runCount,intervals:runIntervals})[d.mode](d,p);
+}
+function closeRunner(){endSession();$('#runner').hidden=true;body.innerHTML='';renderHome();}
+function countdown(cb){const el=document.createElement('div');el.className='cd';body.appendChild(el);let n=3;
+  const step=()=>{if(n===0){el.remove();beep(1320,.25);cb();return;}el.textContent=n;beep(660);n--;later(step,800);};step();}
+
+function showResult(d,stars,headline,lines){
+  const key=k(d),prev=state.stars[key]||0; state.stars[key]=Math.max(prev,stars); bumpStreak(); save();
+  body.innerHTML=`<div class="run-center result">
+    <div class="stars-big">${[1,2,3].map(i=>`<span class="${i<=stars?'on':''}">★</span>`).join('')}</div>
+    <h2>${headline}</h2>${lines.map(l=>`<p>${l}</p>`).join('')}
+    ${stars>prev&&prev>0?'<p class="pb">New best for this level!</p>':''}
+    ${canFeedback(d)?'<button class="btn-primary" id="fbGo">Film it &amp; get coach feedback</button>':''}
+    <div class="count-row"><button class="btn-ghost" id="again">Go again</button><button class="${canFeedback(d)?'btn-ghost':'btn-primary'}" id="done">Back to drills</button></div></div>`;
+  $('#again').onclick=()=>startRun(d); $('#done').onclick=closeRunner;
+  if(canFeedback(d))$('#fbGo').onclick=()=>openFeedback(d,lines[0]);
+}
+
+/* ---------- Coach feedback (record a clip → frames → Claude) ---------- */
+let SAMPLE=null,IMG=null;
+(async()=>{try{if(!window.claude||!claude.use)return;const s=await claude.use('sample');if(!s)return;
+  const lim=await s.limits().catch(()=>null);if(lim&&lim.images){SAMPLE=s;IMG=lim.images;}}catch(e){}})();
+const canFeedback=d=>!!SAMPLE&&d.mode!=='gap';
+function videoFrames(file,n){return new Promise((res,rej)=>{
+  const url=URL.createObjectURL(file),v=document.createElement('video');let finished=false;
+  const fail=()=>{if(finished)return;finished=true;URL.revokeObjectURL(url);rej(new Error('video'));};
+  const timer=setTimeout(fail,20000);
+  v.muted=true;v.playsInline=true;v.preload='auto';v.onerror=fail;
+  v.onloadeddata=async()=>{try{
+    const dur=v.duration;if(!isFinite(dur)||dur<=0||!v.videoWidth)throw 0;
+    const sc=Math.min(1,720/Math.max(v.videoWidth,v.videoHeight)),c=document.createElement('canvas');
+    c.width=Math.round(v.videoWidth*sc);c.height=Math.round(v.videoHeight*sc);const ctx=c.getContext('2d'),out=[];
+    for(let i=0;i<n;i++){await new Promise(r=>{v.onseeked=r;v.currentTime=Math.min(dur-0.05,dur*(i+.5)/n);});
+      ctx.drawImage(v,0,0,c.width,c.height);out.push(await new Promise(r=>c.toBlob(r,'image/jpeg',.82)));}
+    finished=true;clearTimeout(timer);URL.revokeObjectURL(url);res({frames:out.filter(Boolean),dur});
+  }catch(e){clearTimeout(timer);fail();}};
+  v.src=url;});}
+function feedbackPrompt(d,info,n,dur){const v=view(d),p=d.plan(...oldAT()),kid=state.age===0;
+  return `You are a friendly, expert youth soccer coach giving feedback to one player.
+Player: ${AGES[state.age].name} (${AGES[state.age].range}), skill level ${TIERS[state.tier].name}.
+Drill: ${v.name}
+Their goal at this level: ${p.summary}. ${p.detail.join('. ')}
+How the drill works: ${v.setup.join(' ')}
+Coaching points for this drill: ${v.tips.join(' ')}
+${info?`Their result today: ${info}`:''}
+
+The ${n} images are still frames, in time order, from a ${dur?Math.round(dur)+'-second ':''}clip of the player doing this drill.
+Look closely at body position, which part of the foot touches the ball, how close the ball stays, balance, head position (are they looking up?) and use of both feet. Comment only on what you can actually see in the frames. If the frames don't show the drill clearly (too far, too dark, ball or feet out of shot), say so and say exactly how to film it better instead of guessing.
+
+Talk straight to the player${kid?' in very simple words a 5-year-old understands, short sentences, lots of encouragement':state.age===1?' in plain, encouraging words for a 9-12 year old':' like a good club coach talks to a serious teen player: direct and specific'}.
+Format: three sections, each heading alone on its own line, exactly: "What you did well", "Fix next", "Remember". Under the first two, 1-2 lines each starting with "- ". Under "Remember", one short cue to say in their head. No other markdown. Under ${kid?'80':'150'} words.`;}
+function renderFb(el,text){el.innerHTML='';text.split('\n').forEach(line=>{const t=line.trim().replace(/^#+\s*/,'').replace(/\*\*/g,'');if(!t)return;
+  const h=/^(what you did well|fix next|remember)\s*:?$/i.test(t),e=document.createElement(h?'h4':'p');e.textContent=h?t.replace(/:$/,''):t;el.appendChild(e);});}
+const fbError=c=>({rate_limited:'Too many requests right now. Try again in a few minutes.',image_rejected:'That file didn\'t work. Try a shorter video, or a few photos.',refused:'Couldn\'t give feedback on that clip. Try a different one.',session_expired:'Please sign in to Claude again, then retry.',empty_completion:'No feedback came back. Try a clearer clip.'})[c]
+  ||(['not_granted','sampling_disabled','not_declared','capability_disabled','capability_removed','images_unavailable'].includes(c)?'Coach feedback is turned off for this page. You can turn it on from the page\'s Permissions menu.':'Something went wrong. Try again.');
+function openFeedback(d,info){
+  endSession();closeSheet();$('#runner').hidden=false;$('#runTitle').textContent='Coach feedback';
+  const v=view(d),kid=state.age===0,max=Math.min(8,IMG?IMG.maxCount:8);
+  body.innerHTML=`<div class="run-center fb">
+    <h2>${v.name}</h2>
+    <p class="run-goal">Record 10–20 seconds of the drill. Film from the side, about 4 big steps away, with your whole body and the ball in the shot.${kid?' A grown-up should do the filming.':' Prop the phone up or ask someone to film.'}</p>
+    <div class="fb-btns">
+      <label class="btn-primary" for="fbRec">Record a video</label>
+      <label class="btn-ghost" for="fbPick">Choose a video or photos</label>
+    </div>
+    <input type="file" id="fbRec" accept="video/*" capture="environment" hidden>
+    <input type="file" id="fbPick" accept="video/*,image/jpeg,image/png,image/webp" multiple hidden>
+    <p class="run-goal small">The app sends ${max} still frames from your clip to Claude, using your Claude account. The video itself stays on this device. Keep counting reps with the +1 button. The camera doesn't count them.</p>
+    <div class="thumbs" id="fbThumbs"></div>
+    <div class="fb-out" id="fbOut" hidden></div>
+    <div class="count-row"><button class="btn-ghost" id="fbStop" hidden>Stop</button><button class="btn-ghost" id="fbBack">Back to drills</button></div></div>`;
+  $('#fbBack').onclick=closeRunner;
+  let ctl=null;$('#fbStop').onclick=()=>ctl&&ctl.abort();
+  const handle=async files=>{
+    files=[...files];if(!files.length)return;const out=$('#fbOut');out.hidden=false;out.innerHTML='<p class="thinking">Getting frames from your clip…</p>';
+    let frames=files.filter(f=>f.type.startsWith('image/')).slice(0,max),dur=0;
+    const vid=files.find(f=>f.type.startsWith('video/'));
+    if(vid&&frames.length<max){try{const r=await videoFrames(vid,max-frames.length);frames=frames.concat(r.frames);dur=r.dur;}
+      catch(e){if(!frames.length){out.innerHTML='<p>Couldn\'t read that video on this device. Try a few photos instead.</p>';return;}}}
+    if(!frames.length){out.innerHTML='<p>Pick a video or some photos of the drill.</p>';return;}
+    $('#fbThumbs').innerHTML='';frames.forEach(b=>{const i=document.createElement('img');i.alt='Frame from your clip';i.src=URL.createObjectURL(b);$('#fbThumbs').appendChild(i);});
+    out.innerHTML='<p class="thinking">Coach is watching your clip… this can take up to a minute.</p>';
+    ctl=new AbortController();$('#fbStop').hidden=false;
+    try{const {text}=await SAMPLE(feedbackPrompt(d,info,frames.length,dur),{images:frames,signal:ctl.signal,cache:false,onText:({text})=>renderFb(out,text)});renderFb(out,text);}
+    catch(e){if(e&&e.code==='cancelled'){if(e.text)renderFb(out,e.text);else out.innerHTML='<p>Stopped.</p>';}
+      else{if(e&&e.text&&e.code!=='refused')renderFb(out,e.text);else out.innerHTML='';const p=document.createElement('p');p.textContent=fbError(e&&e.code);out.appendChild(p);}}
+    finally{$('#fbStop').hidden=true;}
+  };
+  $('#fbRec').onchange=e=>handle(e.target.files);
+  $('#fbPick').onchange=e=>handle(e.target.files);
+}
+const headline=s=>['','Good work. Keep at it.','So close!','Goal crushed!'][s];
+
+/* ---------- Count mode ---------- */
+const CAM_HOW={
+  trips:'Put the phone off to one side, far enough back that the whole line of cones fits in the picture.',
+  touches:'Put the phone 3–4 big steps away so your whole body and the box fit in the picture.',
+  kicks:'Put the phone off to the side, 3–4 big steps away, so your whole body and the ball fit in the picture.',
+  juggle:'Put the phone 3–4 big steps away, facing you, so your whole body and the ball fit in the picture.',
+  checks:'Put the phone 3–4 big steps away, facing you, so your head and shoulders are clearly in view.',
+  taps:'Put the phone 2–3 big steps away so your whole body and the ball are in the picture.'};
+const camOK=()=>!!(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia)&&!window.claude;
+function runCount(d,p){
+  let count=0,phase='ready',endAt=0,lastAuto=0,cam=null,camOn=false;
+  const label=d.best?'Best streak':'Count',auto=d.auto&&camOK();
+  body.innerHTML=`<div class="run-center">
+    <div class="run-goal">Goal: <b>${p.target} ${p.unit}</b>${d.best?` · ${fmt(p.seconds)} to try`:` in ${fmt(p.seconds)}`}</div>
+    ${auto?`<div class="cam-box" id="camBox" hidden>
+      <div class="cam"><video id="camVideo" playsinline muted></video><canvas id="camCanvas"></canvas>
+        <div class="cam-hud"><span class="cam-count" id="camCount">0</span><span class="cam-clock" id="camClock">${fmt(p.seconds)}</span></div>
+        <div class="cam-sub" id="camSub" hidden></div></div>
+      <div class="cam-status"><span class="dot" id="dotBody">Body</span>${d.auto!=='trips'&&d.auto!=='checks'?'<span class="dot" id="dotBall">Ball</span>':''}<span id="camMsg">Starting camera…</span></div>
+      <div class="cam-opts">
+        <button class="btn-ghost" id="camFlip">Use back camera</button>
+        ${d.weak?`<button class="btn-ghost" id="camFoot">Weak foot: ${state.weakFoot==='r'?'Right':'Left'}</button>`:''}
+      </div></div>`:''}
+    <div class="std" id="std">
+      <div class="clock" id="clock">${fmt(p.seconds)}</div>
+      <div class="count-label">${label}</div>
+      <div class="count-num" id="cnt">0</div>
+    </div>
+    <div class="count-row">
+      <button class="btn-ghost round" id="minus" aria-label="Take one away">−1</button>
+      <button class="tap" id="plus" aria-label="Add one">+1</button>
+      <button class="btn-ghost round" id="plus5" aria-label="Add five"${state.age===0?' hidden':''}>+5</button>
+    </div>
+    <p class="run-goal" id="hint">${state.age===0?'Tap +1 every time you do it!':d.best?'Juggle, then enter your best streak here.':'Tap +1 as you go, or count in your head and enter it at the end.'}</p>
+    ${auto?`<button class="btn-ghost cam-toggle" id="camToggle">Count with camera</button>`:''}
+    <button class="btn-primary big" id="go">Start</button></div>`;
+  const upd=()=>{$('#cnt').textContent=count;const cc=$('#camCount');if(cc)cc.textContent=count;};
+  const setClock=txt=>{const k=$('#clock');if(k)k.textContent=txt;const c=$('#camClock');if(c)c.textContent=txt;};
+  $('#plus').onclick=()=>{count++;upd();};
+  $('#plus5').onclick=()=>{count+=5;upd();};
+  $('#minus').onclick=()=>{count=Math.max(0,count-1);upd();};
+
+  const pulse=()=>{const el=$('#camCount');if(!el)return;el.classList.remove('pop');void el.offsetWidth;el.classList.add('pop');};
+  async function startCam(facing){
+    if(cam){cam.close();cam=null;}
+    $('#camMsg').textContent='Starting camera…';
+    try{
+      const mod=await import('./js/camera.js');
+      cam=new mod.LiveCounter({video:$('#camVideo'),canvas:$('#camCanvas'),kind:d.auto,facing,
+        opts:d.weak?{foot:state.weakFoot||'l'}:{},
+        onStatus:st=>{const m=$('#camMsg');if(!m)return;if(st.text)m.textContent=st.text;
+          if('body' in st){$('#dotBody').classList.toggle('on',st.body);const db=$('#dotBall');if(db&&st.ball!==null)db.classList.toggle('on',st.ball);
+            const ok=st.body&&st.ball!==false;
+            if(phase==='ready')m.textContent=ok?'Ready! Tap Start.':CAM_HOW[d.auto];
+            else if(phase==='run')m.textContent=ok?'Counting…':(st.body?'Can\'t see the ball. ':'Can\'t see you. ')+CAM_HOW[d.auto];}},
+        onCount:r=>{if(!$('#cnt'))return;if(r.count>lastAuto){count+=r.count-lastAuto;lastAuto=r.count;upd();pulse();beep(1250,.05);}
+          const sub=$('#camSub');if(sub&&d.auto==='juggle'){sub.hidden=false;sub.textContent=`Streak ${r.streak}`;}}});
+      S.cam=cam;
+      await cam.open();
+      if(phase==='run'){lastAuto=0;cam.setCounting(true);}
+    }catch(e){
+      const denied=e&&(e.name==='NotAllowedError'||e.name==='SecurityError');
+      $('#camMsg').textContent=denied?'Camera blocked. Allow camera access for this site in your browser settings, then try again.':'The camera counter couldn\'t start on this device. You can still count with +1.';
+    }
+  }
+  if(auto){
+    let facing='user';
+    $('#camToggle').onclick=()=>{camOn=!camOn;$('#camBox').hidden=!camOn;$('#std').hidden=camOn;
+      $('#camToggle').textContent=camOn?'Turn camera off':'Count with camera';
+      $('#hint').textContent=camOn?'The camera counts for you. Use +1 or −1 to fix any misses.':'Tap +1 as you go, or count in your head and enter it at the end.';
+      if(camOn)startCam(facing);else if(cam){cam.close();cam=null;S.cam=null;}};
+    $('#camFlip').onclick=()=>{facing=facing==='user'?'environment':'user';$('#camFlip').textContent=facing==='user'?'Use back camera':'Use front camera';startCam(facing);};
+    if(d.weak)$('#camFoot').onclick=()=>{state.weakFoot=state.weakFoot==='r'?'l':'r';save();$('#camFoot').textContent=`Weak foot: ${state.weakFoot==='r'?'Right':'Left'}`;if(camOn)startCam(facing);};
+  }
+  const finish=()=>{S.intervals.forEach(clearInterval);S.intervals=[];if(cam){cam.close();cam=null;S.cam=null;}const st=count>=p.target?3:count>=p.target*.7?2:1;
+    showResult(d,st,headline(st),[`${count} ${p.unit}. Goal was ${p.target}.`]);};
+  $('#go').onclick=()=>{
+    if(phase==='ready'){phase='count';$('#go').hidden=true;const ct=$('#camToggle');if(ct)ct.hidden=true;
+      countdown(()=>{phase='run';$('#go').hidden=false;$('#go').textContent='Finish early';endAt=performance.now()+p.seconds*1000;
+      if(cam){lastAuto=0;cam.setCounting(true);$('#camMsg').textContent='Counting…';}
+      every(()=>{const left=(endAt-performance.now())/1000;
+        if(left<=3.05&&left>0&&Math.ceil(left)!==S.lastTick){S.lastTick=Math.ceil(left);beep(700,.08);}
+        if(left<=0){S.intervals.forEach(clearInterval);S.intervals=[];phase='done';setClock('Time!');beep(1000,.5);
+          if(cam){cam.setCounting(false);}
+          $('#go').textContent='Save score';$('#hint').textContent=`Fix your count if you need to, then save.`;}
+        else setClock(fmt(left));},150);});}
+    else if(phase==='run'||phase==='done')finish();
+  };
+}
+
+/* ---------- Intervals mode ---------- */
+function runIntervals(d,p){
+  body.innerHTML=`<div class="run-center"><div class="run-goal"><b>${p.rounds} sprints</b> · ${p.work}s on, ${p.rest}s rest</div>
+    <ol class="run-steps">${view(d).setup.map(x=>`<li>${x}</li>`).join('')}</ol>
+    <button class="btn-primary big" id="go">Start</button></div>`;
+  $('#go').onclick=()=>countdown(()=>{
+    body.insertAdjacentHTML('beforeend','');
+    let round=1,work=true,endAt=performance.now()+p.work*1000;
+    const view=()=>{body.querySelector('.run-center')?.remove();body.insertAdjacentHTML('afterbegin',`<div class="run-center"><div class="run-goal">Sprint <b>${round}</b> of ${p.rounds}</div><div class="phase ${work?'go':'rest'}"><span class="p">${work?'GO!':'Rest'}</span><span class="clock" id="clock">${fmt(work?p.work:p.rest)}</span></div><p class="run-goal">${work?'Full speed!':'Walk back and breathe.'}</p></div>`);};
+    view();
+    every(()=>{const left=(endAt-performance.now())/1000;
+      if(left<=3.05&&left>0&&Math.ceil(left)!==S.lastTick){S.lastTick=Math.ceil(left);beep(700,.08);}
+      if(left<=0){
+        if(work&&round>=p.rounds){endSession();beep(1320,.5);showResult(d,3,'Engine built!',[`${p.rounds} sprints done.`]);return;}
+        if(work){work=false;endAt=performance.now()+p.rest*1000;beep(500,.3);}
+        else{work=true;round++;endAt=performance.now()+p.work*1000;beep(1320,.3);}
+        view();
+      } else {const c=$('#clock');if(c)c.textContent=fmt(left);}
+    },150);
+  });
+}
+
+/* ---------- Scan mode ---------- */
+function runScan(d,p){
+  body.innerHTML=`<div class="run-center"><div class="run-goal"><b>${p.summary}</b></div>
+    <p>${p.detail[0]}</p>
+    <ol class="run-steps">${view(d).setup.map(x=>`<li>${x}</li>`).join('')}</ol>
+    <p class="run-goal">Sound is off so you have to look. Turn it on at the top if you want a beep with each cue.</p>
+    <button class="btn-primary big" id="go">Start</button></div>`;
+  $('#go').onclick=()=>{body.innerHTML='';countdown(()=>{
+    body.innerHTML=`<div class="cue-stage" id="stage"><div class="cue" id="cue"></div></div><div class="cue-time" id="ct"></div>`;
+    const stage=$('#stage'),cue=$('#cue'),endAt=performance.now()+p.dur*1000;
+    let last='';
+    const arrows=['←','→','↑'];
+    const show=()=>{
+      if(p.mode==='traffic'){const go=last!=='go';last=go?'go':'stop';stage.className='cue-stage '+last;cue.textContent=go?'GO':'STOP';beep(go?1100:400,.15);}
+      else{let a;do{a=arrows[Math.floor(Math.random()*3)];}while(a===last&&Math.random()<.6);last=a;
+        cue.innerHTML=p.mode==='arrownum'?`${a}<small>${1+Math.floor(Math.random()*5)}</small>`:a;
+        stage.className='cue-stage flash';beep(990,.1);
+        later(()=>{stage.className='cue-stage';cue.innerHTML='';},p.show);}
+      const g=(p.gap[0]+Math.random()*(p.gap[1]-p.gap[0]))*1000;
+      later(show,g+(p.show||0));
+    };
+    if(p.mode==='traffic'){stage.className='cue-stage go';cue.textContent='GO';last='go';later(show,p.gap[0]*1000);}
+    else later(show,1500);
+    every(()=>{const left=(endAt-performance.now())/1000;$('#ct').textContent=fmt(left);
+      if(left<=0){endSession();beep(1000,.5);
+        body.innerHTML=`<div class="run-center"><h2 style="font-size:40px;text-transform:uppercase">Time!</h2><p>How many cues did you react to correctly?</p>
+        <div class="rate"><button data-r="3">Almost all of them</button><button data-r="2">About half</button><button data-r="1">Missed a lot</button></div></div>`;
+        body.querySelectorAll('[data-r]').forEach(b=>b.onclick=()=>{const st=+b.dataset.r;showResult(d,st,headline(st),[st===3?'Your scanning is sharp. Try the next level up.':'Glance at the screen earlier, before the ball arrives.']);});}
+    },200);
+  });};
+}
+
+/* ---------- Find the Gap ---------- */
+const dist=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+function segInfo(a,b,p){const dx=b.x-a.x,dy=b.y-a.y,L=dx*dx+dy*dy;let t=((p.x-a.x)*dx+(p.y-a.y)*dy)/L;const tc=clamp(t,0,1);
+  return {t,d:Math.hypot(p.x-(a.x+dx*tc),p.y-(a.y+dy*tc))};}
+function evaluate(c,mates,defs){return mates.map(m=>{let lane=.3,space=.3;
+  defs.forEach(d=>{const s=segInfo(c,m,d);if(s.t>.06&&s.t<.97)lane=Math.min(lane,s.d);space=Math.min(space,dist(d,m));});
+  const laneOpen=lane>.06,free=space>.075,open=laneOpen&&free;
+  return {lane,space,laneOpen,free,open,score:Math.min(lane,space)+.12*(c.y-m.y)+(open?.2:0)};});}
+function genScenario(p){
+  let fallback=null;
+  for(let tries=0;tries<400;tries++){
+    const c={x:.3+Math.random()*.4,y:.87},mates=[];let g=0;
+    while(mates.length<p.mates&&g++<300){const m={x:.1+Math.random()*.8,y:.12+Math.random()*.56};
+      if(dist(m,c)<.3||mates.some(o=>dist(o,m)<.22))continue;mates.push(m);}
+    if(mates.length<p.mates)continue;
+    const defs=[];g=0;
+    while(defs.length<p.defs&&g++<400){const r=Math.random(),m=mates[Math.floor(Math.random()*mates.length)];let d;
+      if(r<.45){const tt=.3+Math.random()*.45,L=dist(m,c),nx=-(m.y-c.y)/L,ny=(m.x-c.x)/L,off=(Math.random()*2-1)*.05;
+        d={x:c.x+(m.x-c.x)*tt+nx*off,y:c.y+(m.y-c.y)*tt+ny*off};}
+      else if(r<.8){const an=Math.random()*Math.PI*2,rr=.045+Math.random()*.07;d={x:m.x+Math.cos(an)*rr,y:m.y+Math.sin(an)*rr};}
+      else d={x:.08+Math.random()*.84,y:.1+Math.random()*.66};
+      d.x=clamp(d.x,.05,.95);d.y=clamp(d.y,.05,.8);
+      if(dist(d,c)<.13||defs.some(o=>dist(o,d)<.07)||mates.some(o=>dist(o,d)<.05))continue;defs.push(d);}
+    const ev=evaluate(c,mates,defs),order=ev.map((e,i)=>i).sort((a,b)=>ev[b].score-ev[a].score),best=order[0];
+    const sc={c,mates,defs,ev,best};
+    if(!ev[best].open)continue;
+    fallback=fallback||sc;
+    if(ev[best].score-ev[order[1]].score<.03)continue;
+    if(p.defs>=3&&ev.every(e=>e.open))continue;
+    return sc;
+  }
+  return fallback||genScenario({...p,defs:Math.max(1,p.defs-1)});
+}
+function runGap(d,p){
+  body.innerHTML=`<div class="run-center"><div class="run-goal"><b>${p.summary}</b> · ${p.detail[0]}</div>
+    <ol class="run-steps">${view(d).setup.map(x=>`<li>${x}</li>`).join('')}</ol>
+    <div class="legend"><span style="--c:#FF8533">You</span><span style="--c:#F4F8F2">Teammate</span><span style="--c:#E04848">Defender</span></div>
+    <button class="btn-primary big" id="go">Start</button></div>`;
+  $('#go').onclick=()=>{body.innerHTML='';countdown(play);};
+  function play(){
+    let round=0,score=0,sc=null,state2='play',tStart=0,picked=null;
+    body.innerHTML=`<div class="run-center" style="gap:10px">
+      <div class="gap-hud"><span>Round <b id="rd">1</b> / ${p.rounds}</span><span>Correct <b id="sc">0</b></span></div>
+      <canvas class="gap-canvas" id="cv"></canvas>
+      <div class="timebar"><i id="tb"></i></div>
+      <div class="gap-msg" id="msg">Tap your best pass.</div></div>`;
+    const cv=$('#cv'),ctx=cv.getContext('2d'),dpr=window.devicePixelRatio||1;
+    const availH=Math.max(260,body.clientHeight-170);
+    const W=Math.min(460,body.clientWidth-8,availH/1.2),H=W*1.2;
+    cv.style.width=W+'px';cv.style.height=H+'px';cv.width=W*dpr;cv.height=H*dpr;ctx.scale(dpr,dpr);
+    const X=x=>x*W,Y=y=>y*H,R=W*.036;
+    function draw(){
+      for(let i=0;i<8;i++){ctx.fillStyle=i%2?'#227740':'#1D6A3A';ctx.fillRect(0,i*H/8,W,H/8+1);}
+      ctx.strokeStyle='rgba(255,255,255,.55)';ctx.lineWidth=2;
+      ctx.strokeRect(X(.2),-2,X(.6),Y(.17));ctx.strokeRect(X(.36),-2,X(.28),Y(.06));
+      ctx.beginPath();ctx.arc(X(.5),Y(.17),X(.1),0,Math.PI);ctx.stroke();
+      ctx.beginPath();ctx.moveTo(0,H-1);ctx.lineTo(W,H-1);ctx.stroke();
+      ctx.beginPath();ctx.arc(X(.5),H,X(.15),Math.PI,0);ctx.stroke();
+      if(state2==='reveal'){sc.mates.forEach((m,i)=>{const e=sc.ev[i];
+        ctx.beginPath();ctx.moveTo(X(sc.c.x),Y(sc.c.y));ctx.lineTo(X(m.x),Y(m.y));
+        ctx.setLineDash(i===sc.best?[]:[6,5]);ctx.lineWidth=i===sc.best?4:2.5;
+        ctx.strokeStyle=i===sc.best?'#5BE08F':e.open?'rgba(255,255,255,.55)':'#FF6B6B';ctx.stroke();});ctx.setLineDash([]);}
+      sc.defs.forEach(d=>{ctx.beginPath();ctx.arc(X(d.x),Y(d.y),R,0,7);ctx.fillStyle='#E04848';ctx.fill();ctx.lineWidth=2;ctx.strokeStyle='#fff';ctx.stroke();});
+      sc.mates.forEach((m,i)=>{ctx.beginPath();ctx.arc(X(m.x),Y(m.y),R*1.1,0,7);ctx.fillStyle='#F4F8F2';ctx.fill();
+        if(state2==='reveal'&&picked===i){ctx.lineWidth=3;ctx.strokeStyle=i===sc.best?'#5BE08F':'#FFC633';ctx.beginPath();ctx.arc(X(m.x),Y(m.y),R*1.7,0,7);ctx.stroke();}
+        ctx.fillStyle='#10241A';ctx.font=`700 ${R*1.1}px Figtree, sans-serif`;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(i+1,X(m.x),Y(m.y)+1);});
+      ctx.beginPath();ctx.arc(X(sc.c.x),Y(sc.c.y),R*1.15,0,7);ctx.fillStyle='#FF8533';ctx.fill();ctx.lineWidth=2;ctx.strokeStyle='#fff';ctx.stroke();
+      ctx.beginPath();ctx.arc(X(sc.c.x)+R*1.2,Y(sc.c.y)-R*.9,R*.5,0,7);ctx.fillStyle='#fff';ctx.fill();ctx.strokeStyle='#10241A';ctx.lineWidth=1.5;ctx.stroke();
+    }
+    function next(){
+      if(round>=p.rounds){endSession();const st=score>=8?3:score>=6?2:1;
+        showResult(d,st,headline(st),[`${score} of ${p.rounds} correct.`,st<3?'Tip: find the open lane first, then check the receiver has space.':'Your picture of the field is sharp. Try the next level.']);return;}
+      round++;$('#rd').textContent=round;sc=genScenario(p);state2='play';picked=null;
+      $('#msg').className='gap-msg';$('#msg').textContent='Tap your best pass.';
+      draw();tStart=performance.now();
+      const loop=()=>{if(state2!=='play')return;const f=1-(performance.now()-tStart)/(p.secs*1000);
+        $('#tb').style.width=Math.max(0,f*100)+'%';if(f<=0){answer(null);return;}S.raf=requestAnimationFrame(loop);};
+      S.raf=requestAnimationFrame(loop);
+    }
+    function answer(i){
+      state2='reveal';picked=i;cancelAnimationFrame(S.raf);const m=$('#msg');
+      if(i===sc.best){score++;$('#sc').textContent=score;beep(1200,.12);m.className='gap-msg ok';m.textContent='Yes! Open lane and space to receive.';}
+      else{beep(300,.2);m.className='gap-msg no';const b=sc.best+1;
+        if(i===null)m.textContent=`Too slow. In a game the gap closes. #${b} was on.`;
+        else{const e=sc.ev[i];m.textContent=!e.laneOpen?`That lane is blocked. #${b} was the pass.`:!e.free?`Open lane, but #${i+1} is marked. #${b} was free.`:`That works, but #${b} was more open or further forward.`;}}
+      m.textContent+=' Tap the field for next.';
+      draw();
+    }
+    cv.addEventListener('pointerdown',ev=>{const r=cv.getBoundingClientRect(),x=(ev.clientX-r.left)/W,y=(ev.clientY-r.top)/H;
+      if(state2==='reveal'){next();return;}
+      let bi=-1,bd=.09;sc.mates.forEach((m,i)=>{const dd=Math.hypot(m.x-x,(m.y-y)*1.2);if(dd<bd){bd=dd;bi=i;}});
+      if(bi>=0)answer(bi);});
+    next();
+  }
+}
+
+renderHome();
+</script>
+
+</body>
+</html>
