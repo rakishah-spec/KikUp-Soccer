@@ -159,6 +159,7 @@ main .wrap{padding-block:24px 56px;display:grid;gap:28px}
 .tap:active{transform:scale(.96)}
 .round{color:var(--run-ink);border-color:var(--run-line);min-width:64px}
 .runner .btn-primary.big{min-width:220px}
+.runner .btn-primary:disabled{opacity:.4;cursor:default}
 .runner .btn-ghost{color:var(--run-ink);border-color:var(--run-line)}
 .run-steps{text-align:left;color:var(--run-muted);margin:0;padding-left:20px;display:grid;gap:6px}
 .cd{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:var(--run-bg);font-family:var(--display);font-weight:800;font-size:min(50vw,260px);z-index:2}
@@ -680,11 +681,11 @@ const CAM_HOW={
   taps:'Put the phone 2–3 big steps away so your whole body and the ball are in the picture.'};
 const camOK=()=>!!(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia)&&!window.claude;
 function runCount(d,p){
-  let count=0,phase='ready',endAt=0,lastAuto=0,cam=null,camOn=false;
-  const label=d.best?'Best streak':'Count',auto=d.auto&&camOK();
+  let count=0,phase='ready',endAt=0,lastAuto=0,cam=null;
+  const label=d.best?'Best streak':'Count',auto=!!d.auto;
   body.innerHTML=`<div class="run-center">
     <div class="run-goal">Goal: <b>${p.target} ${p.unit}</b>${d.best?` · ${fmt(p.seconds)} to try`:` in ${fmt(p.seconds)}`}</div>
-    ${auto?`<div class="cam-box" id="camBox" hidden>
+    ${auto?`<div class="cam-box" id="camBox">
       <div class="cam"><video id="camVideo" playsinline muted></video><canvas id="camCanvas"></canvas>
         <div class="cam-hud"><span class="cam-count" id="camCount">0</span><span class="cam-clock" id="camClock">${fmt(p.seconds)}</span></div>
         <div class="cam-sub" id="camSub" hidden></div></div>
@@ -693,19 +694,19 @@ function runCount(d,p){
         <button class="btn-ghost" id="camFlip">Use back camera</button>
         ${d.weak?`<button class="btn-ghost" id="camFoot">Weak foot: ${state.weakFoot==='r'?'Right':'Left'}</button>`:''}
       </div></div>`:''}
-    <div class="std" id="std">
+    <div class="std" id="std"${auto?' hidden':''}>
       <div class="clock" id="clock">${fmt(p.seconds)}</div>
       <div class="count-label">${label}</div>
       <div class="count-num" id="cnt">0</div>
     </div>
-    <div class="count-row">
+    <div class="count-row"${auto?' hidden':''}>
       <button class="btn-ghost round" id="minus" aria-label="Take one away">−1</button>
       <button class="tap" id="plus" aria-label="Add one">+1</button>
       <button class="btn-ghost round" id="plus5" aria-label="Add five"${state.age===0?' hidden':''}>+5</button>
     </div>
-    <p class="run-goal" id="hint">${state.age===0?'Tap +1 every time you do it!':d.best?'Juggle, then enter your best streak here.':'Tap +1 as you go, or count in your head and enter it at the end.'}</p>
-    ${auto?`<button class="btn-ghost cam-toggle" id="camToggle">Count with camera</button>`:''}
-    <button class="btn-primary big" id="go">Start</button></div>`;
+    <p class="run-goal" id="hint">${auto?'The camera counts every rep for you.':state.age===0?'Tap +1 every time you do it!':d.best?'Juggle, then enter your best streak here.':'Tap +1 as you go, or count in your head and enter it at the end.'}</p>
+    ${auto?`<button class="btn-ghost cam-toggle" id="camRetry" hidden>Try the camera again</button>`:''}
+    <button class="btn-primary big" id="go"${auto?' disabled':''}>Start</button></div>`;
   const upd=()=>{$('#cnt').textContent=count;const cc=$('#camCount');if(cc)cc.textContent=count;};
   const setClock=txt=>{const k=$('#clock');if(k)k.textContent=txt;const c=$('#camClock');if(c)c.textContent=txt;};
   $('#plus').onclick=()=>{count++;upd();};
@@ -715,8 +716,9 @@ function runCount(d,p){
   const pulse=()=>{const el=$('#camCount');if(!el)return;el.classList.remove('pop');void el.offsetWidth;el.classList.add('pop');};
   async function startCam(facing){
     if(cam){cam.close();cam=null;}
-    $('#camMsg').textContent='Starting camera…';
+    $('#camMsg').textContent='Starting camera…';$('#camRetry').hidden=true;
     try{
+      if(!camOK())throw {name:'NoCamera'};
       const mod=await import('./js/camera.js');
       cam=new mod.LiveCounter({video:$('#camVideo'),canvas:$('#camCanvas'),kind:d.auto,facing,
         opts:d.weak?{foot:state.weakFoot||'l'}:{},
@@ -729,32 +731,33 @@ function runCount(d,p){
           const sub=$('#camSub');if(sub&&d.auto==='juggle'){sub.hidden=false;sub.textContent=`Streak ${r.streak}`;}}});
       S.cam=cam;
       await cam.open();
+      if(phase==='ready')$('#go').disabled=false;
       if(phase==='run'){lastAuto=0;cam.setCounting(true);}
     }catch(e){
-      const denied=e&&(e.name==='NotAllowedError'||e.name==='SecurityError');
-      $('#camMsg').textContent=denied?'Camera blocked. Allow camera access for this site in your browser settings, then try again.':'The camera counter couldn\'t start on this device. You can still count with +1.';
+      const denied=e&&['NotAllowedError','SecurityError','PermissionDeniedError'].includes(e.name);
+      const m=$('#camMsg');if(!m)return;
+      m.textContent=e&&e.name==='NoCamera'?'This drill needs a camera. Open KikUp on a phone or tablet with a camera.':denied?'Camera blocked. Allow camera access for this site in your browser settings, then tap Try again.':'The camera couldn\'t start. Allow camera access for this site, close any other app using the camera, then tap Try again.';
+      $('#camRetry').hidden=false;
     }
   }
   if(auto){
     let facing='user';
-    $('#camToggle').onclick=()=>{camOn=!camOn;$('#camBox').hidden=!camOn;$('#std').hidden=camOn;
-      $('#camToggle').textContent=camOn?'Turn camera off':'Count with camera';
-      $('#hint').textContent=camOn?'The camera counts for you. Use +1 or −1 to fix any misses.':'Tap +1 as you go, or count in your head and enter it at the end.';
-      if(camOn)startCam(facing);else if(cam){cam.close();cam=null;S.cam=null;}};
+    startCam(facing);
+    $('#camRetry').onclick=()=>startCam(facing);
     $('#camFlip').onclick=()=>{facing=facing==='user'?'environment':'user';$('#camFlip').textContent=facing==='user'?'Use back camera':'Use front camera';startCam(facing);};
-    if(d.weak)$('#camFoot').onclick=()=>{state.weakFoot=state.weakFoot==='r'?'l':'r';save();$('#camFoot').textContent=`Weak foot: ${state.weakFoot==='r'?'Right':'Left'}`;if(camOn)startCam(facing);};
+    if(d.weak)$('#camFoot').onclick=()=>{state.weakFoot=state.weakFoot==='r'?'l':'r';save();$('#camFoot').textContent=`Weak foot: ${state.weakFoot==='r'?'Right':'Left'}`;startCam(facing);};
   }
   const finish=()=>{S.intervals.forEach(clearInterval);S.intervals=[];if(cam){cam.close();cam=null;S.cam=null;}const st=count>=p.target?3:count>=p.target*.7?2:1;
     showResult(d,st,headline(st),[`${count} ${p.unit}. Goal was ${p.target}.`]);};
   $('#go').onclick=()=>{
-    if(phase==='ready'){phase='count';$('#go').hidden=true;const ct=$('#camToggle');if(ct)ct.hidden=true;
+    if(phase==='ready'){phase='count';$('#go').hidden=true;
       countdown(()=>{phase='run';$('#go').hidden=false;$('#go').textContent='Finish early';endAt=performance.now()+p.seconds*1000;
       if(cam){lastAuto=0;cam.setCounting(true);$('#camMsg').textContent='Counting…';}
       every(()=>{const left=(endAt-performance.now())/1000;
         if(left<=3.05&&left>0&&Math.ceil(left)!==S.lastTick){S.lastTick=Math.ceil(left);beep(700,.08);}
         if(left<=0){S.intervals.forEach(clearInterval);S.intervals=[];phase='done';setClock('Time!');beep(1000,.5);
           if(cam){cam.setCounting(false);}
-          $('#go').textContent='Save score';$('#hint').textContent=`Fix your count if you need to, then save.`;}
+          $('#go').textContent='Save score';$('#hint').textContent=auto?'Nice work! Save your score.':`Fix your count if you need to, then save.`;}
         else setClock(fmt(left));},150);});}
     else if(phase==='run'||phase==='done')finish();
   };
