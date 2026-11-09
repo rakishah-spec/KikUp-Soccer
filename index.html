@@ -162,6 +162,7 @@ main .wrap{padding-block:24px 56px;display:grid;gap:28px}
 .runner .btn-primary:disabled{opacity:.4;cursor:default}
 .runner .btn-ghost{color:var(--run-ink);border-color:var(--run-line)}
 .run-steps{text-align:left;color:var(--run-muted);margin:0;padding-left:20px;display:grid;gap:6px}
+.cd.see{background:rgba(14,38,24,.45);color:#fff;text-shadow:0 4px 24px rgba(0,0,0,.6);pointer-events:none}
 .cd{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:var(--run-bg);font-family:var(--display);font-weight:800;font-size:min(50vw,260px);z-index:2}
 .cue-stage{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;z-index:1}
 .cue{font-family:var(--display);font-weight:800;line-height:.9;font-size:min(46vw,46vh);display:flex;gap:.15em;align-items:center}
@@ -581,7 +582,7 @@ function startRun(d){
   ({gap:runGap,scan:runScan,count:runCount,intervals:runIntervals})[d.mode](d,p);
 }
 function closeRunner(){endSession();$('#runner').hidden=true;body.innerHTML='';renderHome();}
-function countdown(cb){const el=document.createElement('div');el.className='cd';body.appendChild(el);let n=3;
+function countdown(cb,see){const el=document.createElement('div');el.className=see?'cd see':'cd';body.appendChild(el);let n=3;
   const step=()=>{if(n===0){el.remove();beep(1320,.25);cb();return;}el.textContent=n;beep(660);n--;later(step,800);};step();}
 
 function showResult(d,stars,headline,lines){
@@ -681,7 +682,7 @@ const CAM_HOW={
   taps:'Put the phone 2–3 big steps away so your whole body and the ball are in the picture.'};
 const camOK=()=>!!(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia)&&!window.claude;
 function runCount(d,p){
-  let count=0,phase='ready',endAt=0,lastAuto=0,cam=null;
+  let count=0,phase='ready',endAt=0,lastAuto=0,cam=null,readySince=null;
   const label=d.best?'Best streak':'Count',auto=!!d.auto;
   body.innerHTML=`<div class="run-center">
     <div class="run-goal">Goal: <b>${p.target} ${p.unit}</b>${d.best?` · ${fmt(p.seconds)} to try`:` in ${fmt(p.seconds)}`}</div>
@@ -704,9 +705,9 @@ function runCount(d,p){
       <button class="tap" id="plus" aria-label="Add one">+1</button>
       <button class="btn-ghost round" id="plus5" aria-label="Add five"${state.age===0?' hidden':''}>+5</button>
     </div>
-    <p class="run-goal" id="hint">${auto?'The camera counts every rep for you.':state.age===0?'Tap +1 every time you do it!':d.best?'Juggle, then enter your best streak here.':'Tap +1 as you go, or count in your head and enter it at the end.'}</p>
+    <p class="run-goal" id="hint">${auto?'Get into position. The drill starts by itself when the camera can see you'+(d.auto==='trips'||d.auto==='checks'?'.':' and the ball.'):state.age===0?'Tap +1 every time you do it!':d.best?'Juggle, then enter your best streak here.':'Tap +1 as you go, or count in your head and enter it at the end.'}</p>
     ${auto?`<button class="btn-ghost cam-toggle" id="camRetry" hidden>Try the camera again</button>`:''}
-    <button class="btn-primary big" id="go"${auto?' disabled':''}>Start</button></div>`;
+    <button class="btn-primary big" id="go"${auto?' hidden':''}>Start</button></div>`;
   const upd=()=>{$('#cnt').textContent=count;const cc=$('#camCount');if(cc)cc.textContent=count;};
   const setClock=txt=>{const k=$('#clock');if(k)k.textContent=txt;const c=$('#camClock');if(c)c.textContent=txt;};
   $('#plus').onclick=()=>{count++;upd();};
@@ -725,13 +726,12 @@ function runCount(d,p){
         onStatus:st=>{const m=$('#camMsg');if(!m)return;if(st.text)m.textContent=st.text;
           if('body' in st){$('#dotBody').classList.toggle('on',st.body);const db=$('#dotBall');if(db&&st.ball!==null)db.classList.toggle('on',st.ball);
             const ok=st.body&&st.ball!==false;
-            if(phase==='ready')m.textContent=ok?'Ready! Tap Start.':CAM_HOW[d.auto];
+            if(phase==='ready'){if(ok){readySince??=performance.now();m.textContent='Got you! Starting…';if(performance.now()-readySince>1200)begin();}else{readySince=null;m.textContent=CAM_HOW[d.auto];}}
             else if(phase==='run')m.textContent=ok?'Counting…':(st.body?'Can\'t see the ball. ':'Can\'t see you. ')+CAM_HOW[d.auto];}},
         onCount:r=>{if(!$('#cnt'))return;if(r.count>lastAuto){count+=r.count-lastAuto;lastAuto=r.count;upd();pulse();beep(1250,.05);}
           const sub=$('#camSub');if(sub&&d.auto==='juggle'){sub.hidden=false;sub.textContent=`Streak ${r.streak}`;}}});
       S.cam=cam;
       await cam.open();
-      if(phase==='ready')$('#go').disabled=false;
       if(phase==='run'){lastAuto=0;cam.setCounting(true);}
     }catch(e){
       const denied=e&&['NotAllowedError','SecurityError','PermissionDeniedError'].includes(e.name);
@@ -749,8 +749,9 @@ function runCount(d,p){
   }
   const finish=()=>{S.intervals.forEach(clearInterval);S.intervals=[];if(cam){cam.close();cam=null;S.cam=null;}const st=count>=p.target?3:count>=p.target*.7?2:1;
     showResult(d,st,headline(st),[`${count} ${p.unit}. Goal was ${p.target}.`]);};
-  $('#go').onclick=()=>{
-    if(phase==='ready'){phase='count';$('#go').hidden=true;
+  function begin(){
+    if(phase!=='ready')return;phase='count';$('#go').hidden=true;
+    if(auto)$('#hint').textContent='The camera counts every rep for you.';
       countdown(()=>{phase='run';$('#go').hidden=false;$('#go').textContent='Finish early';endAt=performance.now()+p.seconds*1000;
       if(cam){lastAuto=0;cam.setCounting(true);$('#camMsg').textContent='Counting…';}
       every(()=>{const left=(endAt-performance.now())/1000;
@@ -758,9 +759,9 @@ function runCount(d,p){
         if(left<=0){S.intervals.forEach(clearInterval);S.intervals=[];phase='done';setClock('Time!');beep(1000,.5);
           if(cam){cam.setCounting(false);}
           $('#go').textContent='Save score';$('#hint').textContent=auto?'Nice work! Save your score.':`Fix your count if you need to, then save.`;}
-        else setClock(fmt(left));},150);});}
-    else if(phase==='run'||phase==='done')finish();
-  };
+        else setClock(fmt(left));},150);},auto);
+  }
+  $('#go').onclick=()=>{if(phase==='ready')begin();else if(phase==='run'||phase==='done')finish();};
 }
 
 /* ---------- Intervals mode ---------- */
