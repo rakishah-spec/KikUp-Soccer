@@ -231,6 +231,14 @@ main .wrap{padding-block:24px 56px;display:grid;gap:28px}
 .car-hint{position:absolute;bottom:36px;right:10px;background:rgba(0,0,0,.55);color:#fff;font-size:12px;font-weight:700;padding:4px 10px;border-radius:99px;pointer-events:none}
 
 /* Live camera counter */
+.cam-tip{position:absolute;left:8px;right:8px;bottom:8px;display:flex;gap:10px;align-items:center;background:rgba(14,38,24,.88);border:2px solid var(--bib);border-radius:12px;padding:10px 12px;color:#fff;text-align:left}
+.cam-tip svg{width:44px;height:44px;flex:none;color:var(--bib)}
+.cam-tip div{display:grid;gap:2px;min-width:0}
+.cam-tip strong{font-family:var(--display);font-size:20px;text-transform:uppercase;line-height:1.1}
+.cam-tip span{font-size:13px;line-height:1.35;color:#dfe9e2}
+.cam-tip em{font-style:normal;font-weight:700;font-size:13px}
+.cam-tip em.ok{color:#5BE08F}.cam-tip em.bad{color:#FFC633}
+
 .cam-box{width:100%;display:grid;gap:8px}
 .cam{position:relative;width:100%;border-radius:14px;overflow:hidden;background:#000;aspect-ratio:4/3;max-height:52vh}
 .cam video,.cam canvas{position:absolute;inset:0;width:100%;height:100%;object-fit:contain}
@@ -456,7 +464,13 @@ function movePlan(m){const i=levelIdx(),over=i-m.from;
   if(state.age===0){const n=[5,8,10][state.tier];return {seconds:45,target:n,unit:'times',summary:`Do it ${n} times`,detail:['Go slow and have fun']};}
   const each=Math.min(20,5+over*2),speed=['Go slow and get it right','Jogging speed, toward a cone','Full speed at a cone, then explode away'][state.tier];
   return {seconds:60,target:each*2,unit:'reps',summary:`${each} each foot in 60s`,detail:[speed,over>=3?'Add it to a combo with another move you know':'Count both feet']};}
-function moveAsDrill(m){return {id:'move-'+m.id,name:m.name,skill:'moves',mode:'count',ages:[0,1,2,3],setup:m.steps,tips:[m.tip],plan:()=>movePlan(m)};}
+/* How the camera counts each skill move: direction change (most moves), a stop, touches, or a flick over the head. */
+const MOVE_AUTO={'sole-stop':'stop','side-taps':'touches','rainbow':'flick'};
+const MOVE_CAM={stop:'Put the phone off to the side, 3–4 big steps away. Roll the ball out, then stop it dead under your foot.',
+  touches:'Put the phone 2–3 big steps away, facing you, so your feet and the ball are in the picture.',
+  flick:'Put the phone 4–5 big steps away, off to the side, so the picture shows from your feet to well above your head.',
+  cut:'Put the phone 4–5 big steps away, off to the side, so you, the ball and your cone all fit. After each move, stop the ball and walk it back.'};
+function moveAsDrill(m){const auto=MOVE_AUTO[m.id]||'cut';return {id:'move-'+m.id,name:m.name,skill:'moves',mode:'count',auto,camHow:MOVE_CAM[auto],ages:[0,1,2,3],setup:m.steps,tips:[m.tip],plan:()=>movePlan(m)};}
 /* Little Kickers get simpler names, steps and a single tip */
 function view(d){const kid=state.age===0&&d.kid;
   return {name:(kid&&d.kid.name)||d.name,skill:(kid&&d.kid.skill)||d.skill,setup:kid?d.kid.steps:d.setup,tips:kid?[d.kid.tip]:d.tips};}
@@ -539,7 +553,7 @@ function renderMoves(){
   const next=MOVES.filter(m=>m.from>i).slice(0,2);
   const dots=m=>{const d=Math.min(5,1+Math.floor(m.from/2.4));return `<span class="dots" aria-label="Difficulty ${d} of 5">${[1,2,3,4,5].map(n=>`<i class="${n<=d?'on':''}"></i>`).join('')}</span>`;};
   $('#grid').innerHTML=open.map(m=>{const p=movePlan(m),isNew=unlockLevel(m)===appLevel(),d=moveAsDrill(m);
-    return `<button class="move${isNew?' new':''}" data-move="${m.id}"><span class="lv"><span><small>Lvl</small><b>${unlockLevel(m)+1}</b></span></span><span class="tag">${isNew?'New for your level':'Keep it sharp'}</span><h3>${m.name}</h3><span class="goal">${p.summary}</span><span class="foot" style="grid-column:2">${dots(m)}${starsHtml(state.stars[k(d)]||0)}</span></button>`;}).join('')
+    return `<button class="move${isNew?' new':''}" data-move="${m.id}"><span class="lv"><span><small>Lvl</small><b>${unlockLevel(m)+1}</b></span></span><span class="tag">${isNew?'New for your level':'Keep it sharp'}${camOK()?' · Camera counts':''}</span><h3>${m.name}</h3><span class="goal">${p.summary}</span><span class="foot" style="grid-column:2">${dots(m)}${starsHtml(state.stars[k(d)]||0)}</span></button>`;}).join('')
     +next.map(m=>`<div class="move locked" aria-disabled="true"><span class="lv"><span><small>Lvl</small><b>${unlockLevel(m)+1}</b></span></span><span class="tag">Locked</span><h3>${m.name}</h3><span class="goal">Unlocks at ${levelName(unlockLevel(m))}</span></div>`).join('');
 }
 function openMove(m){openSheet(moveAsDrill(m),m);}
@@ -599,7 +613,7 @@ let S={timeouts:[],intervals:[],raf:0,lock:null};
 let sound=true, actx=null;
 function later(fn,ms){S.timeouts.push(setTimeout(fn,ms));}
 function every(fn,ms){S.intervals.push(setInterval(fn,ms));}
-function endSession(){try{S.cam&&S.cam.close();}catch(e){}S.timeouts.forEach(clearTimeout);S.intervals.forEach(clearInterval);cancelAnimationFrame(S.raf);
+function endSession(){try{S.cam&&S.cam.close();}catch(e){}stopTilt();S.timeouts.forEach(clearTimeout);S.intervals.forEach(clearInterval);cancelAnimationFrame(S.raf);
   try{S.lock&&S.lock.release();}catch(e){} S={timeouts:[],intervals:[],raf:0,lock:null,cam:null};}
 function beep(f=880,dur=.12){if(!sound)return;try{actx=actx||new (window.AudioContext||window.webkitAudioContext)();
   const o=actx.createOscillator(),g=actx.createGain();o.frequency.value=f;o.connect(g);g.connect(actx.destination);
@@ -711,6 +725,12 @@ function openFeedback(d,info){
 const esc=t=>String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const headline=s=>['','Good work. Keep at it.','So close!','Goal crushed!'][s];
 
+/* Phone tilt: a phone lying flat or tilted down can't see the ball. Shown where the browser reports tilt (most Android phones). */
+let tiltOff=null;
+function watchTilt(){stopTilt();const h=e=>{const m=$('#tiltMsg');if(!m||e.beta==null)return;const up=Math.max(Math.abs(e.beta),Math.abs(e.gamma||0));
+  m.hidden=false;m.className=up>70?'ok':'bad';m.textContent=up>70?'✓ Phone is upright':'Your phone is tilted. Stand it up straighter.';};
+  window.addEventListener('deviceorientation',h);tiltOff=()=>window.removeEventListener('deviceorientation',h);}
+function stopTilt(){if(tiltOff){tiltOff();tiltOff=null;}}
 /* ---------- Count mode ---------- */
 const CAM_HOW={
   trips:'Put the phone off to one side, far enough back that the whole line of cones fits in the picture.',
@@ -719,6 +739,7 @@ const CAM_HOW={
   juggle:'Put the phone 3–4 big steps away, facing you, so your whole body and the ball fit in the picture.',
   checks:'Put the phone 3–4 big steps away, facing you, so your head and shoulders are clearly in view.',
   taps:'Put the phone 2–3 big steps away so your whole body and the ball are in the picture.'};
+const camHowFor=d=>d.camHow||CAM_HOW[d.auto];
 const camOK=()=>!!(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia)&&!window.claude;
 function runCount(d,p){
   let count=0,phase='ready',endAt=0,lastAuto=0,cam=null,readySince=null,camMod=null;
@@ -728,6 +749,8 @@ function runCount(d,p){
     <div class="run-goal">Goal: <b>${p.target} ${p.unit}</b>${best?` · ${fmt(p.seconds)} to try`:` in ${fmt(p.seconds)}`}</div>
     ${auto?`<div class="cam-box" id="camBox">
       <div class="cam"><video id="camVideo" playsinline muted></video><canvas id="camCanvas"></canvas>
+        <div class="cam-tip" id="camTip"><svg viewBox="0 0 64 64" aria-hidden="true"><rect x="22" y="6" width="20" height="36" rx="4" fill="none" stroke="currentColor" stroke-width="3"/><circle cx="32" cy="36" r="2" fill="currentColor"/><path d="M14 52h36" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><path d="M32 42v10" stroke="currentColor" stroke-width="3"/><circle cx="52" cy="46" r="5" fill="none" stroke="currentColor" stroke-width="2.5"/></svg>
+          <div><strong>Stand your phone up straight</strong><span>Prop it upright at about knee height, not tilted down or lying flat, so the camera can see you and the ball.</span><em id="tiltMsg" hidden></em></div></div>
         <div class="cam-hud"><span class="cam-count" id="camCount">0</span><span class="cam-clock" id="camClock">${fmt(p.seconds)}</span></div>
         <div class="cam-sub" id="camSub" hidden></div></div>
       <div class="cam-status"><span class="dot" id="dotBody">Body</span>${d.auto!=='trips'&&d.auto!=='checks'?'<span class="dot" id="dotBall">Ball</span>':''}<span id="camMsg">Starting camera…</span></div>
@@ -766,8 +789,8 @@ function runCount(d,p){
         onStatus:st=>{const m=$('#camMsg');if(!m)return;if(st.text)m.textContent=st.text;
           if('body' in st){$('#dotBody').classList.toggle('on',st.body);const db=$('#dotBall');if(db&&st.ball!==null)db.classList.toggle('on',st.ball);
             const ok=st.body&&st.ball!==false;
-            if(phase==='ready'){if(ok){readySince??=performance.now();m.textContent='Got you! Starting…';if(performance.now()-readySince>1200)begin();}else{readySince=null;m.textContent=CAM_HOW[d.auto];}}
-            else if(phase==='run')m.textContent=ok?'Counting…':(st.body?'Can\'t see the ball. ':'Can\'t see you. ')+CAM_HOW[d.auto];}},
+            if(phase==='ready'){if(ok){readySince??=performance.now();m.textContent='Got you! Starting…';if(performance.now()-readySince>1200)begin();}else{readySince=null;m.textContent=camHowFor(d);}}
+            else if(phase==='run')m.textContent=ok?'Counting…':(st.body?'Can\'t see the ball. ':'Can\'t see you. ')+camHowFor(d);}},
         onCount:r=>{if(!$('#cnt'))return;const rc=kidCatch?r.total:r.count;if(rc>lastAuto){count+=rc-lastAuto;lastAuto=rc;upd();pulse();beep(1250,.05);}
           const sub=$('#camSub');if(sub&&d.auto==='juggle'&&!kidCatch){sub.hidden=false;sub.textContent=`Streak ${r.streak}`;}}});
       S.cam=cam;
@@ -782,6 +805,7 @@ function runCount(d,p){
   }
   if(auto){
     let facing='user';
+    watchTilt();
     startCam(facing);
     $('#camRetry').onclick=()=>startCam(facing);
     $('#camFlip').onclick=()=>{facing=facing==='user'?'environment':'user';$('#camFlip').textContent=facing==='user'?'Use back camera':'Use front camera';startCam(facing);};
@@ -794,7 +818,7 @@ function runCount(d,p){
     const st=count>=p.target?3:count>=p.target*.7?2:1;
     showResult(d,st,headline(st),[`${count} ${p.unit}. Goal was ${p.target}.`],fb);};
   function begin(){
-    if(phase!=='ready')return;phase='count';$('#go').hidden=true;
+    if(phase!=='ready')return;phase='count';$('#go').hidden=true;const tip=$('#camTip');if(tip)tip.hidden=true;stopTilt();
     if(auto)$('#hint').textContent='The camera counts every rep for you.';
       countdown(()=>{phase='run';$('#go').hidden=false;$('#go').textContent='Finish early';endAt=performance.now()+p.seconds*1000;
       if(cam){lastAuto=0;cam.setCounting(true);$('#camMsg').textContent='Counting…';}

@@ -17,6 +17,9 @@ const CUES = {
   kicks: ['Kick with the inside of your foot!', 'Lock the ankle, strike through the middle.', 'Open body, locked ankle, pass with purpose.'],
   trips: ['Little touches around the cones!', 'Close touches at the cones, burst on the straight.', 'Close control at the cones, explode out of the turn.'],
   checks: ['Look around!', 'Look before the ball comes.', 'Check both shoulders before every touch.'],
+  cut: ['Fake it, then go fast!', 'Sell the fake, then explode away.', 'Sell the fake, change speed, explode into space.'],
+  stop: ['Step on the ball gently!', 'Toes up, soft sole, ball dead.', 'Stop it dead, then go again straight away.'],
+  flick: ['Roll it up, flick it over!', 'Roll, flick, then run onto it.', 'Smooth roll, sharp flick, sprint onto it.'],
 };
 
 // Reps in the first half of the drill vs the second half.

@@ -1,5 +1,5 @@
 // Simulated-movement tests for the rep counters. Run: node tests/reps.test.mjs
-import { JuggleCounter, TapCounter, TouchCounter, KickCounter, TripCounter, CheckCounter } from '../js/reps.js';
+import { JuggleCounter, TapCounter, TouchCounter, KickCounter, TripCounter, CheckCounter, MoveCounter, StopCounter, FlickCounter } from '../js/reps.js';
 let seed = 7; const rnd = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
 const noise = (a) => (rnd() - 0.5) * 2 * a;
 const FPS = 15, dt = 1000 / FPS;
@@ -56,10 +56,32 @@ check('weak foot only counts left foot (5 right-foot kicks ignored)', passes('l'
     n = c.update({ t, pose: pose({ nose: { x: .5 + (turn ? dir * .07 : 0) + noise(.004), y: .2 } }) }).count; }
   check('shoulder checks', n, 10); }
 
+
+// Skill moves (cuts, step-overs...): 6 reps of dribble forward, burst off sideways, stop, walk the ball back.
+{ const c = new MoveCounter(); let t = 0, n = 0; const step = (x, y) => { t += dt; n = c.update({ t, pose: pose(), ball: { x: x + noise(.004), y: y + noise(.004), r: .03 } }).count; };
+  for (let k = 0; k < 6; k++) { const side = k % 2 ? 1 : -1;
+    for (let i = 0; i <= 15; i++) step(.5, .9 - .3 * i / 15);                      // dribble at the cone (1s)
+    for (let i = 1; i <= 8; i++) step(.5 + side * .45 * i / 8, .6 - .05 * i / 8);   // the move: burst off sideways (0.5s)
+    for (let i = 0; i < 30; i++) step(.5 + side * .45, .55);                        // stop the ball (2s)
+    for (let i = 1; i <= 45; i++) step(.5 + side * .45 * (1 - i / 45), .55 + .35 * i / 45); } // walk it back (3s)
+  check('skill moves (direction changes)', n, 6); }
+
+// Sole stop: ball rolled in, stopped under the foot, 8 times.
+{ const c = new StopCounter(); let t = 0, n = 0;
+  for (let k = 0; k < 8; k++) { for (let i = 0; i <= 12; i++, t += dt) n = c.update({ t, pose: pose(), ball: { x: .55, y: .4 + .48 * i / 12, r: .03 } }).count;
+    for (let i = 0; i < 20; i++, t += dt) n = c.update({ t, pose: pose(), ball: { x: .55 + noise(.002), y: .88 + noise(.002), r: .03 } }).count; }
+  check('sole stops', n, 8); }
+
+// Rainbow flick: ball goes over the head 5 times.
+{ const c = new FlickCounter(); let t = 0, n = 0;
+  for (let k = 0; k < 5; k++) for (let i = 0; i < 30; i++, t += dt) { const u = i / 29; n = c.update({ t, pose: pose(), ball: { x: .45 + .4 * u, y: .88 - .8 * Math.sin(Math.PI * u), r: .03 } }).count; }
+  check('rainbow flicks', n, 5); }
+
 // Standing still with a noisy ball should count nothing.
-{ const cs = [new JuggleCounter(), new TapCounter(), new TouchCounter(), new KickCounter()]; let t = 0; const out = cs.map(() => 0);
+{ const cs = [new JuggleCounter(), new TapCounter(), new TouchCounter(), new KickCounter(), new MoveCounter(), new StopCounter(), new FlickCounter()]; let t = 0; const out = cs.map(() => 0);
   for (let i = 0; i < 300; i++, t += dt) cs.forEach((c, j) => out[j] = c.update({ t, pose: pose(), ball: { x: .7 + noise(.006), y: .88 + noise(.006), r: .03 } }).count);
   check('no false reps while idle (juggle)', out[0], 0); check('no false reps while idle (taps)', out[1], 0);
-  check('no false reps while idle (touches)', out[2], 0); check('no false reps while idle (kicks)', out[3], 0); }
+  check('no false reps while idle (touches)', out[2], 0); check('no false reps while idle (kicks)', out[3], 0);
+  check('no false reps while idle (skill moves)', out[4], 0); check('no false reps while idle (sole stop)', out[5], 0); check('no false reps while idle (flick)', out[6], 0); }
 
 console.log(fails ? `\n${fails} FAILED` : '\nAll passed'); process.exit(fails ? 1 : 0);

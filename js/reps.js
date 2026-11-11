@@ -201,6 +201,59 @@ export class CheckCounter extends Base {
 }
 
 
+// SKILL MOVES that change direction (cuts, step-overs, elastico, pull-back...):
+// a rep is the ball travelling one way, then bursting off at least 60° another way.
+// A pause after each rep stops the walk back with the ball from counting.
+export class MoveCounter extends Base {
+  constructor() { super(); this.hist = []; this.lastRep = -1e9; }
+  // Ball displacement between two moments ago (ms), from the recent history.
+  at(t) { const h = this.hist; let best = h[0]; for (const p of h) if (Math.abs(p.t - t) < Math.abs(best.t - t)) best = p; return best; }
+  update(o) {
+    const S = this.scale(o), b = o.ball; if (!b) return { count: this.count };
+    this.hist.push({ t: o.t, x: b.x, y: b.y }); while (this.hist.length > 2 && o.t - this.hist[0].t > 600) this.hist.shift();
+    if (o.t - this.hist[0].t < 450) return { count: this.count };
+    const a = this.at(o.t - 500), m = this.at(o.t - 250);
+    const v1 = { x: (m.x - a.x) / .25, y: (m.y - a.y) / .25 }, v2 = { x: (b.x - m.x) / .25, y: (b.y - m.y) / .25 };
+    const s1 = Math.hypot(v1.x, v1.y), s2 = Math.hypot(v2.x, v2.y);
+    if (s1 > 0.15 * S && s2 > 0.8 * S && o.t - this.lastRep > 1200) {      // was moving, now bursting away fast...
+      const turn = Math.acos(Math.max(-1, Math.min(1, (v1.x * v2.x + v1.y * v2.y) / (s1 * s2)))) * 180 / Math.PI;
+      if (turn > 60) { this.count++; this.lastRep = o.t; this.events.push({ t: o.t, type: 'rep', turn: Math.round(turn) }); }   // ...in a new direction
+    }
+    return { count: this.count };
+  }
+}
+
+// SOLE STOP: the ball is rolling, then stops dead next to a foot.
+export class StopCounter extends Base {
+  constructor() { super(); this.hist = []; this.moving = false; this.stopSince = null; }
+  update(o) {
+    const S = this.scale(o), b = o.ball; if (!b) return { count: this.count };
+    this.hist.push({ t: o.t, x: b.x, y: b.y }); while (this.hist.length > 2 && o.t - this.hist[0].t > 300) this.hist.shift();
+    const a = this.hist[0], dt = (o.t - a.t) / 1000, speed = dt > 0 ? Math.hypot(b.x - a.x, b.y - a.y) / dt : 0;
+    if (speed > 0.5 * S) { this.moving = true; this.stopSince = null; }
+    else if (this.moving && speed < 0.08 * S) {
+      this.stopSince ??= o.t;
+      const nearFoot = !o.pose || Math.min(dist(o.pose.lf, b), dist(o.pose.rf, b)) < b.r + 0.12 * S;
+      if (o.t - this.stopSince > 250 && nearFoot) { this.count++; this.moving = false; this.events.push({ t: o.t, type: 'rep' }); }
+    }
+    return { count: this.count };
+  }
+}
+
+// RAINBOW FLICK: the ball goes up over the player's head.
+export class FlickCounter extends Base {
+  constructor() { super(); this.up = false; }
+  update(o) {
+    const b = o.ball, P = o.pose || this.lastPose; if (o.pose) this.lastPose = o.pose;
+    if (b && P) {
+      const headY = P.nose.y;
+      if (!this.up && b.y < headY) { this.up = true; this.count++; this.events.push({ t: o.t, type: 'rep' }); }
+      else if (this.up && b.y > mid(P.lh, P.rh).y) this.up = false;          // back down below the hips: ready for the next one
+    }
+    return { count: this.count };
+  }
+}
+
 // Which body part hit the ball: the closest of foot, thigh (knee) or head.
 function surfaceOf(P, b) {
   if (!P) return { surface: 'foot', side: null };
@@ -241,5 +294,6 @@ export class FrameStats {
   }
 }
 
-export const COUNTERS = { juggle: JuggleCounter, taps: TapCounter, touches: TouchCounter, kicks: KickCounter, trips: TripCounter, checks: CheckCounter };
-export const NEEDS_BALL = { juggle: true, taps: true, touches: true, kicks: true, trips: false, checks: false };
+export const COUNTERS = { juggle: JuggleCounter, taps: TapCounter, touches: TouchCounter, kicks: KickCounter, trips: TripCounter, checks: CheckCounter,
+  cut: MoveCounter, stop: StopCounter, flick: FlickCounter };
+export const NEEDS_BALL = { juggle: true, taps: true, touches: true, kicks: true, trips: false, checks: false, cut: true, stop: true, flick: true };
