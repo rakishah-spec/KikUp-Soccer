@@ -9,7 +9,8 @@ plus a live camera rep counter.
 - `js/camera.js` — runs body tracking and ball detection on the live camera, all on the device.
 - `vendor/mediapipe/` — Google MediaPipe Tasks Vision 0.10.14 (Apache 2.0), stored here so the site has no outside dependencies.
 - `models/` — the body-tracking model (Pose Landmarker Lite) and ball detector (EfficientDet-Lite0).
-- `tests/reps.test.mjs` — simulated-movement tests for the counters: `node tests/reps.test.mjs`.
+- `js/feedback.js` — turns what the camera measured into coaching tips after each drill (no AI, no network).
+- `tests/` — simulated-movement tests: `node tests/reps.test.mjs` and `node tests/feedback.test.mjs`.
 
 ## Run it locally
 ```

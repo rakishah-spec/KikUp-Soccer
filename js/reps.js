@@ -24,7 +24,7 @@ function bodySize(pose, fallback) {
 }
 
 class Base {
-  constructor() { this.count = 0; this.S = 0.6; this.lastBall = null; this.lastBallT = -1e9; }
+  constructor() { this.count = 0; this.S = 0.6; this.lastBall = null; this.lastBallT = -1e9; this.events = []; }
   scale(o) { this.S = 0.85 * this.S + 0.15 * bodySize(o.pose, this.S); return this.S; }
   ball(o, holdMs = 400) {
     if (o.ball) { this.lastBall = o.ball; this.lastBallT = o.t; return o.ball; }
@@ -55,23 +55,28 @@ export class JuggleCounter extends Base {
         if (o.t - this.groundSince > 500) this.endStreak();
       } else this.groundSince = null;
     }
-    this.prev = b;
+    this.prev = b; if (o.pose) this.lastPose = o.pose;
 
     const down = 0.05 * S, up = 0.03 * S;
-    if (this.state === 'idle') { this.state = 'falling'; this.ext = b.y; }
+    if (this.state === 'idle') { this.state = 'falling'; this.ext = b.y; this.lowBall = b; }
     else if (this.state === 'rising') {
       if (b.y < this.ext) this.ext = b.y;                 // new peak
-      else if (b.y - this.ext > down) { this.state = 'falling'; this.ext = b.y; }
+      else if (b.y - this.ext > down) {                  // peak passed: note how high the juggle went
+        const ev = this.events[this.events.length - 1], P = o.pose || this.lastPose;
+        if (ev && ev.type === 'rep' && ev.peak == null && P) ev.peak = { aboveHead: this.ext < P.nose.y, aboveHip: this.ext < mid(P.lh, P.rh).y };
+        this.state = 'falling'; this.ext = b.y; this.lowBall = b;
+      }
     } else if (this.state === 'falling') {
-      if (b.y > this.ext) this.ext = b.y;                 // new low point
+      if (b.y > this.ext) { this.ext = b.y; this.lowBall = b; } // new low point (where the touch happens)
       else if (this.ext - b.y > up) {                      // turned upward: a touch
         this.state = 'rising'; this.ext = b.y;
-        if (o.t - this.lastHit > 180) { this.lastHit = o.t; this.streak++; this.count++; if (this.streak > this.best) this.best = this.streak; }
+        if (o.t - this.lastHit > 180) { this.lastHit = o.t; this.streak++; this.count++; if (this.streak > this.best) this.best = this.streak;
+          this.events.push({ t: o.t, type: 'rep', ...surfaceOf(o.pose || this.lastPose, this.lowBall || b) }); }
       }
     }
     return this.result();
   }
-  endStreak() { this.streak = 0; this.state = 'idle'; this.groundSince = null; }
+  endStreak() { if (this.streak > 0) this.events.push({ t: this.lastBallT, type: 'drop', streak: this.streak }); this.streak = 0; this.state = 'idle'; this.groundSince = null; }
   result() { return { count: this.best, streak: this.streak, best: this.best, total: this.count }; }
 }
 
@@ -100,7 +105,8 @@ export class TapCounter extends FootContact {
     if (b) {
       const top = { x: b.x, y: b.y - b.r };
       const inR = Math.max(b.r * 0.9, 0.06 * S);
-      if (this.contact(o, top, inR, inR * 1.7, 110)) this.count++;
+      const side = this.contact(o, top, inR, inR * 1.7, 110);
+      if (side) { this.count++; this.events.push({ t: o.t, type: 'rep', side }); }
     }
     return { count: this.count };
   }
@@ -122,7 +128,10 @@ export class TouchCounter extends FootContact {
         const near = Math.min(dist(o.pose.lf, b), dist(o.pose.rf, b)) < b.r + 0.15 * S;
         if (near && m1 > 0.01 * S && m2 > 0.01 * S && (v1.x * v2.x + v1.y * v2.y) / (m1 * m2) < 0.35) side = 'x';
       }
-      if (side) { this.count++; this.lastTouch = o.t; this.onTouch?.(side, o.t); }
+      if (side) {
+        if (side === 'x' && o.pose) side = dist(o.pose.lf, b) < dist(o.pose.rf, b) ? 'l' : 'r';
+        this.count++; this.lastTouch = o.t; this.events.push({ t: o.t, type: 'rep', side }); this.onTouch?.(side, o.t);
+      }
     }
     return { count: this.count };
   }
@@ -147,7 +156,8 @@ export class KickCounter extends Base {
         if (speed > 1.2 * S) {
           let side = this.pending.side;
           if (side === 'x' && o.pose) side = dist(o.pose.lf, this.pending.from || b) < dist(o.pose.rf, this.pending.from || b) ? 'l' : 'r';
-          if (!this.foot || side === this.foot) this.count++;
+          if (!this.foot || side === this.foot) { this.count++; this.events.push({ t: o.t, type: 'rep', side }); }
+          else this.events.push({ t: o.t, type: 'other-foot', side });
           this.pending = null;
         }
       }
@@ -165,7 +175,7 @@ export class TripCounter extends Base {
     if (o.pose) {
       const h = mid(o.pose.lh, o.pose.rh), x = h.x / width;
       const zone = x < 0.3 ? 'a' : x > 0.7 ? 'b' : null;
-      if (zone && this.side && zone !== this.side) this.crossings++;
+      if (zone && this.side && zone !== this.side) { this.crossings++; this.events.push({ t: o.t, type: 'cross' }); if (this.crossings % 2 === 0) this.events.push({ t: o.t, type: 'rep' }); }
       if (zone) this.side = zone;
       this.count = Math.floor(this.crossings / 2);
     }
@@ -182,11 +192,52 @@ export class CheckCounter extends Base {
       const m = mid(o.pose.ls, o.pose.rs), w = Math.abs(o.pose.ls.x - o.pose.rs.x);
       if (w > 0.02) {
         const off = Math.abs(o.pose.nose.x - m.x) / w;
-        if (!this.out && off > 0.28) { this.out = true; this.count++; }
+        if (!this.out && off > 0.28) { this.out = true; this.count++; this.events.push({ t: o.t, type: 'rep', dir: o.pose.nose.x < m.x ? 'a' : 'b' }); }
         else if (this.out && off < 0.12) this.out = false;
       }
     }
     return { count: this.count };
+  }
+}
+
+
+// Which body part hit the ball: the closest of foot, thigh (knee) or head.
+function surfaceOf(P, b) {
+  if (!P) return { surface: 'foot', side: null };
+  const c = [['foot', 'l', P.lf], ['foot', 'r', P.rf], ['head', null, P.nose]];
+  if (P.lk) c.push(['thigh', 'l', P.lk]); if (P.rk) c.push(['thigh', 'r', P.rk]);
+  let best = c[0], bd = 1e9;
+  for (const x of c) { const d = dist(x[2], b); if (d < bd) { bd = d; best = x; } }
+  return { surface: best[0], side: best[1] };
+}
+
+// Per-frame stats for feedback: was the player in view, did the ball stay close
+// to the feet, and how often was the head down.
+export class FrameStats {
+  constructor() { this.frames = 0; this.seen = 0; this.ballSeen = 0; this.near = 0; this.far = 0; this.heads = []; this.S = 0.6; }
+  update(o) {
+    this.frames++;
+    if (o.ball) this.ballSeen++;
+    const P = o.pose; if (!P) return;
+    this.seen++;
+    this.S = 0.9 * this.S + 0.1 * bodySize(P, this.S);
+    if (o.ball && o.ball.y > mid(P.lh, P.rh).y) {        // ball at ground level
+      const d = Math.min(dist(P.lf, o.ball), dist(P.rf, o.ball)) / this.S;
+      if (d > 0.45) this.far++; else this.near++;
+    }
+    const w = Math.abs(P.ls.x - P.rs.x);
+    if (w > 0.02) this.heads.push((mid(P.ls, P.rs).y - P.nose.y) / w);
+  }
+  summary() {
+    let headDown = null;
+    if (this.heads.length > 20) {                         // head-up height = 85th percentile of the session
+      // A floor of 0.45 catches players who looked down the whole time.
+      const h = [...this.heads].sort((a, b) => a - b), up = Math.max(0.45, h[Math.floor(h.length * 0.85)]);
+      headDown = this.heads.filter((r) => r < up - 0.25).length / this.heads.length;
+    }
+    const low = this.near + this.far;
+    return { frames: this.frames, seenPct: this.frames ? this.seen / this.frames : 0, ballSeenPct: this.frames ? this.ballSeen / this.frames : 0,
+      farPct: low > 20 ? this.far / low : null, headDownPct: headDown };
   }
 }
 

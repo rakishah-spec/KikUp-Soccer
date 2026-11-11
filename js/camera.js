@@ -2,7 +2,8 @@
 // and feeds the rep counters in reps.js. Everything runs on the device;
 // no video leaves the phone.
 import { FilesetResolver, PoseLandmarker, ObjectDetector } from '../vendor/mediapipe/vision_bundle.mjs';
-import { COUNTERS, NEEDS_BALL } from './reps.js';
+import { COUNTERS, NEEDS_BALL, FrameStats } from './reps.js';
+export { buildFeedback } from './feedback.js';
 
 const here = (p) => new URL(p, import.meta.url).href;
 let modelsPromise = null;
@@ -33,7 +34,7 @@ export function loadModels() {
 }
 
 // Landmark numbers in the body-tracking model.
-const LM = { nose: 0, ls: 11, rs: 12, lh: 23, rh: 24, la: 27, ra: 28, lf: 31, rf: 32 };
+const LM = { nose: 0, ls: 11, rs: 12, lh: 23, rh: 24, lk: 25, rk: 26, la: 27, ra: 28, lf: 31, rf: 32 };
 
 export class LiveCounter {
   constructor({ video, canvas, kind, opts = {}, facing = 'user', onCount, onStatus }) {
@@ -61,7 +62,7 @@ export class LiveCounter {
   }
 
   setCounting(on) {
-    if (on) this.counter = new COUNTERS[this.kind](this.opts);
+    if (on) { this.counter = new COUNTERS[this.kind](this.opts); this.stats = new FrameStats(); }
     this.counting = on;
   }
 
@@ -103,7 +104,7 @@ export class LiveCounter {
     }
 
     const obs = { t, pose: pose && pose.full ? pose : (pose && this.kind === 'checks' ? pose : null), ball };
-    if (this.counting && this.counter) this.onCount?.(this.counter.update(obs, W / H));
+    if (this.counting && this.counter) { this.stats.update(obs); this.onCount?.(this.counter.update(obs, W / H)); }
 
     this.draw(W, H, pose, ball);
     const seen = !!(pose && (pose.full || this.kind === 'checks'));
@@ -127,6 +128,9 @@ export class LiveCounter {
       ctx.beginPath(); ctx.arc(x, y, ball.r * H + 4, 0, 7); ctx.stroke();
     }
   }
+
+  // Everything the feedback needs from this session.
+  report() { return this.counter ? { events: this.counter.events, frames: this.stats.summary() } : null; }
 
   stopTracks() { this.stream?.getTracks().forEach((tr) => tr.stop()); }
   close() { this.closed = true; this.counting = false; this.stopTracks(); if (this.video) this.video.srcObject = null; }

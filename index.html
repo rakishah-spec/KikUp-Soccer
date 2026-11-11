@@ -147,8 +147,8 @@ main .wrap{padding-block:24px 56px;display:grid;gap:28px}
 .run-top{display:flex;justify-content:space-between;align-items:center;gap:10px;padding-block:12px}
 .run-top .t{font-family:var(--display);font-size:20px;font-weight:700;text-transform:uppercase;text-align:center;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .run-top button{background:rgba(255,255,255,.1);border:1px solid var(--run-line);color:var(--run-ink);border-radius:8px;padding:8px 12px;font-weight:700;font-size:14px}
-.run-body{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:0;overflow:auto;padding-bottom:12px}
-.run-center{display:grid;gap:14px;justify-items:center;text-align:center;width:100%;max-width:480px}
+.run-body{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;min-height:0;overflow:auto;padding-bottom:12px}
+.run-center{margin-block:auto;display:grid;gap:14px;justify-items:center;text-align:center;width:100%;max-width:480px}
 .run-goal{color:var(--run-muted);font-weight:600}
 .run-goal b{color:var(--run-ink)}
 .clock{font-family:var(--display);font-weight:800;font-size:clamp(64px,18vw,120px);line-height:1;font-variant-numeric:tabular-nums}
@@ -177,6 +177,7 @@ main .wrap{padding-block:24px 56px;display:grid;gap:28px}
 .phase.rest{background:rgba(255,255,255,.08)}
 .phase .p{font-family:var(--display);font-size:56px;font-weight:800;text-transform:uppercase;line-height:1}
 .result h2{font-size:44px;text-transform:uppercase}
+.result .fb-out p{color:var(--run-ink)}
 .result p{margin:0;color:var(--run-muted)}
 .result .pb{color:var(--star);font-weight:700}
 .stars-big{font-size:64px;letter-spacing:6px;color:rgba(255,255,255,.18)}
@@ -585,12 +586,13 @@ function closeRunner(){endSession();$('#runner').hidden=true;body.innerHTML='';r
 function countdown(cb,see){const el=document.createElement('div');el.className=see?'cd see':'cd';body.appendChild(el);let n=3;
   const step=()=>{if(n===0){el.remove();beep(1320,.25);cb();return;}el.textContent=n;beep(660);n--;later(step,800);};step();}
 
-function showResult(d,stars,headline,lines){
+function showResult(d,stars,headline,lines,fb){
   const key=k(d),prev=state.stars[key]||0; state.stars[key]=Math.max(prev,stars); bumpStreak(); save();
   body.innerHTML=`<div class="run-center result">
     <div class="stars-big">${[1,2,3].map(i=>`<span class="${i<=stars?'on':''}">★</span>`).join('')}</div>
     <h2>${headline}</h2>${lines.map(l=>`<p>${l}</p>`).join('')}
     ${stars>prev&&prev>0?'<p class="pb">New best for this level!</p>':''}
+    ${fb?`<div class="fb-out"><h4>${state.age===0?'Great job':'What you did well'}</h4>${fb.good.map(x=>`<p>${esc(x)}</p>`).join('')}<h4>${state.age===0?'Try this next':'Fix next'}</h4>${fb.fix.map(x=>`<p>${esc(x)}</p>`).join('')}<h4>Remember</h4><p>${esc(fb.cue)}</p></div>`:''}
     ${canFeedback(d)?'<button class="btn-primary" id="fbGo">Film it &amp; get coach feedback</button>':''}
     <div class="count-row"><button class="btn-ghost" id="again">Go again</button><button class="${canFeedback(d)?'btn-ghost':'btn-primary'}" id="done">Back to drills</button></div></div>`;
   $('#again').onclick=()=>startRun(d); $('#done').onclick=closeRunner;
@@ -670,6 +672,7 @@ function openFeedback(d,info){
   $('#fbRec').onchange=e=>handle(e.target.files);
   $('#fbPick').onchange=e=>handle(e.target.files);
 }
+const esc=t=>String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const headline=s=>['','Good work. Keep at it.','So close!','Goal crushed!'][s];
 
 /* ---------- Count mode ---------- */
@@ -682,7 +685,7 @@ const CAM_HOW={
   taps:'Put the phone 2–3 big steps away so your whole body and the ball are in the picture.'};
 const camOK=()=>!!(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia)&&!window.claude;
 function runCount(d,p){
-  let count=0,phase='ready',endAt=0,lastAuto=0,cam=null,readySince=null;
+  let count=0,phase='ready',endAt=0,lastAuto=0,cam=null,readySince=null,camMod=null;
   const label=d.best?'Best streak':'Count',auto=!!d.auto;
   body.innerHTML=`<div class="run-center">
     <div class="run-goal">Goal: <b>${p.target} ${p.unit}</b>${d.best?` · ${fmt(p.seconds)} to try`:` in ${fmt(p.seconds)}`}</div>
@@ -720,7 +723,7 @@ function runCount(d,p){
     $('#camMsg').textContent='Starting camera…';$('#camRetry').hidden=true;
     try{
       if(!camOK())throw {name:'NoCamera'};
-      const mod=await import('./js/camera.js');
+      const mod=await import('./js/camera.js');camMod=mod;
       cam=new mod.LiveCounter({video:$('#camVideo'),canvas:$('#camCanvas'),kind:d.auto,facing,
         opts:d.weak?{foot:state.weakFoot||'l'}:{},
         onStatus:st=>{const m=$('#camMsg');if(!m)return;if(st.text)m.textContent=st.text;
@@ -747,8 +750,12 @@ function runCount(d,p){
     $('#camFlip').onclick=()=>{facing=facing==='user'?'environment':'user';$('#camFlip').textContent=facing==='user'?'Use back camera':'Use front camera';startCam(facing);};
     if(d.weak)$('#camFoot').onclick=()=>{state.weakFoot=state.weakFoot==='r'?'l':'r';save();$('#camFoot').textContent=`Weak foot: ${state.weakFoot==='r'?'Right':'Left'}`;startCam(facing);};
   }
-  const finish=()=>{S.intervals.forEach(clearInterval);S.intervals=[];if(cam){cam.close();cam=null;S.cam=null;}const st=count>=p.target?3:count>=p.target*.7?2:1;
-    showResult(d,st,headline(st),[`${count} ${p.unit}. Goal was ${p.target}.`]);};
+  const finish=()=>{S.intervals.forEach(clearInterval);S.intervals=[];
+    let fb=null;
+    if(cam){try{fb=camMod.buildFeedback({kind:d.auto,count,target:p.target,seconds:p.seconds,age:state.age,weakFoot:d.weak?(state.weakFoot||'l'):null,report:cam.report()});}catch(e){fb=null;}
+      cam.close();cam=null;S.cam=null;}
+    const st=count>=p.target?3:count>=p.target*.7?2:1;
+    showResult(d,st,headline(st),[`${count} ${p.unit}. Goal was ${p.target}.`],fb);};
   function begin(){
     if(phase!=='ready')return;phase='count';$('#go').hidden=true;
     if(auto)$('#hint').textContent='The camera counts every rep for you.';
