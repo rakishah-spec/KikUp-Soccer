@@ -9,6 +9,8 @@
 //             lh, rh,                     // hips
 //             ls, rs,                     // shoulders
 //             nose } | null }
+// pose is null when no body is found (e.g. only the feet are in the picture); counters then
+// work from the ball alone. pose.upper is false when the head and shoulders are out of view.
 // All coordinates are divided by the video HEIGHT, so x and y use the same unit
 // (y grows downward). Thresholds are scaled by the player's body size, so it
 // works whether they stand close to the camera or far away.
@@ -19,13 +21,15 @@ const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
 // Body size: shoulder centre to ankle centre (about 80% of standing height).
 function bodySize(pose, fallback) {
   if (!pose) return fallback;
-  const s = dist(mid(pose.ls, pose.rs), mid(pose.la, pose.ra));
+  let s = dist(mid(pose.ls, pose.rs), mid(pose.la, pose.ra));
+  if (pose.upper === false) s = pose.lk && pose.rk ? dist(mid(pose.lk, pose.rk), mid(pose.la, pose.ra)) * 3.2 : dist(mid(pose.lh, pose.rh), mid(pose.la, pose.ra)) * 1.6;
   return s > 0.05 ? s : fallback;
 }
 
 class Base {
   constructor() { this.count = 0; this.S = 0.6; this.lastBall = null; this.lastBallT = -1e9; this.events = []; }
-  scale(o) { this.S = 0.85 * this.S + 0.15 * bodySize(o.pose, this.S); return this.S; }
+  // Player size sets every threshold. Feet-only framing with no body found: estimate it from the ball (about a tenth of it).
+  scale(o) { const s = o.pose ? bodySize(o.pose, this.S) : o.ball ? o.ball.r * 9 : this.S; this.S = 0.85 * this.S + 0.15 * s; return this.S; }
   ball(o, holdMs = 400) {
     if (o.ball) { this.lastBall = o.ball; this.lastBallT = o.t; return o.ball; }
     return o.t - this.lastBallT < holdMs ? this.lastBall : null;
@@ -46,8 +50,11 @@ export class JuggleCounter extends Base {
     if (this.lastBall && o.t - this.lastBallT > 1500) this.endStreak();
     this.lastBall = b; this.lastBallT = o.t;
 
-    // Ball resting on the ground near the feet ends the streak.
-    if (o.pose) {
+    // Ball resting on the ground near the feet ends the streak. Feet not in view: any still ball does.
+    if (!o.pose) {
+      const still = this.prev && Math.abs(b.y - this.prev.y) < 0.01 * S && Math.abs(b.x - this.prev.x) < 0.01 * S;
+      if (still) { this.groundSince ??= o.t; if (o.t - this.groundSince > 700) this.endStreak(); } else this.groundSince = null;
+    } else {
       const groundY = Math.max(o.pose.la.y, o.pose.ra.y);
       const still = this.prev && Math.abs(b.y - this.prev.y) < 0.01 * S;
       if (b.y > groundY - 0.02 * S && still) {
@@ -63,7 +70,7 @@ export class JuggleCounter extends Base {
       if (b.y < this.ext) this.ext = b.y;                 // new peak
       else if (b.y - this.ext > down) {                  // peak passed: note how high the juggle went
         const ev = this.events[this.events.length - 1], P = o.pose || this.lastPose;
-        if (ev && ev.type === 'rep' && ev.peak == null && P) ev.peak = { aboveHead: this.ext < P.nose.y, aboveHip: this.ext < mid(P.lh, P.rh).y };
+        if (ev && ev.type === 'rep' && ev.peak == null && P && P.upper !== false) ev.peak = { aboveHead: this.ext < P.nose.y, aboveHip: this.ext < mid(P.lh, P.rh).y };
         this.state = 'falling'; this.ext = b.y; this.lowBall = b;
       }
     } else if (this.state === 'falling') {
@@ -100,13 +107,18 @@ class FootContact extends Base {
 
 // TOE TAPS: the sole of a foot comes down onto the top of the ball.
 export class TapCounter extends FootContact {
+  constructor(o) { super(o); this.motion = false; this.lastMotion = -1e9; }
   update(o) {
     const S = this.scale(o), b = this.ball(o, 3000);
     if (b) {
       const top = { x: b.x, y: b.y - b.r };
       const inR = Math.max(b.r * 0.9, 0.06 * S);
-      const side = this.contact(o, top, inR, inR * 1.7, 110);
-      if (side) { this.count++; this.events.push({ t: o.t, type: 'rep', side }); }
+      let side = this.contact(o, top, inR, inR * 1.7, 110);
+      if (!o.pose && o.tap != null) {                       // no feet found: a burst of movement right on top of the ball is a tap
+        if (!this.motion && o.tap > 16 && o.t - this.lastMotion > 110) { this.motion = true; this.lastMotion = o.t; side = 'x'; }
+        else if (this.motion && o.tap < 7) this.motion = false;
+      }
+      if (side) { this.count++; this.events.push({ t: o.t, type: 'rep', side: side === 'x' ? null : side }); }
     }
     return { count: this.count };
   }
@@ -122,14 +134,15 @@ export class TouchCounter extends FootContact {
       const inR = b.r + 0.07 * S;
       let side = this.contact(o, b, inR, b.r + 0.12 * S, 150);
       this.hist.push({ t: o.t, x: b.x, y: b.y }); if (this.hist.length > 4) this.hist.shift();
-      if (!side && o.pose && this.hist.length === 4 && o.t - this.lastTouch > 320) {
+      if (!side && this.hist.length === 4 && o.t - this.lastTouch > 320) {
         const [a, , c, d] = this.hist, v1 = { x: c.x - a.x, y: c.y - a.y }, v2 = { x: d.x - c.x, y: d.y - c.y };
         const m1 = Math.hypot(v1.x, v1.y), m2 = Math.hypot(v2.x, v2.y);
-        const near = Math.min(dist(o.pose.lf, b), dist(o.pose.rf, b)) < b.r + 0.15 * S;
-        if (near && m1 > 0.01 * S && m2 > 0.01 * S && (v1.x * v2.x + v1.y * v2.y) / (m1 * m2) < 0.35) side = 'x';
+        const near = !o.pose || Math.min(dist(o.pose.lf, b), dist(o.pose.rf, b)) < b.r + 0.15 * S;
+        const minMove = (o.pose ? 0.01 : 0.03) * S;          // without feet to compare against, ignore small jitter
+        if (near && m1 > minMove && m2 > minMove && (v1.x * v2.x + v1.y * v2.y) / (m1 * m2) < 0.35) side = 'x';
       }
       if (side) {
-        if (side === 'x' && o.pose) side = dist(o.pose.lf, b) < dist(o.pose.rf, b) ? 'l' : 'r';
+        if (side === 'x') side = o.pose ? (dist(o.pose.lf, b) < dist(o.pose.rf, b) ? 'l' : 'r') : null;
         this.count++; this.lastTouch = o.t; this.events.push({ t: o.t, type: 'rep', side }); this.onTouch?.(side, o.t);
       }
     }
@@ -147,6 +160,21 @@ export class KickCounter extends Base {
   update(o) {
     const S = this.scale(o); this.touch.update(o);
     const b = o.ball;
+    if (!o.pose && b) {                                   // feet not tracked: a pass is the ball bursting off after slowing or reversing
+      (this.bh ??= []).push({ t: o.t, x: b.x, y: b.y }); while (this.bh.length > 2 && o.t - this.bh[0].t > 600) this.bh.shift();
+      const near = (ms) => this.bh.reduce((a, p) => Math.abs(p.t - (o.t - ms)) < Math.abs(a.t - (o.t - ms)) ? p : a, this.bh[0]);
+      const a0 = near(450), a1 = near(150);
+      if (a1.t - a0.t > 100 && o.t - a1.t > 60) {
+        const v0 = { x: (a1.x - a0.x) / ((a1.t - a0.t) / 1000), y: (a1.y - a0.y) / ((a1.t - a0.t) / 1000) }, v1 = { x: (b.x - a1.x) / ((o.t - a1.t) / 1000), y: (b.y - a1.y) / ((o.t - a1.t) / 1000) };
+        // s0 from the distance actually travelled, so a bounce (out and back) doesn't look like a slow, controlled ball
+        let path = 0, prev = null; for (const p of this.bh) { if (p.t < a0.t || p.t > a1.t) continue; if (prev) path += Math.hypot(p.x - prev.x, p.y - prev.y); prev = p; }
+        const s0 = path / ((a1.t - a0.t) / 1000), s1 = Math.hypot(v1.x, v1.y), rev = Math.hypot(v0.x, v0.y) > 0.3 * S && (v0.x * v1.x + v0.y * v1.y) < 0;
+        if (s0 < 0.5 * S) this.home = this.home ? { x: .9 * this.home.x + .1 * a1.x, y: .9 * this.home.y + .1 * a1.y } : { x: a1.x, y: a1.y };   // where the ball gets controlled = the player's end
+        const atHome = this.home && Math.hypot(a1.x - this.home.x, a1.y - this.home.y) < 6 * b.r;
+        if (s1 > 1.2 * S && (s0 < 0.5 * S || (rev && atHome)) && o.t - (this.lastKick || -1e9) > 400) { this.lastKick = o.t; this.count++; this.events.push({ t: o.t, type: 'rep', side: null }); }
+      }
+      return { count: this.count };
+    }
     if (b) {
       this.hist.push({ t: o.t, x: b.x, y: b.y }); if (this.hist.length > 3) this.hist.shift();
       this.lastBall = b;
@@ -156,7 +184,7 @@ export class KickCounter extends Base {
         if (speed > 1.2 * S) {
           let side = this.pending.side;
           if (side === 'x' && o.pose) side = dist(o.pose.lf, this.pending.from || b) < dist(o.pose.rf, this.pending.from || b) ? 'l' : 'r';
-          if (!this.foot || side === this.foot) { this.count++; this.events.push({ t: o.t, type: 'rep', side }); }
+          if (!this.foot || side === this.foot || side == null) { this.count++; this.events.push({ t: o.t, type: 'rep', side }); }
           else this.events.push({ t: o.t, type: 'other-foot', side });
           this.pending = null;
         }
@@ -172,8 +200,9 @@ export class KickCounter extends Base {
 export class TripCounter extends Base {
   constructor() { super(); this.side = null; this.crossings = 0; }
   update(o, width = 1) {
-    if (o.pose) {
-      const h = mid(o.pose.lh, o.pose.rh), x = h.x / width;
+    const at = o.pose ? mid(o.pose.lh, o.pose.rh) : o.ball;     // feet-only framing: follow the ball instead
+    if (at) {
+      const x = at.x / width;
       const zone = x < 0.3 ? 'a' : x > 0.7 ? 'b' : null;
       if (zone && this.side && zone !== this.side) { this.crossings++; this.events.push({ t: o.t, type: 'cross' }); if (this.crossings % 2 === 0) this.events.push({ t: o.t, type: 'rep' }); }
       if (zone) this.side = zone;
@@ -245,7 +274,11 @@ export class FlickCounter extends Base {
   constructor() { super(); this.up = false; }
   update(o) {
     const b = o.ball, P = o.pose || this.lastPose; if (o.pose) this.lastPose = o.pose;
-    if (b && P) {
+    if (b && (!P || P.upper === false)) {                  // head not in view: ball rising far above where it rests
+      if (this.rest == null || b.y > this.rest) this.rest = b.y; else this.rest -= 0.0005;   // resting level = lowest the ball goes, slowly forgotten
+      if (!this.up && b.y < this.rest - 12 * b.r) { this.up = true; this.count++; this.events.push({ t: o.t, type: 'rep' }); }
+      else if (this.up && b.y > this.rest - 3 * b.r) this.up = false;
+    } else if (b && P) {
       const headY = P.nose.y;
       if (!this.up && b.y < headY) { this.up = true; this.count++; this.events.push({ t: o.t, type: 'rep' }); }
       else if (this.up && b.y > mid(P.lh, P.rh).y) this.up = false;          // back down below the hips: ready for the next one
@@ -257,7 +290,7 @@ export class FlickCounter extends Base {
 // Which body part hit the ball: the closest of foot, thigh (knee) or head.
 function surfaceOf(P, b) {
   if (!P) return { surface: 'foot', side: null };
-  const c = [['foot', 'l', P.lf], ['foot', 'r', P.rf], ['head', null, P.nose]];
+  const c = [['foot', 'l', P.lf], ['foot', 'r', P.rf]]; if (P.upper !== false) c.push(['head', null, P.nose]);
   if (P.lk) c.push(['thigh', 'l', P.lk]); if (P.rk) c.push(['thigh', 'r', P.rk]);
   let best = c[0], bd = 1e9;
   for (const x of c) { const d = dist(x[2], b); if (d < bd) { bd = d; best = x; } }
@@ -271,15 +304,15 @@ export class FrameStats {
   update(o) {
     this.frames++;
     if (o.ball) this.ballSeen++;
+    if (o.pose || o.ball) this.seen++;
     const P = o.pose; if (!P) return;
-    this.seen++;
     this.S = 0.9 * this.S + 0.1 * bodySize(P, this.S);
     if (o.ball && o.ball.y > mid(P.lh, P.rh).y) {        // ball at ground level
       const d = Math.min(dist(P.lf, o.ball), dist(P.rf, o.ball)) / this.S;
       if (d > 0.45) this.far++; else this.near++;
     }
     const w = Math.abs(P.ls.x - P.rs.x);
-    if (w > 0.02) this.heads.push((mid(P.ls, P.rs).y - P.nose.y) / w);
+    if (w > 0.02 && P.upper !== false) this.heads.push((mid(P.ls, P.rs).y - P.nose.y) / w);
   }
   summary() {
     let headDown = null;
@@ -296,4 +329,4 @@ export class FrameStats {
 
 export const COUNTERS = { juggle: JuggleCounter, taps: TapCounter, touches: TouchCounter, kicks: KickCounter, trips: TripCounter, checks: CheckCounter,
   cut: MoveCounter, stop: StopCounter, flick: FlickCounter };
-export const NEEDS_BALL = { juggle: true, taps: true, touches: true, kicks: true, trips: false, checks: false, cut: true, stop: true, flick: true };
+export const NEEDS_BALL = { juggle: true, taps: true, touches: true, kicks: true, trips: true, checks: false, cut: true, stop: true, flick: true };

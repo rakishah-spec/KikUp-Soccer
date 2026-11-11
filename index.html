@@ -734,11 +734,11 @@ function stopTilt(){if(tiltOff){tiltOff();tiltOff=null;}}
 /* ---------- Count mode ---------- */
 const CAM_HOW={
   trips:'Put the phone off to one side, far enough back that the whole line of cones fits in the picture.',
-  touches:'Put the phone 3–4 big steps away so your whole body and the box fit in the picture.',
-  kicks:'Put the phone off to the side, 3–4 big steps away, so your whole body and the ball fit in the picture.',
-  juggle:'Put the phone 3–4 big steps away, facing you, so your whole body and the ball fit in the picture.',
+  touches:'Put the phone 3–4 big steps away so your feet, the ball and the box are in the picture. Your whole body is fine too.',
+  kicks:'Put the phone off to the side, 3–4 big steps away, so your feet and the ball are in the picture. Your whole body is fine too.',
+  juggle:'Put the phone 3–4 big steps away, facing you, so the ball is in the picture from your feet to as high as it goes.',
   checks:'Put the phone 3–4 big steps away, facing you, so your head and shoulders are clearly in view.',
-  taps:'Put the phone 2–3 big steps away so your whole body and the ball are in the picture.'};
+  taps:'Put the phone 2–3 big steps away so your feet and the ball are clearly in the picture.'};
 const camHowFor=d=>d.camHow||CAM_HOW[d.auto];
 const camOK=()=>!!(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia)&&!window.claude;
 function runCount(d,p){
@@ -750,10 +750,10 @@ function runCount(d,p){
     ${auto?`<div class="cam-box" id="camBox">
       <div class="cam"><video id="camVideo" playsinline muted></video><canvas id="camCanvas"></canvas>
         <div class="cam-tip" id="camTip"><svg viewBox="0 0 64 64" aria-hidden="true"><rect x="22" y="6" width="20" height="36" rx="4" fill="none" stroke="currentColor" stroke-width="3"/><circle cx="32" cy="36" r="2" fill="currentColor"/><path d="M14 52h36" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><path d="M32 42v10" stroke="currentColor" stroke-width="3"/><circle cx="52" cy="46" r="5" fill="none" stroke="currentColor" stroke-width="2.5"/></svg>
-          <div><strong>Stand your phone up straight</strong><span>Prop it upright at about knee height, not tilted down or lying flat, so the camera can see you and the ball.</span><em id="tiltMsg" hidden></em></div></div>
+          <div><strong>Stand your phone up straight</strong><span>Prop it upright at about knee height, not tilted down or lying flat, so the camera can see your feet and the ball.</span><em id="tiltMsg" hidden></em></div></div>
         <div class="cam-hud"><span class="cam-count" id="camCount">0</span><span class="cam-clock" id="camClock">${fmt(p.seconds)}</span></div>
         <div class="cam-sub" id="camSub" hidden></div></div>
-      <div class="cam-status"><span class="dot" id="dotBody">Body</span>${d.auto!=='trips'&&d.auto!=='checks'?'<span class="dot" id="dotBall">Ball</span>':''}<span id="camMsg">Starting camera…</span></div>
+      <div class="cam-status"><span class="dot" id="dotBody">${d.auto==='checks'?'Head':'Feet'}</span>${d.auto!=='trips'&&d.auto!=='checks'?'<span class="dot" id="dotBall">Ball</span>':''}<span id="camMsg">Starting camera…</span></div>
       <div class="cam-opts">
         <button class="btn-ghost" id="camFlip">Use back camera</button>
         ${d.weak?`<button class="btn-ghost" id="camFoot">Weak foot: ${state.weakFoot==='r'?'Right':'Left'}</button>`:''}
@@ -768,7 +768,7 @@ function runCount(d,p){
       <button class="tap" id="plus" aria-label="Add one">+1</button>
       <button class="btn-ghost round" id="plus5" aria-label="Add five"${state.age===0?' hidden':''}>+5</button>
     </div>
-    <p class="run-goal" id="hint">${auto?'Get into position. The drill starts by itself when the camera can see you'+(d.auto==='trips'||d.auto==='checks'?'.':' and the ball.'):state.age===0?'Tap +1 every time you do it!':best?'Juggle, then enter your best streak here.':'Tap +1 as you go, or count in your head and enter it at the end.'}</p>
+    <p class="run-goal" id="hint">${auto?(d.auto==='checks'?'Get into position. The drill starts by itself when the camera can see your head and shoulders.':'Get into position. The drill starts by itself when the camera can see the ball.'):state.age===0?'Tap +1 every time you do it!':best?'Juggle, then enter your best streak here.':'Tap +1 as you go, or count in your head and enter it at the end.'}</p>
     ${auto?`<button class="btn-ghost cam-toggle" id="camRetry" hidden>Try the camera again</button>`:''}
     <button class="btn-primary big" id="go"${auto?' hidden':''}>Start</button></div>`;
   const upd=()=>{$('#cnt').textContent=count;const cc=$('#camCount');if(cc)cc.textContent=count;};
@@ -788,9 +788,9 @@ function runCount(d,p){
         opts:d.weak?{foot:state.weakFoot||'l'}:{},
         onStatus:st=>{const m=$('#camMsg');if(!m)return;if(st.text)m.textContent=st.text;
           if('body' in st){$('#dotBody').classList.toggle('on',st.body);const db=$('#dotBall');if(db&&st.ball!==null)db.classList.toggle('on',st.ball);
-            const ok=st.body&&st.ball!==false;
+            const ok='ready' in st?st.ready:st.body&&st.ball!==false;
             if(phase==='ready'){if(ok){readySince??=performance.now();m.textContent='Got you! Starting…';if(performance.now()-readySince>1200)begin();}else{readySince=null;m.textContent=camHowFor(d);}}
-            else if(phase==='run')m.textContent=ok?'Counting…':(st.body?'Can\'t see the ball. ':'Can\'t see you. ')+camHowFor(d);}},
+            else if(phase==='run')m.textContent=ok?'Counting…':(d.auto==='checks'?'Can\'t see your head. ':'Can\'t see the ball. ')+camHowFor(d);}},
         onCount:r=>{if(!$('#cnt'))return;const rc=kidCatch?r.total:r.count;if(rc>lastAuto){count+=rc-lastAuto;lastAuto=rc;upd();pulse();beep(1250,.05);}
           const sub=$('#camSub');if(sub&&d.auto==='juggle'&&!kidCatch){sub.hidden=false;sub.textContent=`Streak ${r.streak}`;}}});
       S.cam=cam;

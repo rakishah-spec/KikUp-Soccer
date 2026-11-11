@@ -77,6 +77,36 @@ check('weak foot only counts left foot (5 right-foot kicks ignored)', passes('l'
   for (let k = 0; k < 5; k++) for (let i = 0; i < 30; i++, t += dt) { const u = i / 29; n = c.update({ t, pose: pose(), ball: { x: .45 + .4 * u, y: .88 - .8 * Math.sin(Math.PI * u), r: .03 } }).count; }
   check('rainbow flicks', n, 5); }
 
+
+// ---- Feet-only framing: no body found, counting from the ball alone ----
+{ const c = new JuggleCounter(); let t = 0; const per = 450;
+  for (let i = 0; i < 10 * per / dt; i++, t += dt) { const ph = ((i * dt) % per) / per; c.update({ t, pose: null, ball: rnd() < .1 ? null : { x: .5 + noise(.01), y: .85 - .3 * Math.sin(Math.PI * ph) + noise(.006), r: .04 } }); }
+  for (let i = 0; i < 20; i++, t += dt) c.update({ t, pose: null, ball: { x: .6, y: .89, r: .04 } });
+  const r = c.update({ t, pose: null, ball: { x: .6, y: .89, r: .04 } }); check('feet-only: juggling streak', r.best, 10, 1); }
+{ const c = new TouchCounter(); let t = 0, n = 0;
+  for (let k = 0; k < 30; k++) { const from = k % 2 ? .62 : .38, to = k % 2 ? .38 : .62;
+    for (let i = 0; i < 6; i++, t += dt) n = c.update({ t, pose: null, ball: rnd() < .1 ? null : { x: from + (to - from) * (i / 5) + noise(.004), y: .8, r: .05 } }).count; }
+  check('feet-only: tight box touches', n, 30, 4); }
+{ const c = new KickCounter(); let t = 0, n = 0;
+  for (let k = 0; k < 15; k++) { const fr = [];
+    for (let i = 1; i <= 6; i++) fr.push(.55 + .4 * (i / 6));    // kicked to the wall
+    for (let i = 1; i <= 10; i++) fr.push(.95 - .4 * (i / 10));  // rebounds and rolls back
+    for (let i = 0; i < 5; i++) fr.push(.55);                     // controlled
+    for (const x of fr) { t += dt; n = c.update({ t, pose: null, ball: { x: x + noise(.003), y: .8, r: .05 } }).count; } }
+  check('feet-only: wall passes', n, 15, 1); }
+{ const c = new TripCounter(); let t = 0, n = 0;
+  for (let k = 0; k < 8; k++) for (let i = 0; i < 30; i++, t += dt) { const p = i / 29, x = k % 2 ? .9 - .8 * p : .1 + .8 * p; n = c.update({ t, pose: null, ball: { x, y: .8, r: .04 } }).count; }
+  check('feet-only: cone dribble trips', n, 4); }
+{ const c = new FlickCounter(); let t = 0, n = 0;
+  for (let k = 0; k < 5; k++) for (let i = 0; i < 40; i++, t += dt) { const u = Math.min(1, i / 29); n = c.update({ t, pose: null, ball: { x: .3 + .4 * u, y: .9 - .75 * Math.sin(Math.PI * u), r: .04 } }).count; }
+  check('feet-only: rainbow flicks', n, 5); }
+{ const c = new TapCounter(); let t = 0, n = 0;
+  for (let k = 0; k < 30; k++) for (let i = 0; i < 5; i++, t += dt) n = c.update({ t, pose: null, ball: { x: .5, y: .85, r: .05 }, tap: i === 1 || i === 2 ? 25 + noise(4) : 3 + noise(2) }).count;
+  check('feet-only: toe taps (movement on top of the ball)', n, 30, 1); }
+{ const cs = [new JuggleCounter(), new TouchCounter(), new KickCounter(), new TapCounter(), new MoveCounter()]; let t = 0; const out = cs.map(() => 0);
+  for (let i = 0; i < 300; i++, t += dt) cs.forEach((c, j) => out[j] = c.update({ t, pose: null, ball: { x: .6 + noise(.005), y: .85 + noise(.005), r: .05 }, tap: 3 + noise(2) }).count);
+  check('feet-only: no false reps while idle', out.reduce((a, b) => a + b, 0), 0); }
+
 // Standing still with a noisy ball should count nothing.
 { const cs = [new JuggleCounter(), new TapCounter(), new TouchCounter(), new KickCounter(), new MoveCounter(), new StopCounter(), new FlickCounter()]; let t = 0; const out = cs.map(() => 0);
   for (let i = 0; i < 300; i++, t += dt) cs.forEach((c, j) => out[j] = c.update({ t, pose: pose(), ball: { x: .7 + noise(.006), y: .88 + noise(.006), r: .03 } }).count);

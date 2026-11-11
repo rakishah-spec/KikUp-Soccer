@@ -43,7 +43,7 @@ const run = (Counter, frameFn, n) => { const c = new Counter(), st = new FrameSt
 
 // Camera lost the player.
 { const fb = buildFeedback({ kind: 'touches', count: 5, target: 90, seconds: 60, age: 1, report: { events: [], frames: { frames: 600, seenPct: .4 } } });
-  has('camera lost player: says to move the phone back', fb, 'fix', /move the phone back/i); }
+  has('camera lost player: says to move the phone', fb, 'fix', /move the phone/i); }
 
 // Perfect session: nothing to fix -> suggests next level, never empty.
 { const events = []; for (let i = 0; i < 40; i++) events.push({ t: i * 700, type: 'rep', side: i % 2 ? 'l' : 'r' });

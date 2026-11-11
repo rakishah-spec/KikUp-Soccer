@@ -6,7 +6,7 @@ plus a live camera rep counter.
 ## What's here
 - `index.html` — the whole app (drills, skill moves, levels, stars, timers).
 - `js/reps.js` — the rep counting logic (juggles, toe taps, touches, passes, cone trips, shoulder checks, and skill moves: direction changes, sole stops, rainbow flicks).
-- `js/camera.js` — runs body tracking and ball detection on the live camera, all on the device.
+- `js/camera.js` — runs body tracking and ball detection on the live camera, all on the device. Accepts any round object as a ball candidate, zooms in around the player, and follows the ball between detections. Works with only the feet in view.
 - `vendor/mediapipe/` — Google MediaPipe Tasks Vision 0.10.14 (Apache 2.0), stored here so the site has no outside dependencies.
 - `models/` — the body-tracking model (Pose Landmarker Lite) and ball detector (EfficientDet-Lite0).
 - `js/feedback.js` — turns what the camera measured into coaching tips after each drill (no AI, no network).

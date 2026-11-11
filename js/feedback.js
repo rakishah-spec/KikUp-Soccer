@@ -44,8 +44,8 @@ export function buildFeedback({ kind, count, target, seconds, age = 1, weakFoot 
 
   // Camera couldn't see the player for much of the drill: say so first, since counts may be low.
   if (frames.frames > 30 && frames.seenPct < 0.7) {
-    fix.push(kid ? 'The camera lost you a lot. Ask a grown-up to move the phone back.'
-      : `The camera could only see you ${pct(frames.seenPct)}% of the time, so some reps may not have counted. Move the phone back so your whole body stays in the picture.`);
+    fix.push(kid ? 'The camera lost the ball a lot. Ask a grown-up to move the phone.'
+      : `The camera could only follow you and the ball ${pct(frames.seenPct)}% of the time, so some reps may not have counted. Move the phone so your feet and the ball stay in the picture.`);
   }
 
   // Goal
