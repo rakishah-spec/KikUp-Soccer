@@ -212,6 +212,24 @@ main .wrap{padding-block:24px 56px;display:grid;gap:28px}
 .fb-out .thinking{color:var(--run-muted)}
 .sheet .fb-link{width:100%;color:var(--ink);text-align:center}
 
+/* Diagram / video carousel in the drill sheet */
+.car{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;aspect-ratio:200/110;background:#0E2618}
+.car::-webkit-scrollbar{display:none}
+.slide{flex:0 0 100%;scroll-snap-align:start;position:relative;display:grid;place-items:center;overflow:hidden}
+.slide svg{width:100%;height:100%}
+.vslide{background:#000}
+.vslide video,.vslide iframe{width:100%;height:100%;object-fit:contain;border:0;display:block}
+.vnone{display:grid;gap:6px;justify-items:center;text-align:center;color:#F4F8F2;padding:16px;font-size:14px;max-width:34ch}
+.vnone strong{font-family:var(--display);font-size:24px;text-transform:uppercase;color:#FF8533}
+.vnone code{background:rgba(255,255,255,.12);padding:1px 6px;border-radius:4px;font-size:13px}
+.move-card{background:repeating-linear-gradient(90deg,#1D6A3A 0 40px,#227740 40px 80px);color:#F4F8F2;gap:4px;align-content:center}
+.move-card strong{font-family:var(--display);font-size:clamp(32px,9vw,48px);text-transform:uppercase;line-height:1}
+.mc-lv{font-family:var(--display);font-weight:800;letter-spacing:.08em;text-transform:uppercase;background:#FF8533;color:#1A0B00;padding:2px 10px;border-radius:6px}
+.car-dots{display:flex;justify-content:center;align-items:center;gap:8px;padding:8px 0;background:#0E2618}
+.car-dots button{width:10px;height:10px;padding:0;border-radius:50%;border:0;background:rgba(255,255,255,.45);box-shadow:0 1px 3px rgba(0,0,0,.4)}
+.car-dots button.on{background:#FF8533;width:22px;border-radius:5px}
+.car-hint{position:absolute;bottom:36px;right:10px;background:rgba(0,0,0,.55);color:#fff;font-size:12px;font-weight:700;padding:4px 10px;border-radius:99px;pointer-events:none}
+
 /* Live camera counter */
 .cam-box{width:100%;display:grid;gap:8px}
 .cam{position:relative;width:100%;border-radius:14px;overflow:hidden;background:#000;aspect-ratio:4/3;max-height:52vh}
@@ -419,6 +437,9 @@ const MOVES=[
 {id:'rainbow',name:'Rainbow Flick',from:11,steps:['Roll the ball up the back of your standing leg with your other foot.','Flick it up with the heel of your standing foot.','The ball arcs over your head. Run onto it.'],tip:'Practice standing still first. Accuracy before speed.'},
 {id:'combo',name:'Combo Chain',from:11,steps:['Step-over, La Croqueta, then Elastico in one run.','Do it through a line of cones without stopping.','Finish with a pass or a shot.'],tip:'In a game, moves are linked. Chain them smoothly at full speed.'}
 ];
+/* Drill and move videos: each one plays from videos/<id>.mp4 (or .mov) when that file exists.
+   To use a YouTube video instead, add its id here, e.g. juggle:'dQw4w9WgXcQ'. */
+const VIDEO_LINKS={};
 /* Videos: add more here. "levels" uses the same 0–11 level index. */
 const VIDEOS=[
 ];
@@ -534,8 +555,14 @@ document.addEventListener('click',e=>{
 function openSheet(d,move){
   const p=d.plan(...oldAT()),v=move?{name:d.name,setup:d.setup,tips:d.tips}:view(d),kid=state.age===0;
   const vids=move?VIDEOS.filter(x=>x.levels.includes(levelIdx())):[];
-  const top=move?`<div class="sheet-top" style="height:56px"><button class="x" id="sheetX" aria-label="Close" style="background:var(--surface-2);color:var(--ink)">✕</button></div>`
-    :`<div class="sheet-top">${diagram(d.diagram)}<button class="x" id="sheetX" aria-label="Close">✕</button></div>`;
+  const vid=d.id,yt=VIDEO_LINKS[vid];
+  const slide1=move?`<div class="slide move-card"><span class="mc-lv">Level ${unlockLevel(move)+1}</span><strong>${move.name}</strong></div>`:`<div class="slide">${diagram(d.diagram)}</div>`;
+  const slide2=`<div class="slide vslide">${yt?`<iframe src="https://www.youtube-nocookie.com/embed/${yt}?playsinline=1&rel=0" title="${esc(v.name)} video" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen loading="lazy"></iframe>`
+    :`<video id="drillVid" playsinline muted loop controls preload="metadata"><source src="videos/${vid}.mp4" type="video/mp4"><source src="videos/${vid}.mov" type="video/quicktime"></video>`}
+    <div class="vnone" id="vNone" hidden><strong>Video coming soon</strong><span>Film 10–15 seconds of this ${move?'move':'drill'} and save it as <code>videos/${vid}.mp4</code></span></div></div>`;
+  const top=`<div class="sheet-top"><div class="car" id="car" tabindex="0" aria-label="Diagram and video. Swipe to switch.">${slide1}${slide2}</div>
+    <div class="car-dots" role="tablist"><button class="on" data-slide="0" aria-label="Show diagram"></button><button data-slide="1" aria-label="Show video"></button></div>
+    <span class="car-hint" id="carHint">Swipe for video →</span><button class="x" id="sheetX" aria-label="Close">✕</button></div>`;
   $('#sheetInner').innerHTML=`${top}
   <div class="sheet-in">
     <div><span class="tag">${move?`Skill move · Level ${unlockLevel(move)+1}`:`${SKILLS[view(d).skill]} · ${d.minutes} min${d.interactive?' · on screen':' · on the field'}`}</span><h2 id="sheetTitle">${v.name}</h2></div>
@@ -545,15 +572,23 @@ function openSheet(d,move){
     ${vids.map(x=>`<a class="btn-ghost" style="text-align:center;text-decoration:none;color:var(--ink)" href="${x.url}" target="_blank" rel="noopener">▶ Watch the ${x.title.toLowerCase()} on YouTube</a>`).join('')}
     <button class="btn-primary" id="startBtn">${kid?'Let\'s go!':move?'Start practice':'Start drill'}</button>
     ${canFeedback(d)?'<button class="btn-ghost fb-link" id="fbSheet">Film it &amp; get coach feedback</button>':''}
-    ${vids.length?'':`<p class="note">Video demo coming soon. Film yourself doing this ${move?'move':'drill'} and we'll add it here.</p>`}
   </div>`;
   $('#sheet').hidden=false;
   $('#sheetX').onclick=closeSheet;
+  const car=$('#car'),dots=[...document.querySelectorAll('.car-dots button')],vEl=$('#drillVid');
+  if(vEl){const none=()=>{if(vEl.networkState===HTMLMediaElement.NETWORK_NO_SOURCE&&!vEl.hidden){vEl.hidden=true;$('#vNone').hidden=false;}};
+    vEl.querySelectorAll('source').forEach(src=>src.addEventListener('error',()=>setTimeout(none,50)));setTimeout(none,1500);}
+  const onSlide=()=>{const k=Math.round(car.scrollLeft/car.clientWidth);dots.forEach((b,n)=>b.classList.toggle('on',n===k));
+    if(k===1)$('#carHint').hidden=true;
+    if(vEl&&!vEl.hidden){if(k===1)vEl.play().catch(()=>{});else vEl.pause();}};
+  car.addEventListener('scroll',()=>{clearTimeout(car._t);car._t=setTimeout(onSlide,80);});
+  dots.forEach(b=>b.onclick=()=>car.scrollTo({left:car.clientWidth*+b.dataset.slide,behavior:reduceMotion?'auto':'smooth'}));
+  car.addEventListener('keydown',e=>{if(e.key==='ArrowRight'||e.key==='ArrowLeft')car.scrollTo({left:e.key==='ArrowRight'?car.clientWidth:0,behavior:'smooth'});});
   $('#startBtn').onclick=()=>{closeSheet();startRun(d);};
   if($('#fbSheet'))$('#fbSheet').onclick=()=>openFeedback(d,'');
   $('#startBtn').focus({preventScroll:true});
 }
-function closeSheet(){$('#sheet').hidden=true;}
+function closeSheet(){const v=$('#drillVid');if(v)v.pause();$('#sheet').hidden=true;}
 $('#sheet').addEventListener('click',e=>{if(e.target.id==='sheet')closeSheet();});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){if(!$('#runner').hidden)closeRunner();else closeSheet();}});
 
