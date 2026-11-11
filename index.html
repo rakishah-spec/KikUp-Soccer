@@ -394,7 +394,8 @@ const DRILLS=[
  tips:['Soft ankle, toes up slightly, hit the ball with your laces.','Keep the ball below your waist so it\'s easier to control.','Little and often: 5 minutes a day adds up fast.'],
  kid:{name:'Drop, Kick, Catch',video:'juggle-kids',steps:['Drop the ball onto your foot.','Kick it up and catch it!'],tip:'Kick it soft, not hard.'},
  diagram:{player:[100,92],path:'M100,90 L100,46 L100,90',dur:1.2},
- plan(a,t){const n=T([[2,4,6],[5,10,20],[10,25,40],[20,40,75]],a,t),r=T([['Drop, one kick, catch','Drop, kick, bounce, kick','Kick it up twice before it bounces'],['Bounces allowed','One bounce allowed','No bounces'],['Feet only','Both feet','Both feet and thighs'],['Strong foot and thighs','Alternate feet','Feet, thighs and head']],a,t);
+ plan(a,t){if(a===0){const n=[5,8,12][t];return {seconds:120,target:n,unit:'catches',summary:`${n} catches in 2 minutes`,detail:[['Drop it, kick it, catch it with both hands','Kick it up to your tummy, then catch','Kick it up to your chest, then catch'][t]]};}
+  const n=T([[2,4,6],[5,10,20],[10,25,40],[20,40,75]],a,t),r=T([['Drop, one kick, catch','Drop, kick, bounce, kick','Kick it up twice before it bounces'],['Bounces allowed','One bounce allowed','No bounces'],['Feet only','Both feet','Both feet and thighs'],['Strong foot and thighs','Alternate feet','Feet, thighs and head']],a,t);
   return {seconds:120,target:n,unit:'in a row',summary:`Best streak: ${n} in a row`,detail:[r]};}},
 {id:'juggle-check',name:'Juggle & Check',skill:'scanning',mode:'count',auto:'checks',ages:[2,3],minutes:2,
  setup:['Juggle. Every few juggles, look over one shoulder, then the other.','Count every shoulder check you make without losing the ball.'],
@@ -721,9 +722,10 @@ const CAM_HOW={
 const camOK=()=>!!(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia)&&!window.claude;
 function runCount(d,p){
   let count=0,phase='ready',endAt=0,lastAuto=0,cam=null,readySince=null,camMod=null;
-  const label=d.best?'Best streak':'Count',auto=!!d.auto;
+  const kidCatch=d.id==='juggle'&&state.age===0,best=d.best&&!kidCatch;   // Little Kickers count catches, not streaks
+  const label=kidCatch?'Catches':best?'Best streak':'Count',auto=!!d.auto;
   body.innerHTML=`<div class="run-center">
-    <div class="run-goal">Goal: <b>${p.target} ${p.unit}</b>${d.best?` · ${fmt(p.seconds)} to try`:` in ${fmt(p.seconds)}`}</div>
+    <div class="run-goal">Goal: <b>${p.target} ${p.unit}</b>${best?` · ${fmt(p.seconds)} to try`:` in ${fmt(p.seconds)}`}</div>
     ${auto?`<div class="cam-box" id="camBox">
       <div class="cam"><video id="camVideo" playsinline muted></video><canvas id="camCanvas"></canvas>
         <div class="cam-hud"><span class="cam-count" id="camCount">0</span><span class="cam-clock" id="camClock">${fmt(p.seconds)}</span></div>
@@ -743,7 +745,7 @@ function runCount(d,p){
       <button class="tap" id="plus" aria-label="Add one">+1</button>
       <button class="btn-ghost round" id="plus5" aria-label="Add five"${state.age===0?' hidden':''}>+5</button>
     </div>
-    <p class="run-goal" id="hint">${auto?'Get into position. The drill starts by itself when the camera can see you'+(d.auto==='trips'||d.auto==='checks'?'.':' and the ball.'):state.age===0?'Tap +1 every time you do it!':d.best?'Juggle, then enter your best streak here.':'Tap +1 as you go, or count in your head and enter it at the end.'}</p>
+    <p class="run-goal" id="hint">${auto?'Get into position. The drill starts by itself when the camera can see you'+(d.auto==='trips'||d.auto==='checks'?'.':' and the ball.'):state.age===0?'Tap +1 every time you do it!':best?'Juggle, then enter your best streak here.':'Tap +1 as you go, or count in your head and enter it at the end.'}</p>
     ${auto?`<button class="btn-ghost cam-toggle" id="camRetry" hidden>Try the camera again</button>`:''}
     <button class="btn-primary big" id="go"${auto?' hidden':''}>Start</button></div>`;
   const upd=()=>{$('#cnt').textContent=count;const cc=$('#camCount');if(cc)cc.textContent=count;};
@@ -766,8 +768,8 @@ function runCount(d,p){
             const ok=st.body&&st.ball!==false;
             if(phase==='ready'){if(ok){readySince??=performance.now();m.textContent='Got you! Starting…';if(performance.now()-readySince>1200)begin();}else{readySince=null;m.textContent=CAM_HOW[d.auto];}}
             else if(phase==='run')m.textContent=ok?'Counting…':(st.body?'Can\'t see the ball. ':'Can\'t see you. ')+CAM_HOW[d.auto];}},
-        onCount:r=>{if(!$('#cnt'))return;if(r.count>lastAuto){count+=r.count-lastAuto;lastAuto=r.count;upd();pulse();beep(1250,.05);}
-          const sub=$('#camSub');if(sub&&d.auto==='juggle'){sub.hidden=false;sub.textContent=`Streak ${r.streak}`;}}});
+        onCount:r=>{if(!$('#cnt'))return;const rc=kidCatch?r.total:r.count;if(rc>lastAuto){count+=rc-lastAuto;lastAuto=rc;upd();pulse();beep(1250,.05);}
+          const sub=$('#camSub');if(sub&&d.auto==='juggle'&&!kidCatch){sub.hidden=false;sub.textContent=`Streak ${r.streak}`;}}});
       S.cam=cam;
       await cam.open();
       if(phase==='run'){lastAuto=0;cam.setCounting(true);}
