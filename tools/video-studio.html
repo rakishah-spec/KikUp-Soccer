@@ -275,14 +275,23 @@ function sideFigure(s) {
     ctx.strokeStyle = col; ctx.lineWidth = w; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
     ctx.beginPath(); ctx.moveTo(hx, hy); ctx.lineTo(...knee); ctx.lineTo(...ankle); ctx.stroke();
     ctx.strokeStyle = '#111'; ctx.lineWidth = w - 2; ctx.beginPath(); ctx.moveTo(...ankle); ctx.lineTo(ankle[0] + Math.cos(rad(fa)) * 30, ankle[1] + Math.sin(rad(fa)) * 30); ctx.stroke(); };
-  const arm = (sw, col) => { const e = [sh[0] + Math.sin(sw) * 34, sh[1] + 44], h = [e[0] + Math.sin(sw + .4) * 30, e[1] + 34];
-    ctx.strokeStyle = col; ctx.lineWidth = 12; ctx.beginPath(); ctx.moveTo(...sh); ctx.lineTo(...e); ctx.lineTo(...h); ctx.stroke(); };
-  arm(-(s.arm || .3), '#7a4a30');
+  const arm = (sw, col, dx = 0) => {
+    let e, h;
+    if (s.hands) {                                // reach for a point (holding / catching the ball)
+      const tx = s.hands[0] + dx, ty = s.hands[1], L1 = 62, L2 = 58;
+      let vx = tx - sh[0], vy = ty - sh[1], d = Math.hypot(vx, vy); const m = L1 + L2 - .5; if (d > m) { vx *= m / d; vy *= m / d; d = m; }
+      const a = Math.acos(clamp((L1 * L1 + d * d - L2 * L2) / (2 * L1 * d), -1, 1)), base = Math.atan2(vy, vx);
+      const e1 = [sh[0] + Math.cos(base + a) * L1, sh[1] + Math.sin(base + a) * L1], e2 = [sh[0] + Math.cos(base - a) * L1, sh[1] + Math.sin(base - a) * L1];
+      e = e1[1] > e2[1] ? e1 : e2; h = [sh[0] + vx, sh[1] + vy];             // elbows hang down
+    } else { e = [sh[0] + Math.sin(sw) * 34, sh[1] + 44]; h = [e[0] + Math.sin(sw + .4) * 30, e[1] + 34]; }
+    ctx.strokeStyle = col; ctx.lineWidth = 12; ctx.lineCap = 'round'; ctx.beginPath(); ctx.moveTo(...sh); ctx.lineTo(...e); ctx.lineTo(...h); ctx.stroke();
+    if (s.hands) { ctx.fillStyle = col; ctx.beginPath(); ctx.arc(h[0], h[1], 8, 0, 7); ctx.fill(); } };
+  arm(-(s.arm || .3), '#7a4a30', -14);
   leg(s.la, s.lfa ?? 0, s.hiL ? C.left : '#3f6fa0', 16);
   ctx.strokeStyle = C.bib; ctx.lineWidth = 30; ctx.lineCap = 'round'; ctx.beginPath(); ctx.moveTo(hx, hy - 8); ctx.lineTo(...sh); ctx.stroke();
   ctx.fillStyle = '#111'; ctx.beginPath(); ctx.ellipse(hx, hy, 22, 16, 0, 0, 7); ctx.fill();
   leg(s.ra, s.rfa ?? 0, s.hiR ? C.right : '#20384f', 18);
-  arm(s.arm || .3, '#8a5a3e');
+  arm(s.arm || .3, '#8a5a3e', 14);
   // head with face direction (look: 0 forward, -1 over left shoulder, 1 over right)
   ctx.fillStyle = '#8a5a3e'; ctx.beginPath(); ctx.arc(...head, 25, 0, 7); ctx.fill();
   ctx.fillStyle = '#2b1a10'; ctx.beginPath(); ctx.arc(head[0] - 4, head[1] - 4, 24, Math.PI * .9, Math.PI * 1.95); ctx.fill();
@@ -347,6 +356,25 @@ SCENES['juggle'] = { name: 'Juggle Ladder', dur: 10, draw(t) {
   title('Juggle Ladder'); counter('in a row', j.n + (t % P > P * .9 ? 1 : 0));
   const caps = ['Toes up, ankle locked', 'Hit the ball with your laces', 'Keep it around waist height', 'Switch feet: left, right, left'];
   caption(caps[Math.floor(t / 2.5) % 4]);
+} };
+// Drop, Kick, Catch (Little Kickers): hold the ball, drop it on your foot, kick it up softly, catch it.
+SCENES['juggle-kids'] = { name: 'Drop, Kick, Catch', dur: 9, draw(t) {
+  pitch(); groundLine();
+  const R = 3, n = Math.floor(t / R), u = t % R;
+  const hold = [486, 286], contact = [498, GROUND - 66], stand = { l: [418, GROUND - 4], r: [442, GROUND - 4] }, kick = [470, GROUND - 52];
+  let b = hold, hands = [486, 288], held = true, k = 0, cap, done = n;
+  if (u < .7) { cap = 'Hold the ball out in front of you'; }
+  else if (u < 1.2) { const q = (u - .7) / .5; b = [lerp(hold[0], contact[0], q), lerp(hold[1], contact[1], q * q)]; held = false; hands = [500, 300]; cap = 'Drop it onto your foot'; }
+  else if (u < 1.75) { const q = (u - 1.2) / .55, e = 1 - (1 - q) * (1 - q); b = [lerp(contact[0], hold[0], q), lerp(contact[1], hold[1] - 6, e)]; held = false; hands = [lerp(500, 486, q), lerp(300, 290, q)]; cap = 'Kick it up softly'; }
+  else { cap = u < 2.4 ? 'Catch it!' : 'Catch it!'; done = n + 1; }
+  if (u > .98 && u < 1.2) k = ease((u - .98) / .22); else if (u >= 1.2 && u < 1.5) k = 1 - ease((u - 1.2) / .3);
+  const ra = [lerp(stand.r[0], kick[0], k), lerp(stand.r[1], kick[1], k)];
+  sideFigure({ hip: [430, GROUND - 158], la: stand.l, ra, lfa: 0, rfa: lerp(0, -18, k), hiR: k > .2, hands });
+  ball(b[0], b[1], 20, held ? 0 : u * 5, false);
+  if (held) { ctx.fillStyle = '#8a5a3e'; ctx.beginPath(); ctx.arc(b[0] + 18, b[1] + 4, 8, 0, 7); ctx.fill(); }
+  if (u > 1.75 && u < 2.6) { ctx.fillStyle = C.star; ctx.font = `800 40px ${FONT}`; ctx.textAlign = 'center'; ctx.fillText('NICE!', 600, 230); }
+  title('Drop, Kick, Catch'); counter('catches', done);
+  caption(cap);
 } };
 // Juggle & Check
 SCENES['juggle-check'] = { name: 'Juggle & Check', dur: 10, draw(t) {

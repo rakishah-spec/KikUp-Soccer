@@ -33,6 +33,7 @@ The file name must match exactly (lowercase, with the dashes).
 | Check Away, Check In | `check-away.mp4` |
 | Weak Foot Wall | `weak-foot.mp4` |
 | Juggle Ladder | `juggle.mp4` |
+| Drop, Kick, Catch (Little Kickers version of Juggle Ladder) | `juggle-kids.mp4` |
 | Juggle & Check | `juggle-check.mp4` |
 | Toe Taps | `toe-taps.mp4` |
 | Box-to-Box Repeats | `repeats.mp4` |

@@ -392,7 +392,7 @@ const DRILLS=[
 {id:'juggle',name:'Juggle Ladder',skill:'mastery',mode:'count',auto:'juggle',ages:[0,1,2,3],minutes:3,best:true,
  setup:['Juggle for the whole time. When you drop it, start again.','At the end, enter your best streak.'],
  tips:['Soft ankle, toes up slightly, hit the ball with your laces.','Keep the ball below your waist so it\'s easier to control.','Little and often: 5 minutes a day adds up fast.'],
- kid:{name:'Drop, Kick, Catch',steps:['Drop the ball onto your foot.','Kick it up and catch it!'],tip:'Kick it soft, not hard.'},
+ kid:{name:'Drop, Kick, Catch',video:'juggle-kids',steps:['Drop the ball onto your foot.','Kick it up and catch it!'],tip:'Kick it soft, not hard.'},
  diagram:{player:[100,92],path:'M100,90 L100,46 L100,90',dur:1.2},
  plan(a,t){const n=T([[2,4,6],[5,10,20],[10,25,40],[20,40,75]],a,t),r=T([['Drop, one kick, catch','Drop, kick, bounce, kick','Kick it up twice before it bounces'],['Bounces allowed','One bounce allowed','No bounces'],['Feet only','Both feet','Both feet and thighs'],['Strong foot and thighs','Alternate feet','Feet, thighs and head']],a,t);
   return {seconds:120,target:n,unit:'in a row',summary:`Best streak: ${n} in a row`,detail:[r]};}},
@@ -555,7 +555,7 @@ document.addEventListener('click',e=>{
 function openSheet(d,move){
   const p=d.plan(...oldAT()),v=move?{name:d.name,setup:d.setup,tips:d.tips}:view(d),kid=state.age===0;
   const vids=move?VIDEOS.filter(x=>x.levels.includes(levelIdx())):[];
-  const vid=d.id,yt=VIDEO_LINKS[vid];
+  const vid=(!move&&state.age===0&&d.kid&&d.kid.video)||d.id,yt=VIDEO_LINKS[vid];
   const slide1=move?`<div class="slide move-card"><span class="mc-lv">Level ${unlockLevel(move)+1}</span><strong>${move.name}</strong></div>`:`<div class="slide">${diagram(d.diagram)}</div>`;
   const slide2=`<div class="slide vslide">${yt?`<iframe src="https://www.youtube-nocookie.com/embed/${yt}?playsinline=1&rel=0" title="${esc(v.name)} video" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen loading="lazy"></iframe>`
     :`<video id="drillVid" playsinline muted loop controls preload="metadata"><source src="videos/${vid}.mp4" type="video/mp4"><source src="videos/${vid}.mov" type="video/quicktime"></video>`}
