@@ -1,8 +1,13 @@
 # Drill and skill move videos
 
 Each drill and skill move shows a video when you swipe right on its card.
-Drop a clip in this folder with the exact file name below and it appears in the app
-automatically. Until then, the app shows "Video coming soon".
+
+Every drill and move already has an **animated demo** here, made by `tools/make-videos.js`
+from the animations in `tools/video-studio.html` (open that page in a browser to preview them).
+
+To swap in real footage, upload a clip with the **same file name** below and it replaces the
+animation in the app. (If you do, don't re-run `make-videos.js` for that id, or it will
+overwrite your clip: run it with only the ids you want, e.g. `node tools/make-videos.js juggle`.)
 
 ## How to film
 - 10–15 seconds, phone held **sideways** (landscape).

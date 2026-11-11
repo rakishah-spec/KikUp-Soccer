@@ -1,0 +1,524 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>KikUp Video Studio</title>
+<style>
+  body{margin:0;background:#111;color:#eee;font:14px system-ui,sans-serif;display:grid;gap:12px;justify-items:center;padding:16px}
+  canvas{max-width:100%;border-radius:8px}
+  select,button{font:inherit;padding:6px 10px}
+</style>
+</head>
+<body>
+<!-- Renders the KikUp drill and skill-move demo videos.
+     Open this page to preview an animation; tools/make-videos.js renders every scene to videos/<id>.mp4. -->
+<div><select id="pick"></select> <button id="play">Play</button></div>
+<canvas id="cv" width="960" height="528"></canvas>
+<script>
+const W = 960, H = 528;
+const cv = document.getElementById('cv'), ctx = cv.getContext('2d');
+const C = { grassA: '#1D6A3A', grassB: '#227740', chalk: 'rgba(255,255,255,.7)', bib: '#FF8533', ink: '#10241A',
+  red: '#E04848', white: '#F4F8F2', star: '#FFC633', good: '#5BE08F', left: '#7CC8FF', right: '#FF8533' };
+const FONT = '"DejaVu Sans Condensed","Arial Narrow","Liberation Sans Narrow",sans-serif';
+const ease = (u) => u < .5 ? 2 * u * u : 1 - Math.pow(-2 * u + 2, 2) / 2;
+const lerp = (a, b, u) => a + (b - a) * u;
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const rad = (d) => d * Math.PI / 180;
+
+/* ---------- Shared drawing ---------- */
+function pitch(close) {
+  const w = close ? 120 : 80;
+  for (let x = 0, i = 0; x < W; x += w, i++) { ctx.fillStyle = i % 2 ? C.grassB : C.grassA; ctx.fillRect(x, 0, w + 1, H); }
+}
+function pill(x, y, text, bg, fg, size = 22) {
+  ctx.font = `800 ${size}px ${FONT}`; const tw = ctx.measureText(text).width, h = size + 14;
+  ctx.fillStyle = bg; roundRect(x, y, tw + 24, h, h / 2); ctx.fill();
+  ctx.fillStyle = fg; ctx.textBaseline = 'middle'; ctx.textAlign = 'left'; ctx.fillText(text, x + 12, y + h / 2 + 1);
+  return tw + 24;
+}
+function roundRect(x, y, w, h, r) { ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r); ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath(); }
+function title(name, badge) {
+  pill(18, 16, name.toUpperCase(), 'rgba(0,0,0,.55)', '#fff', 24);
+  if (badge) pill(18, 62, badge, badge === 'SLOW MOTION' ? C.star : C.bib, C.ink, 18);
+}
+function caption(text, step, total) {
+  if (!text) return;
+  ctx.fillStyle = 'rgba(0,0,0,.62)'; ctx.fillRect(0, H - 62, W, 62);
+  let x = 22;
+  if (step) { ctx.fillStyle = C.bib; ctx.beginPath(); ctx.arc(x + 17, H - 31, 17, 0, 7); ctx.fill();
+    ctx.fillStyle = C.ink; ctx.font = `800 20px ${FONT}`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(step, x + 17, H - 30); x += 46; }
+  ctx.fillStyle = '#fff'; ctx.font = `700 27px ${FONT}`; ctx.textAlign = 'left'; ctx.textBaseline = 'middle'; ctx.fillText(text, x, H - 30);
+}
+function counter(label, n) {
+  ctx.textAlign = 'right'; ctx.textBaseline = 'top';
+  ctx.font = `800 64px ${FONT}`; ctx.fillStyle = C.bib; ctx.shadowColor = 'rgba(0,0,0,.5)'; ctx.shadowBlur = 10;
+  ctx.fillText(n, W - 26, 110); ctx.shadowBlur = 0;
+  ctx.font = `700 18px ${FONT}`; ctx.fillStyle = '#fff'; ctx.fillText(label.toUpperCase(), W - 28, 178);
+}
+function cone(x, y, s = 1) { ctx.fillStyle = 'rgba(0,0,0,.25)'; ctx.beginPath(); ctx.ellipse(x, y + 10 * s, 13 * s, 5 * s, 0, 0, 7); ctx.fill();
+  ctx.fillStyle = '#FF8A33'; ctx.beginPath(); ctx.moveTo(x, y - 16 * s); ctx.lineTo(x + 12 * s, y + 9 * s); ctx.lineTo(x - 12 * s, y + 9 * s); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = 'rgba(255,255,255,.6)'; ctx.fillRect(x - 6 * s, y - 2 * s, 12 * s, 3 * s); }
+function wall(y = 70) { ctx.fillStyle = '#C9D3CB'; ctx.fillRect(220, y, W - 280, 22); ctx.fillStyle = 'rgba(0,0,0,.18)'; for (let x = 220; x < W - 60; x += 48) ctx.fillRect(x, y, 2, 22);
+  ctx.fillStyle = 'rgba(255,255,255,.75)'; ctx.font = `700 15px ${FONT}`; ctx.textAlign = 'center'; ctx.textBaseline = 'top'; ctx.fillText('WALL', 560, y + 26); }
+function ball(x, y, r = 13, spin = 0, shadow = true) {
+  if (shadow) { ctx.fillStyle = 'rgba(0,0,0,.28)'; ctx.beginPath(); ctx.ellipse(x + r * .3, y + r * .55, r * 1.05, r * .55, 0, 0, 7); ctx.fill(); }
+  ctx.save(); ctx.translate(x, y); ctx.rotate(spin);
+  ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(0, 0, r, 0, 7); ctx.fill();
+  ctx.fillStyle = '#1b1b1b'; ctx.beginPath(); ctx.arc(0, 0, r * .36, 0, 7); ctx.fill();
+  for (let k = 0; k < 5; k++) { const a = k * Math.PI * 2 / 5; ctx.beginPath(); ctx.arc(Math.cos(a) * r * .82, Math.sin(a) * r * .82, r * .2, 0, 7); ctx.fill(); }
+  ctx.restore(); ctx.strokeStyle = '#333'; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.arc(x, y, r, 0, 7); ctx.stroke();
+}
+function arrow(x1, y1, x2, y2, color = C.good, w = 5) {
+  ctx.strokeStyle = color; ctx.fillStyle = color; ctx.lineWidth = w; ctx.lineCap = 'round';
+  ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
+  const a = Math.atan2(y2 - y1, x2 - x1); ctx.beginPath(); ctx.moveTo(x2 + Math.cos(a) * 6, y2 + Math.sin(a) * 6);
+  ctx.lineTo(x2 - Math.cos(a - .5) * 18, y2 - Math.sin(a - .5) * 18); ctx.lineTo(x2 - Math.cos(a + .5) * 18, y2 - Math.sin(a + .5) * 18); ctx.closePath(); ctx.fill();
+}
+function dashed(pts, color = 'rgba(255,255,255,.4)') { ctx.strokeStyle = color; ctx.lineWidth = 2.5; ctx.setLineDash([9, 8]); ctx.beginPath(); pts.forEach(([x, y], i) => i ? ctx.lineTo(x, y) : ctx.moveTo(x, y)); ctx.stroke(); ctx.setLineDash([]); }
+
+/* ---------- Top-down player for drill scenes ---------- */
+// dir = heading in radians (0 = right, -PI/2 = up). phase drives the stepping feet.
+function playerTop(x, y, dir, phase = 0, opt = {}) {
+  const s = opt.scale || 1.5, stride = (opt.stride ?? 1) * 9 * s, step = Math.sin(phase);
+  const fx = Math.cos(dir), fy = Math.sin(dir), px = -fy, py = fx;
+  ctx.fillStyle = 'rgba(0,0,0,.25)'; ctx.beginPath(); ctx.ellipse(x + 4, y + 6, 24 * s, 16 * s, dir + Math.PI / 2, 0, 7); ctx.fill();
+  const foot = (side, fwd, col) => { const cx = x + px * side * 9 * s + fx * fwd, cy = y + py * side * 9 * s + fy * fwd;
+    ctx.save(); ctx.translate(cx, cy); ctx.rotate(dir); ctx.fillStyle = col; roundRect(-7 * s, -5 * s, 18 * s, 10 * s, 5 * s); ctx.fill(); ctx.restore(); };
+  foot(-1, step * stride, opt.leftColor || '#222'); foot(1, -step * stride, opt.rightColor || '#222');
+  ctx.save(); ctx.translate(x, y); ctx.rotate(dir);
+  ctx.fillStyle = opt.color || C.bib; ctx.beginPath(); ctx.ellipse(0, 0, 11 * s, 22 * s, 0, 0, 7); ctx.fill();
+  ctx.fillStyle = '#5a3a26'; ctx.beginPath(); ctx.arc(2 * s, 0, 10 * s, 0, 7); ctx.fill();
+  ctx.fillStyle = '#2b1a10'; ctx.beginPath(); ctx.arc(0, 0, 9 * s, Math.PI * .5, Math.PI * 1.5); ctx.fill();
+  ctx.restore();
+}
+
+/* ---------- Paths ---------- */
+// Smooth path through points; at(s) gives position and heading at distance s.
+function path(points, closed = false) {
+  const pts = closed ? [...points, points[0]] : points, sm = [];
+  const P = (i) => pts[clamp(i, 0, pts.length - 1)];
+  for (let i = 0; i < pts.length - 1; i++) for (let k = 0; k < 16; k++) {
+    const u = k / 16, p0 = P(i - 1), p1 = P(i), p2 = P(i + 1), p3 = P(i + 2);
+    const f = (a, b, c, d) => .5 * (2 * b + (-a + c) * u + (2 * a - 5 * b + 4 * c - d) * u * u + (-a + 3 * b - 3 * c + d) * u * u * u);
+    sm.push([f(p0[0], p1[0], p2[0], p3[0]), f(p0[1], p1[1], p2[1], p3[1])]);
+  }
+  sm.push(pts[pts.length - 1]);
+  const cum = [0]; for (let i = 1; i < sm.length; i++) cum.push(cum[i - 1] + Math.hypot(sm[i][0] - sm[i - 1][0], sm[i][1] - sm[i - 1][1]));
+  const len = cum[cum.length - 1];
+  return { len, pts: sm, at(s) { s = clamp(s, 0, len); let i = 1; while (i < cum.length - 1 && cum[i] < s) i++;
+    const u = (s - cum[i - 1]) / ((cum[i] - cum[i - 1]) || 1), a = sm[i - 1], b = sm[i];
+    return { x: lerp(a[0], b[0], u), y: lerp(a[1], b[1], u), dir: Math.atan2(b[1] - a[1], b[0] - a[0]) }; } };
+}
+// Player dribbling along a path: ball pushed ahead with a touch every `touch` seconds.
+function dribble(pth, t, speed, opt = {}) {
+  const s = (t * speed) % pth.len, p = pth.at(s), touch = opt.touch || .45;
+  const ph = (t % touch) / touch, off = 32 + 22 * ph;
+  const bx = p.x + Math.cos(p.dir) * off, by = p.y + Math.sin(p.dir) * off;
+  playerTop(p.x, p.y, p.dir, t * speed / 7, opt);
+  ball(bx, by, 14, t * speed / 14);
+  return { p, touches: Math.floor(t / touch), s };
+}
+
+/* ---------- Keyframe engine (skill moves and side views) ---------- */
+// steps: [{d: seconds, cap: caption, ...values}] — any numeric or array value is eased between steps.
+function keyed(init, steps) {
+  const frames = [{ t: 0, s: JSON.parse(JSON.stringify(init)) }]; let t = 0, st = JSON.parse(JSON.stringify(init));
+  for (const k of steps) { t += k.d; st = { ...st }; for (const key in k) if (!['d', 'cap', 'arc', 'lin'].includes(key)) st[key] = k[key]; frames.push({ t, s: JSON.parse(JSON.stringify(st)), k }); }
+  return { dur: t, steps, at(time) {
+    time = clamp(time, 0, t); let i = 1; while (i < frames.length - 1 && frames[i].t < time) i++;
+    const a = frames[i - 1], b = frames[i], raw = (time - a.t) / ((b.t - a.t) || 1), u = b.k.lin ? raw : ease(raw), out = {};
+    for (const key in b.s) { const A = a.s[key], B = b.s[key];
+      out[key] = Array.isArray(B) ? (Array.isArray(B[0]) ? B : B.map((v, j) => lerp(A ? A[j] : v, v, u))) : typeof B === 'number' ? lerp(A ?? B, B, u) : B; }
+    if (b.k.arc && out.ball) out.ball[1] -= 4 * b.k.arc * raw * (1 - raw);
+    return { s: out, cap: b.k.cap, step: i, raw };
+  } };
+}
+
+/* ---------- Skill moves: top-down footwork close-up ---------- */
+const CX = 480, CY = 290;
+function shoe(x, y, rot, lift, side, hi) {
+  const sc = 1 + lift * .16, col = side === 'l' ? C.left : C.right;
+  ctx.save(); ctx.translate(CX + x, CY + y);
+  ctx.fillStyle = 'rgba(0,0,0,.28)'; ctx.beginPath(); ctx.ellipse(6 + lift * 14, 8 + lift * 16, 22, 40, rad(rot), 0, 7); ctx.fill();
+  ctx.rotate(rad(rot)); ctx.scale(sc, sc);
+  ctx.fillStyle = col; ctx.beginPath(); ctx.moveTo(0, -44); ctx.bezierCurveTo(20, -44, 22, -10, 18, 14); ctx.bezierCurveTo(16, 36, 10, 42, 0, 42);
+  ctx.bezierCurveTo(-10, 42, -16, 36, -18, 14); ctx.bezierCurveTo(-22, -10, -20, -44, 0, -44); ctx.fill();
+  ctx.strokeStyle = hi ? '#fff' : 'rgba(0,0,0,.35)'; ctx.lineWidth = hi ? 4 : 2; ctx.stroke();
+  ctx.fillStyle = 'rgba(0,0,0,.35)'; ctx.font = `800 22px ${FONT}`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(side.toUpperCase(), 0, 8);
+  ctx.restore();
+}
+function moveScene(st) {
+  pitch(true);
+  if (st.def) for (const [x, y] of st.def) { ctx.fillStyle = 'rgba(0,0,0,.25)'; ctx.beginPath(); ctx.ellipse(CX + x + 4, CY + y + 6, 30, 18, 0, 0, 7); ctx.fill();
+    ctx.fillStyle = C.red; ctx.beginPath(); ctx.ellipse(CX + x, CY + y, 34, 20, 0, 0, 7); ctx.fill(); ctx.fillStyle = '#fff'; ctx.font = `800 13px ${FONT}`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('DEFENDER', CX + x, CY + y); }
+  if (st.cones) for (const [x, y] of st.cones) cone(CX + x, CY + y, 1.4);
+  // body: faint shoulders over the feet
+  const bx = (st.lf[0] + st.rf[0]) / 2 + (st.lean ? st.lean[0] : 0), by = (st.lf[1] + st.rf[1]) / 2 + 10 + (st.lean ? st.lean[1] : 0), br = (st.lf[2] + st.rf[2]) / 2;
+  ctx.save(); ctx.translate(CX + bx, CY + by); ctx.rotate(rad(br)); ctx.fillStyle = 'rgba(255,133,51,.22)'; ctx.beginPath(); ctx.ellipse(0, 0, 70, 30, 0, 0, 7); ctx.fill(); ctx.restore();
+  const onTop = (side) => st['l' + side] > .35;
+  const drawBall = () => ball(CX + st.ball[0], CY + st.ball[1], 26, (st.ball[0] + st.ball[1]) / 26);
+  if (!onTop('l') && !onTop('r')) { shoe(...st.lf, st.ll, 'l', st.hi === 'l'); shoe(...st.rf, st.lr, 'r', st.hi === 'r'); drawBall(); }
+  else { drawBall(); shoe(...st.lf, st.ll, 'l', st.hi === 'l'); shoe(...st.rf, st.lr, 'r', st.hi === 'r'); }
+  if (st.go) arrow(CX + st.go[0], CY + st.go[1], CX + st.go[2], CY + st.go[3], C.good, 7);
+}
+// Base stance: left foot, right foot [x, y, rotation°], ball [x, y], lift 0..1
+const STANCE = { lf: [-46, 40, -6], rf: [46, 40, 6], ball: [22, -46], ll: 0, lr: 0, lean: [0, 0], hi: '', go: null, def: null, cones: null };
+const st = (o) => ({ ...STANCE, ...o });
+
+const MOVES = {
+  'sole-stop': ['Sole Stop', keyed(st({ ball: [10, -330] }), [
+    { d: 1.2, cap: 'The ball rolls toward you', ball: [16, -70], lin: true },
+    { d: .5, cap: 'Lift your foot, toes up', rf: [18, -40, 0], lr: .7, hi: 'r' },
+    { d: .5, cap: 'Step gently on top of the ball', rf: [16, -64, 0], lr: .45, ball: [16, -64] },
+    { d: 1.0, cap: 'Ball stopped under your sole', hi: 'r' },
+    { d: .6, cap: 'Ball stopped under your sole', rf: [46, 40, 6], lr: 0, hi: '' }])],
+  'side-taps': ['Side-to-Side Taps', keyed(st({ lf: [-70, 10, 10], rf: [70, 10, -10], ball: [0, 0] }), (() => {
+    const s = []; for (let i = 0; i < 6; i++) { const r = i % 2 === 0;
+      s.push({ d: .22, cap: r ? 'Tap with the inside of your right foot' : 'Then the inside of your left', [r ? 'rf' : 'lf']: r ? [32, 6, -20] : [-32, 6, 20], [r ? 'lr' : 'll']: .25, hi: r ? 'r' : 'l' });
+      s.push({ d: .22, cap: r ? 'Tap with the inside of your right foot' : 'Then the inside of your left', [r ? 'rf' : 'lf']: r ? [70, 10, -10] : [-70, 10, 10], [r ? 'lr' : 'll']: 0, ball: r ? [-12, 0] : [12, 0] }); }
+    s.push({ d: .4, cap: 'Stay on your tiptoes', ball: [0, 0], hi: '' }); return s; })())],
+  'pull-back': ['Pull Back', keyed(st({}), [
+    { d: .6, cap: 'Put your sole on top of the ball', rf: [22, -50, 0], lr: .55, hi: 'r' },
+    { d: .8, cap: 'Roll it back toward you', rf: [26, 40, 0], ball: [24, 32], lr: .5 },
+    { d: .7, cap: 'Turn your body around', lf: [-40, 30, 170], rf: [40, 54, 190], lr: 0, ll: .2, hi: '' },
+    { d: .8, cap: 'Go the other way', ball: [10, 200], lf: [-30, 120, 180], rf: [40, 150, 180], go: [0, 120, 0, 230], ll: 0 }])],
+  'inside-cut': ['Inside Cut', keyed(st({ ball: [24, -60] }), [
+    { d: .6, cap: 'Dribble forward', ball: [24, -96], lf: [-40, -10, -4], rf: [46, 20, 4] },
+    { d: .5, cap: 'Plant your left foot past the ball', lf: [-30, -90, -10], ll: .2, hi: 'l' },
+    { d: .5, cap: 'Cut it across your body with your inside', rf: [6, -86, -70], lr: .35, hi: 'r', ll: 0 },
+    { d: .6, cap: 'Push off and go the new way', ball: [-210, -110], lf: [-110, -90, -80], rf: [-80, -50, -80], lr: 0, go: [-120, -150, -260, -150] },
+    { d: .6, cap: 'Push off and go the new way', hi: '' }])],
+  'outside-cut': ['Outside Cut', keyed(st({ ball: [24, -60] }), [
+    { d: .6, cap: 'Dribble forward', ball: [24, -96], lf: [-40, -10, -4], rf: [46, 20, 4] },
+    { d: .5, cap: 'Drop your left shoulder (fake left)', lean: [-40, 0], lf: [-60, -20, -10] },
+    { d: .5, cap: 'Push the ball out with the outside of your right foot', rf: [36, -84, 30], lr: .35, hi: 'r', lean: [10, 0] },
+    { d: .6, cap: 'Burst away to the right', ball: [220, -120], rf: [120, -90, 80], lf: [90, -40, 80], lr: 0, go: [130, -160, 270, -160] },
+    { d: .6, cap: 'Burst away to the right', hi: '' }])],
+  'body-feint': ['Body Feint', keyed(st({ def: [[0, -190]] }), [
+    { d: .6, cap: 'Dribble toward the defender', ball: [16, -60] },
+    { d: .6, cap: 'Dip your shoulder and step left', lf: [-100, -10, -20], lean: [-60, 0], ll: .25, hi: 'l' },
+    { d: .5, cap: 'Ball stays still while you fake', ll: 0, hi: '' },
+    { d: .5, cap: 'Take it right with the outside of your right foot', rf: [30, -60, 30], lr: .35, lean: [20, 0], hi: 'r' },
+    { d: .7, cap: 'Go past on the other side', ball: [230, -150], rf: [140, -100, 60], lf: [100, -60, 60], lr: 0, go: [150, -150, 280, -200], hi: '' }])],
+  'step-over': ['Step-Over', keyed(st({ ball: [0, -50], lf: [-50, 30, -6], rf: [50, 30, 6], def: [[0, -200]] }), [
+    { d: .5, cap: 'Ball in front, defender ahead' },
+    { d: .45, cap: 'Swing your right foot around the front of the ball', rf: [12, -110, -30], lr: .8, hi: 'r', lean: [10, 0] },
+    { d: .45, cap: 'Inside to outside, don\'t touch it', rf: [70, -90, 20], lr: .8 },
+    { d: .4, cap: 'Land on the right side (the fake)', rf: [80, 0, 10], lr: 0, lean: [50, 0] },
+    { d: .45, cap: 'Push it away with the outside of your left foot', lf: [-30, -50, -30], ll: .35, hi: 'l', lean: [-10, 0] },
+    { d: .7, cap: 'Explode away to the left', ball: [-240, -150], lf: [-130, -80, -60], rf: [-90, -40, -60], ll: 0, go: [-140, -150, -280, -200], hi: '' }])],
+  'cruyff': ['Cruyff Turn', keyed(st({ ball: [24, -40] }), [
+    { d: .5, cap: 'Shape to pass or shoot', rf: [50, 80, 10], lr: .4, hi: 'r', lf: [-30, -10, -4] },
+    { d: .45, cap: 'Fake the kick', rf: [30, -20, 0], lr: .5 },
+    { d: .6, cap: 'Drag the ball behind your standing leg', rf: [10, 30, -60], ball: [-60, 60], lr: .35 },
+    { d: .6, cap: 'Turn your body', lf: [-60, 40, -150], rf: [-20, 80, -150], lr: 0, hi: '' },
+    { d: .7, cap: 'Speed away', ball: [-200, 220], lf: [-130, 140, -140], rf: [-90, 170, -140], go: [-110, 150, -240, 260] }])],
+  'scissors': ['Scissors', keyed(st({ ball: [0, -50], lf: [-50, 30, -6], rf: [50, 30, 6], def: [[0, -200]] }), [
+    { d: .5, cap: 'Dribble at the defender' },
+    { d: .45, cap: 'Swing your right foot around the outside of the ball', rf: [80, -80, 30], lr: .8, hi: 'r' },
+    { d: .45, cap: 'Outside to inside, don\'t touch it', rf: [-6, -110, -20], lr: .8, lean: [-20, 0] },
+    { d: .4, cap: 'Land on the left side', rf: [-40, -10, -10], lr: 0, lf: [-90, 30, -10], lean: [-50, 0] },
+    { d: .45, cap: 'Take it away with the outside of your left foot', lf: [-30, -60, -30], ll: .35, hi: 'l' },
+    { d: .7, cap: 'Go!', ball: [-240, -160], lf: [-130, -90, -60], rf: [-100, -40, -60], ll: 0, go: [-140, -150, -280, -210], hi: '' }])],
+  'croqueta': ['La Croqueta', keyed(st({ ball: [40, -40], def: [[-120, -190], [120, -190]] }), [
+    { d: .5, cap: 'Two defenders, small gap between them' },
+    { d: .3, cap: 'Push it sideways with the inside of your right foot', rf: [10, -40, -60], lr: .3, ball: [-30, -44], hi: 'r' },
+    { d: .3, cap: 'Catch it with your left in one motion: tap-tap', lf: [-56, -30, 50], ll: .3, rf: [46, 40, 6], lr: 0, hi: 'l' },
+    { d: .7, cap: 'Slip through the gap', ball: [0, -260], lf: [-20, -150, 0], rf: [30, -120, 0], ll: 0, go: [0, -150, 0, -260], hi: '' },
+    { d: .6, cap: 'Slip through the gap' }])],
+  'roulette': ['Roulette (360 Spin)', keyed(st({ ball: [0, -40], lf: [-50, 30, -6], rf: [50, 30, 6], def: [[0, -210]] }), [
+    { d: .5, cap: 'Defender in front' },
+    { d: .5, cap: 'Right sole on the ball, drag it back as you turn', rf: [4, -46, 0], lr: .5, hi: 'r', ball: [-10, -20] },
+    { d: .5, cap: 'Spin: put your back to the defender', lf: [-10, -90, 180], rf: [30, 10, 120], lr: 0, ball: [-30, 10], hi: '' },
+    { d: .5, cap: 'Left sole drags it on as you keep spinning', lf: [-34, 10, 240], ll: .5, hi: 'l', ball: [-50, 30] },
+    { d: .5, cap: 'Finish facing forward, past the defender', lf: [-120, 30, 360], rf: [-40, 50, 366], ll: 0, ball: [-120, -60], hi: '' },
+    { d: .7, cap: 'Go!', ball: [-180, -260], lf: [-170, -120, 360], rf: [-120, -100, 366], go: [-140, -120, -200, -260] }])],
+  'chop': ['Ronaldo Chop', keyed(st({ ball: [70, -30], lf: [-30, 30, 0], rf: [40, 50, 6] }), [
+    { d: .6, cap: 'Dribble with the ball on your right side', ball: [70, -80], lf: [-20, -10, 0], rf: [40, 10, 4] },
+    { d: .45, cap: 'Step past the ball with your left foot', lf: [70, -130, 10], ll: .2, hi: 'l' },
+    { d: .5, cap: 'Chop it behind your left leg with your right inside', rf: [80, -60, -80], lr: .35, ball: [-40, -120], hi: 'r', ll: 0 },
+    { d: .7, cap: 'Change direction and go', ball: [-240, -130], lf: [-100, -150, -80], rf: [-60, -110, -80], lr: 0, go: [-100, -170, -260, -170], hi: '' },
+    { d: .5, cap: 'Change direction and go' }])],
+  'elastico': ['Elastico', keyed(st({ ball: [20, -50], def: [[0, -210]] }), [
+    { d: .5, cap: 'Ball on your right foot, defender ahead' },
+    { d: .45, cap: 'Push it out with the outside of your foot', rf: [70, -60, 40], lr: .35, ball: [80, -70], hi: 'r', lean: [30, 0] },
+    { d: .35, cap: 'Snap it back with the inside, same foot', rf: [20, -70, -40], ball: [-90, -80], lean: [-30, 0] },
+    { d: .7, cap: 'Burst away the other way', ball: [-240, -190], lf: [-130, -90, -50], rf: [-90, -50, -50], lr: 0, go: [-140, -150, -270, -220], hi: '' },
+    { d: .5, cap: 'Burst away the other way' }])],
+};
+// Combo Chain: Step-Over, La Croqueta, Elastico through a line of cones.
+MOVES['combo'] = ['Combo Chain', keyed(st({ ball: [0, -50], lf: [-50, 30, -6], rf: [50, 30, 6], cones: [[0, -150], [-160, -150], [160, -150]] }), [
+  { d: .4, cap: '1. Step-over', rf: [12, -110, -30], lr: .8, hi: 'r' },
+  { d: .35, cap: '1. Step-over', rf: [80, 0, 10], lr: 0, lean: [40, 0] },
+  { d: .35, cap: '1. Step-over', lf: [-30, -50, -30], ll: .35, hi: 'l', ball: [-80, -70] },
+  { d: .4, cap: '2. La Croqueta', lf: [-120, 0, -6], rf: [-30, 20, 6], ll: 0, lean: [0, 0], hi: 'r' },
+  { d: .3, cap: '2. La Croqueta', rf: [-60, -60, -60], lr: .3, ball: [-130, -74] },
+  { d: .3, cap: '2. La Croqueta', lf: [-160, -50, 50], ll: .3, rf: [-60, 20, 6], lr: 0, hi: 'l' },
+  { d: .4, cap: '3. Elastico', lf: [-180, 10, -6], ll: 0, rf: [-100, 20, 6], ball: [-110, -60], hi: 'r' },
+  { d: .35, cap: '3. Elastico', rf: [-60, -50, 40], lr: .35, ball: [-50, -70] },
+  { d: .3, cap: '3. Elastico', rf: [-110, -60, -40], ball: [-230, -80] },
+  { d: .7, cap: 'Finish with a pass or shot', ball: [-300, -260], lf: [-230, -100, -30], rf: [-190, -70, -30], lr: 0, hi: '', go: [-240, -150, -320, -260] }])];
+
+/* ---------- Side view (juggling, toe taps, rainbow flick) ---------- */
+const GROUND = 452;
+function ik(hx, hy, ax, ay, L1 = 82, L2 = 82) {
+  let dx = ax - hx, dy = ay - hy, d = Math.hypot(dx, dy); const m = L1 + L2 - .5; if (d > m) { ax = hx + dx / d * m; ay = hy + dy / d * m; dx = ax - hx; dy = ay - hy; d = m; }
+  const a = Math.acos(clamp((L1 * L1 + d * d - L2 * L2) / (2 * L1 * d), -1, 1)), base = Math.atan2(dy, dx);
+  const k1 = [hx + Math.cos(base - a) * L1, hy + Math.sin(base - a) * L1], k2 = [hx + Math.cos(base + a) * L1, hy + Math.sin(base + a) * L1];
+  return { knee: k1[0] > k2[0] ? k1 : k2, ankle: [ax, ay] };   // knees bend forward (player faces right)
+}
+// s: { hip:[x,y], la:[x,y], ra:[x,y], lfa, rfa (foot angles°), look: -1..1 (head turn), hiL, hiR }
+function sideFigure(s) {
+  const [hx, hy] = s.hip, sh = [hx + 6, hy - 112], head = [hx + 8, hy - 146];
+  ctx.fillStyle = 'rgba(0,0,0,.25)'; ctx.beginPath(); ctx.ellipse(hx + 10, GROUND + 6, 70, 10, 0, 0, 7); ctx.fill();
+  const leg = (A, fa, col, w) => { const { knee, ankle } = ik(hx, hy, A[0], A[1]);
+    ctx.strokeStyle = col; ctx.lineWidth = w; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    ctx.beginPath(); ctx.moveTo(hx, hy); ctx.lineTo(...knee); ctx.lineTo(...ankle); ctx.stroke();
+    ctx.strokeStyle = '#111'; ctx.lineWidth = w - 2; ctx.beginPath(); ctx.moveTo(...ankle); ctx.lineTo(ankle[0] + Math.cos(rad(fa)) * 30, ankle[1] + Math.sin(rad(fa)) * 30); ctx.stroke(); };
+  const arm = (sw, col) => { const e = [sh[0] + Math.sin(sw) * 34, sh[1] + 44], h = [e[0] + Math.sin(sw + .4) * 30, e[1] + 34];
+    ctx.strokeStyle = col; ctx.lineWidth = 12; ctx.beginPath(); ctx.moveTo(...sh); ctx.lineTo(...e); ctx.lineTo(...h); ctx.stroke(); };
+  arm(-(s.arm || .3), '#7a4a30');
+  leg(s.la, s.lfa ?? 0, s.hiL ? C.left : '#3f6fa0', 16);
+  ctx.strokeStyle = C.bib; ctx.lineWidth = 30; ctx.lineCap = 'round'; ctx.beginPath(); ctx.moveTo(hx, hy - 8); ctx.lineTo(...sh); ctx.stroke();
+  ctx.fillStyle = '#111'; ctx.beginPath(); ctx.ellipse(hx, hy, 22, 16, 0, 0, 7); ctx.fill();
+  leg(s.ra, s.rfa ?? 0, s.hiR ? C.right : '#20384f', 18);
+  arm(s.arm || .3, '#8a5a3e');
+  // head with face direction (look: 0 forward, -1 over left shoulder, 1 over right)
+  ctx.fillStyle = '#8a5a3e'; ctx.beginPath(); ctx.arc(...head, 25, 0, 7); ctx.fill();
+  ctx.fillStyle = '#2b1a10'; ctx.beginPath(); ctx.arc(head[0] - 4, head[1] - 4, 24, Math.PI * .9, Math.PI * 1.95); ctx.fill();
+  const look = s.look || 0;
+  ctx.fillStyle = '#111'; ctx.beginPath(); ctx.arc(head[0] + 13 - Math.abs(look) * 16, head[1] - 2, 3.5, 0, 7); ctx.fill();
+  if (Math.abs(look) > .3) { ctx.fillStyle = 'rgba(255,198,51,.28)'; ctx.beginPath(); ctx.moveTo(...head);
+    const a = look < 0 ? Math.PI * 1.05 : Math.PI * .85; ctx.arc(head[0], head[1], 230, a - .3, a + .3); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = C.star; ctx.font = `800 22px ${FONT}`; ctx.textAlign = 'center'; ctx.fillText(look < 0 ? 'CHECK LEFT' : 'CHECK RIGHT', head[0] - 150, head[1] - 60); }
+}
+function groundLine() { ctx.fillStyle = 'rgba(0,0,0,.15)'; ctx.fillRect(0, GROUND + 4, W, H - GROUND); ctx.strokeStyle = 'rgba(255,255,255,.35)'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(0, GROUND + 4); ctx.lineTo(W, GROUND + 4); ctx.stroke(); }
+// Juggling: ball contact on the laces, peak at waist height, feet alternate.
+function juggleState(t, period, opt = {}) {
+  const hip = [430, GROUND - 158], stand = { l: [418, GROUND - 4], r: [442, GROUND - 4] };
+  const n = Math.floor(t / period), u = (t % period) / period, side = n % 2 ? 'l' : 'r';
+  const kickUp = u > .78 ? (u - .78) / .22 : u < .12 ? 1 - u / .12 : 0, k = ease(kickUp);
+  const contact = { l: [462, GROUND - 52], r: [470, GROUND - 52] };
+  const la = side === 'l' ? [lerp(stand.l[0], contact.l[0], k), lerp(stand.l[1], contact.l[1], k)] : stand.l;
+  const ra = side === 'r' ? [lerp(stand.r[0], contact.r[0], k), lerp(stand.r[1], contact.r[1], k)] : stand.r;
+  const bu = (t % period) / period, peak = opt.peak || 150, by = (GROUND - 66) - 4 * peak * bu * (1 - bu);
+  return { fig: { hip, la, ra, lfa: side === 'l' ? lerp(0, -18, k) : 0, rfa: side === 'r' ? lerp(0, -18, k) : 0, hiL: side === 'l' && k > .2, hiR: side === 'r' && k > .2, arm: .5 }, ball: [498, by], n, side };
+}
+
+/* ---------- Scenes ---------- */
+const SCENES = {};
+function addMove(id) {
+  const [name, kf] = MOVES[id], slow = 1.9, gap = .5;
+  const dur = kf.dur * slow + gap + kf.dur + .6;
+  SCENES['move-' + id] = { name, dur, draw(t) {
+    const slowEnd = kf.dur * slow;
+    const fast = t > slowEnd + gap, local = fast ? Math.min(kf.dur, t - slowEnd - gap) : Math.min(kf.dur, t / slow);
+    const f = kf.at(local);
+    moveScene(f.s); title(name, fast ? 'FULL SPEED' : 'SLOW MOTION');
+    caption(f.cap, fast ? null : f.step, kf.steps.length);
+  } };
+}
+Object.keys(MOVES).forEach(addMove);
+
+// Rainbow Flick (side view keyframes)
+{
+  const R = keyed({ hip: [430, GROUND - 158], la: [392, GROUND - 6], ra: [444, GROUND - 4], lfa: 0, rfa: 0, ball: [418, GROUND - 22], look: 0, hiL: false, hiR: false, arm: .3 }, [
+    { d: .6, cap: 'Ball between your feet, left foot behind it', la: [378, GROUND - 8], hiL: true },
+    { d: .9, cap: 'Roll it up the back of your right leg with your left foot', la: [400, GROUND - 46], lfa: -30, ball: [424, GROUND - 70] },
+    { d: .45, cap: 'Flick it up with your right heel', ra: [396, GROUND - 84], rfa: 40, hiR: true, hiL: false, la: [410, GROUND - 6], lfa: 0, ball: [420, GROUND - 120] },
+    { d: 1.1, cap: 'It arcs over your head and over the defender', ball: [700, GROUND - 22], arc: 300, ra: [446, GROUND - 4], rfa: 0, hiR: false, lin: true },
+    { d: .9, cap: 'Run onto it', hip: [640, GROUND - 158], la: [660, GROUND - 6], ra: [610, GROUND - 20], ball: [760, GROUND - 22] }]);
+  const slow = 1.7, gap = .5;
+  SCENES['move-rainbow'] = { name: 'Rainbow Flick', dur: R.dur * slow + gap + R.dur + .6, draw(t) {
+    const fast = t > R.dur * slow + gap, local = fast ? Math.min(R.dur, t - R.dur * slow - gap) : Math.min(R.dur, t / slow), f = R.at(local);
+    pitch(); groundLine();
+    ctx.fillStyle = C.red; ctx.beginPath(); ctx.ellipse(590, GROUND - 60, 26, 64, 0, 0, 7); ctx.fill();
+    ctx.fillStyle = '#fff'; ctx.font = `800 13px ${FONT}`; ctx.textAlign = 'center'; ctx.fillText('DEFENDER', 590, GROUND + 22);
+    sideFigure(f.s); ball(f.s.ball[0], f.s.ball[1], 20, f.s.ball[0] / 20, false);
+    title('Rainbow Flick', fast ? 'FULL SPEED' : 'SLOW MOTION'); caption(f.cap, fast ? null : f.step);
+  } };
+}
+
+// Juggle Ladder
+SCENES['juggle'] = { name: 'Juggle Ladder', dur: 10, draw(t) {
+  pitch(); groundLine();
+  const P = .82, j = juggleState(t, P);
+  sideFigure(j.fig); ball(...j.ball, 20, t * 4, false);
+  title('Juggle Ladder'); counter('in a row', j.n + (t % P > P * .9 ? 1 : 0));
+  const caps = ['Toes up, ankle locked', 'Hit the ball with your laces', 'Keep it around waist height', 'Switch feet: left, right, left'];
+  caption(caps[Math.floor(t / 2.5) % 4]);
+} };
+// Juggle & Check
+SCENES['juggle-check'] = { name: 'Juggle & Check', dur: 10, draw(t) {
+  pitch(); groundLine();
+  const P = .85, j = juggleState(t, P), cyc = j.n % 3, u = (t % P) / P;
+  const checking = cyc === 2 && u > .2 && u < .7, dir = Math.floor(j.n / 3) % 2 ? 1 : -1;
+  j.fig.look = checking ? dir * Math.sin(Math.PI * (u - .2) / .5) : 0;
+  sideFigure(j.fig); ball(...j.ball, 20, t * 4, false);
+  title('Juggle & Check'); counter('checks', Math.floor((j.n + 1) / 3));
+  caption(checking ? 'Quick look over your shoulder, feet keep working' : 'Every few juggles, check over a shoulder');
+} };
+// Toe Taps
+SCENES['toe-taps'] = { name: 'Toe Taps', dur: 8, draw(t) {
+  pitch(); groundLine();
+  const P = .34, n = Math.floor(t / P), u = (t % P) / P, side = n % 2 ? 'l' : 'r', k = Math.sin(Math.PI * u);
+  const top = [500, GROUND - 46], base = { l: [414, GROUND - 4], r: [446, GROUND - 4] };
+  const hop = Math.abs(Math.sin(Math.PI * u)) * 6;
+  const la = side === 'l' ? [lerp(base.l[0], top[0] - 22, k), lerp(base.l[1], top[1] - 6, k)] : base.l;
+  const ra = side === 'r' ? [lerp(base.r[0], top[0] - 18, k), lerp(base.r[1], top[1] - 6, k)] : base.r;
+  sideFigure({ hip: [430, GROUND - 158 - hop], la, ra, lfa: side === 'l' ? 12 * k : 0, rfa: side === 'r' ? 12 * k : 0, hiL: side === 'l' && k > .3, hiR: side === 'r' && k > .3, arm: .6 * Math.sin(t * 9) });
+  ball(512, GROUND - 22, 22, 0, true);
+  title('Toe Taps'); counter('taps', n);
+  caption(t < 4 ? 'Tap the top of the ball, one foot then the other' : 'Light taps, stay on the balls of your feet');
+} };
+
+// Cone Dribble
+{
+  const xs = [220, 360, 500, 640, 780], weave = [[90, 300]];
+  xs.forEach((x, i) => weave.push([x - 70, 300], [x, i % 2 ? 360 : 240]));
+  weave.push([860, 300], [900, 300]);
+  const back = [...weave].reverse().map(([x, y]) => [x, 600 - y]);
+  const P = path([...weave, [920, 330], ...back.slice(1)]);
+  SCENES['cone-dribble'] = { name: 'Cone Dribble', dur: P.len / 165, draw(t) {
+    pitch(); xs.forEach((x) => cone(x, 300));
+    dashed(P.pts.filter((_, i) => i % 2 === 0));
+    const d = dribble(P, t, 165);
+    title('Cone Dribble'); counter('trips', d.s > P.len - 60 ? 1 : 0);
+    caption(d.s < P.len * .48 ? 'Weave in and out of the cones' : 'Turn at the end and weave back');
+  } };
+}
+// Gate Hunt
+{
+  const gates = [[200, 140, 0], [470, 110, 1], [760, 160, 0], [800, 380, 1], [490, 400, 0], [200, 380, 1]];
+  const P = path([[120, 260], [200, 140], [330, 90], [470, 110], [620, 120], [760, 160], [860, 270], [800, 380], [650, 430], [490, 400], [340, 420], [200, 380], [120, 260]]);
+  SCENES['gate-hunt'] = { name: 'Gate Hunt', dur: P.len / 140, draw(t) {
+    pitch();
+    for (const [x, y, v] of gates) { const dx = v ? 0 : 26, dy = v ? 26 : 0; dashed([[x - dx, y - dy], [x + dx, y + dy]], 'rgba(255,255,255,.55)'); cone(x - dx, y - dy); cone(x + dx, y + dy); }
+    const d = dribble(P, t, 140, { touch: .4 });
+    let n = 0; for (const [x, y] of gates) { const along = P.pts.findIndex(([px, py]) => Math.hypot(px - x, py - y) < 14); if (along >= 0 && d.s >= along / P.pts.length * P.len) n++; }
+    title('Gate Hunt'); counter('gates', n);
+    caption(t < 4 ? 'Dribble through any gate' : 'Pick your next gate before you get there');
+  } };
+}
+// Tight Box
+{
+  const P = path([[480, 250], [540, 230], [560, 290], [500, 330], [430, 300], [440, 240], [500, 260], [540, 310], [470, 320], [420, 270], [480, 250]], true);
+  SCENES['tight-box'] = { name: 'Tight Box', dur: 9, draw(t) {
+    pitch();
+    ctx.strokeStyle = 'rgba(255,255,255,.6)'; ctx.setLineDash([10, 8]); ctx.lineWidth = 3; ctx.strokeRect(360, 170, 240, 230); ctx.setLineDash([]);
+    [[360, 170], [600, 170], [360, 400], [600, 400]].forEach(([x, y]) => cone(x, y));
+    const d = dribble(P, t, 70, { touch: .3 });
+    title('Tight Box'); counter('touches', d.touches);
+    caption(t < 4.5 ? 'Keep the ball inside the box, always moving' : 'Tiny touches: inside, outside, sole');
+  } };
+}
+// Wall passes (also Weak Foot Wall)
+function wallScene(id, name, weak) {
+  SCENES[id] = { name, dur: 8, draw(t) {
+    pitch(); wall();
+    const P = 1.3, n = Math.floor(t / P), u = (t % P) / P, px = 480, py = 400;
+    const foot = weak || n % 2 ? -1 : 1, bx = px + foot * 12;
+    let by; if (u < .4) by = lerp(py - 46, 106, u / .4); else if (u < .8) by = lerp(106, py - 46, (u - .4) / .4); else by = py - 46;
+    playerTop(px, py, -Math.PI / 2, 0, weak ? { leftColor: C.left } : {});
+    ball(bx, by, 14, by / 14);
+    if (u > .8 || u < .06) { ctx.fillStyle = 'rgba(255,255,255,.85)'; ctx.font = `800 20px ${FONT}`; ctx.textAlign = 'center'; ctx.fillText(weak || foot < 0 ? 'LEFT' : 'RIGHT', px + foot * 60, py + 10); }
+    title(name, weak ? 'LEFT FOOT ONLY' : null); counter('passes', n);
+    caption(weak ? 'Weak foot only: strong foot can\'t touch it' : t < 4 ? 'Pass, control, pass' : 'Firm passes, locked ankle');
+  } };
+}
+wallScene('wall-pass', 'Wall Pass Rush', false);
+wallScene('weak-foot', 'Weak Foot Wall', true);
+// Receive & Open Up
+SCENES['receive-turn'] = { name: 'Receive & Open Up', dur: 9, draw(t) {
+  pitch(); wall();
+  const P = 4.5, n = Math.floor(t / P), u = (t % P) / P, side = n % 2 ? 1 : -1, px = 480, py = 380;
+  let x = px, y = py, dir = -Math.PI / 2, bx = px, by = py - 46, cap;
+  if (u < .2) { by = lerp(py - 46, 106, u / .2); cap = 'Pass to the wall'; }
+  else if (u < .42) { by = lerp(106, py - 44, (u - .2) / .22); dir = -Math.PI / 2 + side * .5 * ((u - .2) / .22); cap = 'Open your body before it arrives'; }
+  else if (u < .7) { const k = ease((u - .42) / .28); dir = -Math.PI / 2 + side * lerp(.5, Math.PI / 2 + .3, k); x = lerp(px, px + side * 170, k); y = lerp(py, py + 40, k);
+    bx = x + Math.cos(dir) * 44; by = y + Math.sin(dir) * 44; cap = 'First touch across your body, into space'; }
+  else { const k = ease((u - .7) / .3); x = lerp(px + side * 170, px, k); y = lerp(py + 40, py, k); dir = -Math.PI / 2; bx = x; by = y - 46; cap = 'Reset and turn the other way next time'; }
+  playerTop(x, y, dir, u > .42 ? t * 12 : 0); ball(bx, by, 14, by / 14);
+  title('Receive & Open Up'); caption(cap);
+} };
+// Check Away, Check In
+SCENES['check-away'] = { name: 'Check Away, Check In', dur: 7, draw(t) {
+  pitch(); wall(); cone(480, 250, 1.3);
+  ctx.fillStyle = 'rgba(255,255,255,.7)'; ctx.font = `700 14px ${FONT}`; ctx.textAlign = 'center'; ctx.fillText('DEFENDER', 480, 282);
+  const P = path([[530, 240], [545, 340], [550, 420], [600, 340], [640, 310], [820, 420]]), u = Math.min(1, t / 5.6);
+  const p = P.at(P.len * ease(u)); let bx, by, cap;
+  if (u < .4) { bx = 480; by = 108; cap = 'Jog away from the wall'; }
+  else if (u < .58) { cap = 'Check back sharply to lose your defender'; const k = (u - .4) / .18; bx = lerp(480, p.x, k); by = lerp(108, p.y - 34, k); }
+  else { cap = 'Receive on the half-turn, play away'; bx = p.x + Math.cos(p.dir) * 40; by = p.y + Math.sin(p.dir) * 40; }
+  dashed([[530, 240], [550, 420], [640, 310], [820, 420]]);
+  playerTop(p.x, p.y, p.dir, t * 12); ball(bx, by, 14, t * 6);
+  title('Check Away, Check In'); caption(cap);
+} };
+// Box-to-Box Repeats
+SCENES['repeats'] = { name: 'Box-to-Box Repeats', dur: 9, draw(t) {
+  pitch(); cone(130, 290, 1.3); cone(830, 290, 1.3);
+  const P = 4.5, u = (t % P) / P, go = u < .4, n = Math.floor(t / P);
+  const x = go ? lerp(150, 810, ease(u / .4)) : lerp(810, 150, (u - .4) / .6);
+  playerTop(x, 290, go ? 0 : Math.PI, t * (go ? 20 : 8), { stride: go ? 1.6 : .7 });
+  ctx.font = `800 70px ${FONT}`; ctx.textAlign = 'center'; ctx.fillStyle = go ? C.bib : 'rgba(255,255,255,.75)'; ctx.fillText(go ? 'GO!' : 'REST', W / 2, 150);
+  title('Box-to-Box Repeats'); counter('sprints', n + (go ? 1 : 1));
+  caption(go ? 'Sprint as hard as you can' : 'Walk back and breathe');
+} };
+// Scan & Turn
+SCENES['scan-turn'] = { name: 'Scan & Turn', dur: 8, draw(t) {
+  pitch(); wall();
+  const P = 4, n = Math.floor(t / P), u = (t % P) / P, side = n % 2 ? 1 : -1, px = 480, py = 360;
+  let x = px, y = py, dir = -Math.PI / 2, bx = px, by = py - 46, cap, flash = u > .3 && u < .5;
+  if (u < .25) { by = lerp(py - 46, 106, u / .25); cap = 'Pass to the wall'; }
+  else if (u < .5) { by = lerp(106, py - 46, (u - .25) / .25); cap = 'Glance at the phone before the ball comes back'; }
+  else if (u < .78) { const k = ease((u - .5) / .28); dir = -Math.PI / 2 + side * k * Math.PI / 2; x = lerp(px, px + side * 190, k); bx = x + Math.cos(dir) * 44; by = y + Math.sin(dir) * 44; cap = 'Turn the way the arrow pointed'; }
+  else { const k = (u - .78) / .22; x = lerp(px + side * 190, px, k); bx = x; by = py - 46; cap = 'Reset for the next one'; }
+  // phone
+  ctx.fillStyle = '#10241A'; roundRect(800, 300, 70, 120, 10); ctx.fill(); ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.stroke();
+  ctx.fillStyle = flash ? C.bib : '#0c1a12'; ctx.fillRect(808, 312, 54, 92);
+  if (flash) { ctx.fillStyle = C.ink; ctx.font = `800 48px ${FONT}`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(side < 0 ? '←' : '→', 835, 358); }
+  playerTop(x, y, dir, u > .5 ? t * 12 : 0); ball(bx, by, 14, by / 14);
+  title('Scan & Turn'); caption(cap);
+} };
+// Find the Gap (the on-screen game)
+SCENES['find-gap'] = { name: 'Find the Gap', dur: 8, draw(t) {
+  ctx.fillStyle = '#0E2618'; ctx.fillRect(0, 0, W, H);
+  const fx = 310, fw = 340, fh = 396, fy = 56;
+  for (let i = 0; i < 8; i++) { ctx.fillStyle = i % 2 ? '#227740' : '#1D6A3A'; ctx.fillRect(fx, fy + i * fh / 8, fw, fh / 8 + 1); }
+  ctx.strokeStyle = 'rgba(255,255,255,.55)'; ctx.lineWidth = 2; ctx.strokeRect(fx + fw * .2, fy, fw * .6, fh * .16);
+  const X = (u) => fx + u * fw, Y = (v) => fy + v * fh;
+  const car = [.5, .88], mates = [[.2, .3], [.68, .2], [.85, .6]], defs = [[.6, .52], [.82, .66], [.5, .22], [.72, .36], [.3, .62]];
+  const phase = t < 3 ? 0 : t < 3.4 ? 1 : t < 5 ? 2 : 3;
+  if (phase >= 2) mates.forEach(([mx, my], i) => { ctx.strokeStyle = i === 0 ? C.good : '#FF6B6B'; ctx.lineWidth = i === 0 ? 6 : 3; ctx.setLineDash(i === 0 ? [] : [8, 7]);
+    ctx.beginPath(); ctx.moveTo(X(car[0]), Y(car[1])); ctx.lineTo(X(mx), Y(my)); ctx.stroke(); ctx.setLineDash([]); });
+  defs.forEach(([x, y]) => { ctx.fillStyle = C.red; ctx.beginPath(); ctx.arc(X(x), Y(y), 15, 0, 7); ctx.fill(); ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.stroke(); });
+  mates.forEach(([x, y], i) => { ctx.fillStyle = C.white; ctx.beginPath(); ctx.arc(X(x), Y(y), 16, 0, 7); ctx.fill(); ctx.fillStyle = C.ink; ctx.font = `800 16px ${FONT}`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(i + 1, X(x), Y(y) + 1); });
+  ctx.fillStyle = C.bib; ctx.beginPath(); ctx.arc(X(car[0]), Y(car[1]), 17, 0, 7); ctx.fill(); ctx.strokeStyle = '#fff'; ctx.stroke();
+  let bx = X(car[0]) + 16, by = Y(car[1]) - 12;
+  if (phase === 3) { const k = ease(Math.min(1, (t - 5) / 1.2)); bx = lerp(bx, X(mates[0][0]) + 14, k); by = lerp(by, Y(mates[0][1]) - 10, k); }
+  ball(bx, by, 8, t * 5, false);
+  // timer bar
+  ctx.fillStyle = 'rgba(255,255,255,.15)'; ctx.fillRect(fx, fy + fh + 10, fw, 8); ctx.fillStyle = C.bib; ctx.fillRect(fx, fy + fh + 10, fw * Math.max(0, 1 - t / 3.2), 8);
+  if (phase >= 1 && t < 4.4) { const k = Math.min(1, (t - 3) / .3); ctx.fillStyle = 'rgba(255,255,255,.9)'; ctx.beginPath(); ctx.arc(X(mates[0][0]) + 26, Y(mates[0][1]) + 30 - 10 * k, 16, 0, 7); ctx.fill();
+    ctx.strokeStyle = C.star; ctx.lineWidth = 4; ctx.beginPath(); ctx.arc(X(mates[0][0]), Y(mates[0][1]), 26, 0, 7); ctx.stroke(); }
+  ctx.textAlign = 'left'; ctx.textBaseline = 'top';
+  [['You', C.bib], ['Teammate', C.white], ['Defender', C.red]].forEach(([l, c], i) => { ctx.fillStyle = c; ctx.beginPath(); ctx.arc(720, 120 + i * 40, 10, 0, 7); ctx.fill(); ctx.fillStyle = '#fff'; ctx.font = `700 20px ${FONT}`; ctx.fillText(l, 740, 108 + i * 40); });
+  title('Find the Gap');
+  caption(phase === 0 ? 'Look at every passing lane' : phase === 1 ? 'Tap the teammate you\'d pass to' : phase === 2 ? 'Green = open lane, red = blocked' : 'Pass! Now do 10 in a row');
+} };
+
+/* ---------- Render API ---------- */
+window.SCENE_LIST = Object.entries(SCENES).map(([id, s]) => ({ id, name: s.name, dur: Math.round(s.dur * 100) / 100 }));
+window.renderFrame = (id, t) => { ctx.save(); ctx.clearRect(0, 0, W, H); SCENES[id].draw(t); ctx.restore(); return cv.toDataURL('image/jpeg', .9); };
+
+// Preview controls
+const pick = document.getElementById('pick');
+SCENE_LIST.forEach((s) => pick.add(new Option(`${s.name} (${s.dur}s)`, s.id)));
+let raf = 0;
+document.getElementById('play').onclick = () => { cancelAnimationFrame(raf); const id = pick.value, t0 = performance.now();
+  const loop = () => { const t = ((performance.now() - t0) / 1000) % SCENES[id].dur; ctx.save(); ctx.clearRect(0, 0, W, H); SCENES[id].draw(t); ctx.restore(); raf = requestAnimationFrame(loop); }; loop(); };
+pick.onchange = () => document.getElementById('play').click();
+document.getElementById('play').click();
+</script>
+</body>
+</html>
