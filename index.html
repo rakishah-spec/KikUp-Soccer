@@ -435,6 +435,12 @@ main .wrap{padding-block:24px 56px;display:grid;gap:28px}
 .chips2 button[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
 .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(20px + env(safe-area-inset-bottom,0px));z-index:60;background:var(--ink);color:var(--bg);padding:12px 18px;border-radius:12px;font-weight:700;max-width:min(92vw,420px);box-shadow:0 8px 24px rgba(0,0,0,.3)}
 
+.or{display:flex;align-items:center;gap:10px;color:rgba(255,255,255,.7);font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.08em}
+.or::before,.or::after{content:"";flex:1;height:1px;background:rgba(255,255,255,.3)}
+.g-btn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;background:#fff;color:#1f1f1f;border:0;border-radius:12px;padding:14px;font-weight:700;font-size:17px}
+.g-btn svg{width:22px;height:22px}
+.g-btn:disabled{opacity:.6}
+
 /* Live camera counter */
 .cam-tip{position:absolute;left:8px;right:8px;bottom:8px;display:flex;gap:10px;align-items:center;background:rgba(14,38,24,.88);border:2px solid var(--bib);border-radius:12px;padding:10px 12px;color:#fff;text-align:left}
 .cam-tip svg{width:44px;height:44px;flex:none;color:var(--bib)}
@@ -1844,7 +1850,7 @@ const fmtCode=c=>c?`KIK-${c}`:'';
 
 async function afterLogin(newPid){
   ACC=await SOC.account();
-  if(!ACC.profiles.length){ME=null;if(ACC.kind==='parent'){openAuth('addkid');}renderFriendsIfOpen();return;}
+  if(!ACC.profiles.length){ME=null;if(ACC.kind==='parent')openAuth('addkid');else if(!ACC.kind)openAuth('gchoose');renderFriendsIfOpen();return;}
   const want=newPid||lsGet(PID_KEY);await usePlayer((ACC.profiles.find(p=>p.id===want)||ACC.profiles[0]).id);
 }
 // Switch to one of this account's players. This device's training record follows the player.
@@ -1959,7 +1965,7 @@ $('#chSheet').addEventListener('click',e=>{if(e.target.id==='chSheet')$('#chShee
 function openAuth(step){authStep=step;authData={};$('#authOv').hidden=false;document.body.style.overflow='hidden';renderAuth();}
 function closeAuth(){$('#authOv').hidden=true;document.body.style.overflow='';renderFriendsIfOpen();}
 $('#authClose').onclick=closeAuth;
-$('#authBack').onclick=()=>{const back={teen:'start',kid:'start',parent:'start',login:'start',addkid:null}[authStep];if(back){authStep=back;renderAuth();}else closeAuth();};
+$('#authBack').onclick=()=>{const back={teen:'start',kid:'start',parent:'start',login:'start',addkid:null,gteen:'gchoose',gparent:'gchoose'}[authStep];if(back){authStep=back;renderAuth();}else closeAuth();};
 function renderAuth(){
   const b=$('#authBody');$('#authBack').hidden=authStep==='start'||authStep==='done';
   const ageBtns=sel=>`<div class="onb-choices">${AGES.map((a,i)=>`<button class="onb-choice" data-kage="${i}" aria-pressed="${sel===i}"><span><strong>${a.name}</strong><small>${a.range}</small></span><span class="chk">${sel===i?'✓':''}</span></button>`).join('')}</div>`;
@@ -1976,12 +1982,14 @@ function renderAuth(){
     <label>Password<input type="password" id="aPass" autocomplete="new-password" placeholder="At least 8 characters"></label>
     <label class="chk"><input type="checkbox" id="a13"> I'm 13 or older</label>
     <p class="auth-err" id="aErr"></p><button class="btn-primary">Create account</button></form>
-    <p class="onb-note">Write your password down somewhere safe. Usernames can't get a reset email, so a parent may need to help if you forget it.</p>`;
+    <div class="or">or</div><button class="g-btn" data-google="teen" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#4285F4" d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.5h6.5a5.6 5.6 0 0 1-2.4 3.7v3h3.9c2.3-2.1 3.5-5.2 3.5-8.9Z"/><path fill="#34A853" d="M12 24c3.2 0 6-1.1 8-2.9l-3.9-3c-1.1.7-2.5 1.2-4.1 1.2-3.1 0-5.8-2.1-6.7-5H1.3v3.1A12 12 0 0 0 12 24Z"/><path fill="#FBBC05" d="M5.3 14.3a7.2 7.2 0 0 1 0-4.6V6.6H1.3a12 12 0 0 0 0 10.8l4-3.1Z"/><path fill="#EA4335" d="M12 4.8c1.8 0 3.3.6 4.6 1.8l3.4-3.4A12 12 0 0 0 1.3 6.6l4 3.1c.9-2.9 3.6-4.9 6.7-4.9Z"/></svg>Continue with Google</button>
+    <p class="onb-note">With a username, write your password down somewhere safe (a parent may need to help if you forget it). With Google, Google handles your password.</p>`;
   if(authStep==='parent')b.innerHTML=`<h2 id="authTitle">Parent account</h2>
     <form class="auth-f" id="parentForm"><label>Your email<input type="email" id="aEmail" autocomplete="email"></label>
     <label>Password<input type="password" id="aPass" autocomplete="new-password" placeholder="At least 8 characters"></label>
     <label class="chk"><input type="checkbox" id="aConsent"> I'm the parent or guardian. I agree to KikUp storing my child's nickname and training stats so friends we approve can see their stars and streaks. There's no chat, and no photos or video are shared. I can delete the account at any time.</label>
-    <p class="auth-err" id="aErr"></p><button class="btn-primary">Create parent account</button></form>`;
+    <p class="auth-err" id="aErr"></p><button class="btn-primary">Create parent account</button></form>
+    <div class="or">or</div><button class="g-btn" data-google="parent" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#4285F4" d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.5h6.5a5.6 5.6 0 0 1-2.4 3.7v3h3.9c2.3-2.1 3.5-5.2 3.5-8.9Z"/><path fill="#34A853" d="M12 24c3.2 0 6-1.1 8-2.9l-3.9-3c-1.1.7-2.5 1.2-4.1 1.2-3.1 0-5.8-2.1-6.7-5H1.3v3.1A12 12 0 0 0 12 24Z"/><path fill="#FBBC05" d="M5.3 14.3a7.2 7.2 0 0 1 0-4.6V6.6H1.3a12 12 0 0 0 0 10.8l4-3.1Z"/><path fill="#EA4335" d="M12 4.8c1.8 0 3.3.6 4.6 1.8l3.4-3.4A12 12 0 0 0 1.3 6.6l4 3.1c.9-2.9 3.6-4.9 6.7-4.9Z"/></svg>Continue with Google</button>`;
   if(authStep==='addkid'){authData.age??=Math.min(state.age,1);authData.ideas??=null;
     social().then(s=>{if(!authData.ideas){authData.ideas=s.nicknameIdeas(6);authData.name=authData.ideas[0];renderAuth();}});
     b.innerHTML=`<h2 id="authTitle">Add your child</h2><p class="lead">Pick their age group and a fun nickname. Nicknames are generated, so no real names are shared.</p>${ageBtns(authData.age)}
@@ -1991,7 +1999,17 @@ function renderAuth(){
     <div class="seg2"><button data-lt="teen" aria-pressed="${authData.lt!=='parent'}">Player (username)</button><button data-lt="parent" aria-pressed="${authData.lt==='parent'}">Parent (email)</button></div>
     <form class="auth-f" id="loginForm"><label>${authData.lt==='parent'?'Email':'Username'}<input type="${authData.lt==='parent'?'email':'text'}" id="aId" autocomplete="username" autocapitalize="none"></label>
     <label>Password<input type="password" id="aPass" autocomplete="current-password"></label><p class="auth-err" id="aErr"></p><button class="btn-primary">Log in</button></form>
-    ${authData.lt==='parent'?'<button class="auth-link" id="forgot">Forgot password?</button>':''}`;
+    ${authData.lt==='parent'?'<button class="auth-link" id="forgot">Forgot password?</button>':''}
+    <div class="or">or</div><button class="g-btn" data-google="login" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#4285F4" d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.5h6.5a5.6 5.6 0 0 1-2.4 3.7v3h3.9c2.3-2.1 3.5-5.2 3.5-8.9Z"/><path fill="#34A853" d="M12 24c3.2 0 6-1.1 8-2.9l-3.9-3c-1.1.7-2.5 1.2-4.1 1.2-3.1 0-5.8-2.1-6.7-5H1.3v3.1A12 12 0 0 0 12 24Z"/><path fill="#FBBC05" d="M5.3 14.3a7.2 7.2 0 0 1 0-4.6V6.6H1.3a12 12 0 0 0 0 10.8l4-3.1Z"/><path fill="#EA4335" d="M12 4.8c1.8 0 3.3.6 4.6 1.8l3.4-3.4A12 12 0 0 0 1.3 6.6l4 3.1c.9-2.9 3.6-4.9 6.7-4.9Z"/></svg>Continue with Google</button>`;
+  if(authStep==='gchoose')b.innerHTML=`<h2 id="authTitle">Almost done</h2><p class="lead">You signed in with Google. Are you a player 13 or older, or a parent?</p>
+    <div class="onb-choices"><button class="onb-choice" data-step="gteen"><span><strong>I'm 13 or older</strong><small>Pick the username friends will see</small></span></button>
+    <button class="onb-choice" data-step="gparent"><span><strong>I'm a parent</strong><small>Set up an account for your child</small></span></button></div>`;
+  if(authStep==='gteen')b.innerHTML=`<h2 id="authTitle">Pick a username</h2><p class="lead">This is what friends see. Your Google email is never shown.</p>
+    <form class="auth-f" id="gTeenForm"><label>Username<input type="text" id="aUser" autocapitalize="none" maxlength="15" placeholder="e.g. striker_sam"></label>
+    <label class="chk"><input type="checkbox" id="a13"${authData.is13?' checked':''}> I'm 13 or older</label><p class="auth-err" id="aErr"></p><button class="btn-primary">Finish</button></form>`;
+  if(authStep==='gparent')b.innerHTML=`<h2 id="authTitle">Parent consent</h2>
+    <form class="auth-f" id="gParentForm"><label class="chk"><input type="checkbox" id="aConsent"${authData.consent?' checked':''}> I'm the parent or guardian. I agree to KikUp storing my child's nickname and training stats so friends we approve can see their stars and streaks. There's no chat, and no photos or video are shared. I can delete the account at any time.</label>
+    <p class="auth-err" id="aErr"></p><button class="btn-primary">Continue</button></form>`;
   if(authStep==='done')b.innerHTML=`<h2 id="authTitle">You're all set${ME?`, ${esc(ME.name)}`:''}!</h2><p class="lead">Share your friend code so friends can add you:</p>
     <div class="code-box" style="background:rgba(0,0,0,.25);justify-content:center"><code>${ME?fmtCode(ME.friendCode):''}</code></div>
     <button class="btn-primary" id="authDone">Go to Friends</button>`;
@@ -2002,6 +2020,15 @@ $('#authBody').addEventListener('click',async e=>{
   const lt=t.closest('[data-lt]');if(lt){authData.lt=lt.dataset.lt;renderAuth();return;}
   const ka=t.closest('[data-kage]');if(ka){authData.age=+ka.dataset.kage;renderAuth();return;}
   const nk=t.closest('[data-nick]');if(nk){authData.name=nk.dataset.nick;renderAuth();return;}
+  const gb=t.closest('[data-google]');if(gb){const role=gb.dataset.google,err=$('#aErr');if(err)err.textContent='';
+    if(role==='teen'&&!$('#a13').checked){err.textContent='Tick "I\'m 13 or older" first. Under 13? Ask a parent to set up your account.';return;}
+    if(role==='parent'&&!$('#aConsent').checked){err.textContent='Please tick the parent consent box first.';return;}
+    authData.is13=role==='teen';authData.consent=role==='parent';gb.disabled=true;
+    try{await social();await SOC.init();const r=await SOC.signInGoogle(window.__KIKUP_GOOGLE_TEST&&window.__KIKUP_GOOGLE_TEST());
+      if(!r.isNew){await afterLogin();if(ME){closeAuth();location.hash='#friends';toast(`Welcome back, ${ME.name}!`);}else if(ACC&&ACC.kind==='parent'){authStep='addkid';authData={};renderAuth();}return;}
+      if(role==='parent'){await SOC.finishGoogleParent({consent:true});authStep='addkid';authData={};renderAuth();}
+      else{authStep=role==='teen'?'gteen':'gchoose';renderAuth();}}
+    catch(x){const e2=$('#aErr');if(e2)e2.textContent=SOC?SOC.friendlyError(x):String(x.message||x);}finally{if(gb.isConnected)gb.disabled=false;}return;}
   if(t.id==='moreNames'){authData.ideas=SOC.nicknameIdeas(6);authData.name=authData.ideas[0];renderAuth();return;}
   if(t.id==='addKidBtn'){t.disabled=true;try{const p=await SOC.addChild({name:authData.name,age:authData.age,tier:0});await afterLogin(p.id);authStep='done';renderAuth();}catch(err){$('#aErr').textContent=SOC.friendlyError(err);t.disabled=false;}return;}
   if(t.id==='forgot'){const em=$('#aId').value;if(!em){$('#aErr').textContent='Type your email first.';return;}try{await SOC.resetParentPassword(em);$('#aErr').textContent='Check your email for a reset link.';}catch(err){$('#aErr').textContent=SOC.friendlyError(err);}return;}
@@ -2013,6 +2040,9 @@ $('#authBody').addEventListener('submit',async e=>{
     if(e.target.id==='teenForm'){if(!$('#a13').checked)throw new Error('You need to be 13 or older to make your own account. Ask a parent to set one up.');
       const p=await SOC.signUpTeen({username:$('#aUser').value,password:$('#aPass').value,age:2,tier:state.tier});await afterLogin(p.id);authStep='done';renderAuth();}
     if(e.target.id==='parentForm'){await SOC.signUpParent({email:$('#aEmail').value,password:$('#aPass').value,consent:$('#aConsent').checked});authStep='addkid';authData={};renderAuth();}
+    if(e.target.id==='gTeenForm'){if(!$('#a13').checked)throw new Error('You need to be 13 or older to have your own account. Ask a parent to set one up.');
+      const p=await SOC.finishGoogleTeen({username:$('#aUser').value,age:2,tier:state.tier});await afterLogin(p.id);authStep='done';renderAuth();}
+    if(e.target.id==='gParentForm'){await SOC.finishGoogleParent({consent:$('#aConsent').checked});authStep='addkid';authData={};renderAuth();}
     if(e.target.id==='loginForm'){await SOC.logIn($('#aId').value,$('#aPass').value);await afterLogin();if(ME){closeAuth();location.hash='#friends';toast(`Welcome back, ${ME.name}!`);}}
   }catch(x){err.textContent=SOC?SOC.friendlyError(x):String(x.message||x);}finally{if(btn.isConnected)btn.disabled=false;}
 });

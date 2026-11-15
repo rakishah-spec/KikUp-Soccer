@@ -62,7 +62,9 @@ export function friendlyError(e) {
   return ({ 'auth/email-already-in-use': 'That name or email is already taken.', 'auth/invalid-email': 'Check the email address.', 'auth/weak-password': 'Use a password with at least 8 characters.',
     'auth/wrong-password': 'Wrong username or password.', 'auth/user-not-found': 'Wrong username or password.', 'auth/invalid-credential': 'Wrong username or password.', 'auth/invalid-login-credentials': 'Wrong username or password.',
     'auth/too-many-requests': 'Too many tries. Wait a few minutes and try again.', 'auth/network-request-failed': 'No internet connection. Try again when you\'re online.',
-    'auth/requires-recent-login': 'For safety, log out and back in, then try again.', 'permission-denied': 'That isn\'t allowed.' })[c] || (e && e.message) || 'Something went wrong. Try again.';
+    'auth/requires-recent-login': 'For safety, log out and back in, then try again.', 'auth/popup-closed-by-user': 'Google sign-in was closed before it finished.', 'auth/cancelled-popup-request': 'Google sign-in was closed before it finished.',
+    'auth/popup-blocked': 'Your browser blocked the Google window. Allow pop-ups for this site and try again.', 'auth/unauthorized-domain': 'Google sign-in isn\'t allowed on this web address yet (it needs adding in Firebase\'s authorized domains).',
+    'auth/account-exists-with-different-credential': 'This email already has a KikUp account with a password. Log in with the password instead.', 'auth/operation-not-allowed': 'That sign-in method isn\'t turned on in Firebase yet.', 'permission-denied': 'That isn\'t allowed.' })[c] || (e && e.message) || 'Something went wrong. Try again.';
 }
 
 // ---------- accounts ----------
@@ -105,12 +107,29 @@ export async function logIn(id, password) {
   return (await auth.signInWithEmailAndPassword(email, password)).user;
 }
 export const logOut = () => auth.signOut();
+// Google sign-in (parents and teens 13+). Returns isNew when the account still needs setting up
+// (choosing parent or teen, a username, and parent consent). A credential can be passed for testing.
+export async function signInGoogle(credential) {
+  const res = credential ? await auth.signInWithCredential(credential) : await auth.signInWithPopup(new fb.auth.GoogleAuthProvider());
+  const doc = await db.collection('users').doc(res.user.uid).get();
+  return { user: res.user, isNew: !doc.exists };
+}
+export async function finishGoogleTeen({ username, age, tier }) {
+  const chk = checkUsername(username); if (!chk.ok) throw new Error(chk.msg);
+  const uid = auth.currentUser.uid;
+  await db.collection('users').doc(uid).set({ kind: 'teen', username: chk.u, via: 'google', createdAt: now() });
+  return createProfile(uid, { name: chk.u, kid: false, age, tier });
+}
+export async function finishGoogleParent({ consent }) {
+  if (!consent) throw new Error('Please confirm you\'re the parent or guardian and agree.');
+  await db.collection('users').doc(auth.currentUser.uid).set({ kind: 'parent', via: 'google', consentAt: now(), createdAt: now() });
+}
 export async function resetParentPassword(email) { await auth.sendPasswordResetEmail(email.trim()); }
 export async function account() {
   const u = auth.currentUser; if (!u) return null;
   const doc = await db.collection('users').doc(u.uid).get();
   const profiles = (await db.collection('profiles').where('owner', '==', u.uid).get()).docs.map((d) => ({ id: d.id, ...d.data() }));
-  return { uid: u.uid, kind: doc.exists ? doc.data().kind : 'teen', profiles: profiles.sort((a, b) => a.createdAt - b.createdAt) };
+  return { uid: u.uid, kind: doc.exists ? doc.data().kind : null, profiles: profiles.sort((a, b) => a.createdAt - b.createdAt) };   // kind null: a Google sign-in that hasn't finished setup
 }
 export async function renameChild(pid, name) { await db.collection('profiles').doc(pid).update({ name }); }
 

@@ -1,5 +1,9 @@
 # Turning on KikUp Friends (one-time, about 10 minutes)
 
+**Status: done.** KikUp is connected to the Firebase project `kikup-soccer-3bf9c`
+(Email/Password and Google sign-in on, Firestore in the US, rules published).
+These steps are kept for reference, e.g. to set up a second project.
+
 Friends (accounts, friend streaks, the friends leaderboard and challenges) need a free
 Firebase project. Firebase is Google's service for sign-ins and data. KikUp's free usage
 easily fits in Firebase's free plan.
@@ -11,6 +15,7 @@ easily fits in Firebase's free plan.
 ## 2. Turn on sign-in
 1. In the left menu: **Build → Authentication → Get started**.
 2. Under **Sign-in method**, click **Email/Password**, switch on the first toggle, and **Save**.
+3. Optional: also add **Google** (pick a support email and **Save**). Parents and teens 13+ can then use "Continue with Google".
 
 ## 3. Create the database
 1. **Build → Firestore Database → Create database**.
