@@ -535,6 +535,88 @@ SCENES['find-gap'] = { name: 'Find the Gap', dur: 8, draw(t) {
   caption(phase === 0 ? 'Look at every passing lane' : phase === 1 ? 'Tap the teammate you\'d pass to' : phase === 2 ? 'Green = open lane, red = blocked' : 'Pass! Now do 10 in a row');
 } };
 
+
+/* ---------- Shooting, passing gates, speed dribble, figure 8 ---------- */
+function goalTop(x1 = 300, x2 = 660, y = 64, targets = true) {
+  ctx.fillStyle = 'rgba(255,255,255,.12)'; ctx.fillRect(x1, y - 34, x2 - x1, 34);
+  ctx.strokeStyle = 'rgba(255,255,255,.25)'; ctx.lineWidth = 1; for (let x = x1; x <= x2; x += 18) { ctx.beginPath(); ctx.moveTo(x, y - 34); ctx.lineTo(x, y); ctx.stroke(); }
+  ctx.strokeStyle = '#fff'; ctx.lineWidth = 6; ctx.beginPath(); ctx.moveTo(x1, y); ctx.lineTo(x1, y - 34); ctx.lineTo(x2, y - 34); ctx.lineTo(x2, y); ctx.stroke();
+  ctx.strokeStyle = 'rgba(255,255,255,.6)'; ctx.lineWidth = 3; ctx.strokeRect(x1 - 60, y, x2 - x1 + 120, 120);
+  if (targets) { ctx.strokeStyle = C.bib; ctx.lineWidth = 4; ctx.strokeRect(x1 + 6, y - 30, 56, 26); ctx.strokeRect(x2 - 62, y - 30, 56, 26); }
+}
+function flight(a, b, u, lift = 0) { return [lerp(a[0], b[0], u), lerp(a[1], b[1], u) - 4 * lift * u * (1 - u)]; }
+// Corner Targets: shoot into the top corners, alternating sides
+SCENES['corner-targets'] = { name: 'Corner Targets', dur: 9, draw(t) {
+  pitch(); goalTop();
+  const P = 3, n = Math.floor(t / P), u = (t % P) / P, side = n % 2 ? 1 : -1, spot = [480, 400], tgt = [480 + side * 148, 48];
+  let bx = spot[0], by = spot[1] - 6, px = 480, py = 440, cap = 'Pick your corner';
+  if (u < .3) { const k = ease(u / .3); py = lerp(470, 432, k); cap = 'Pick your corner before you shoot'; }
+  else if (u < .55) { const k = (u - .3) / .25; [bx, by] = flight([spot[0], spot[1] - 6], tgt, k); py = 432; cap = 'Plant your foot, strike through the ball'; }
+  else { [bx, by] = tgt; py = 432; cap = 'Corners are hard to save!'; }
+  if (u > .55 && u < .85) { ctx.fillStyle = C.star; ctx.font = `800 40px ${FONT}`; ctx.textAlign = 'center'; ctx.fillText('GOAL!', 480, 200); }
+  playerTop(px, py, -Math.PI / 2 + side * .25, u < .3 ? t * 14 : 0);
+  ball(bx, by, 14, t * 8);
+  title('Corner Targets'); counter('shots', n + (u > .45 ? 1 : 0)); caption(cap);
+} };
+// Power Strike: run up and strike a row of balls with the laces
+SCENES['power-strike'] = { name: 'Power Strike', dur: 10, draw(t) {
+  pitch(); goalTop(300, 660, 64, false);
+  const xs = [300, 390, 480, 570, 660], P = 2, n = Math.min(4, Math.floor(t / P)), u = (t % P) / P;
+  xs.forEach((x, i) => { if (i > n || (i === n && u < .45)) ball(x, 360, 14, 0); });
+  const x = xs[n], tgt = [x < 480 ? 340 + n * 30 : 620 - (4 - n) * 30, 50];
+  let px = x - 10, py = 460, cap = 'Run up, laces through the middle';
+  if (u < .45) { const k = ease(u / .45); py = lerp(480, 390, k); px = lerp(x - 50, x - 14, k); }
+  else { py = 390; px = x - 14; const k = Math.min(1, (u - .45) / .3); const [bx, by] = flight([x, 360], tgt, k); ball(bx, by, 14, t * 10); cap = u < .8 ? 'Toes down, lean over the ball' : 'Land on your kicking foot'; }
+  playerTop(px, py, -Math.PI / 2, u < .45 ? t * 18 : 0, { stride: 1.4 });
+  title('Power Strike'); counter('strikes', n + (u > .45 ? 1 : 0)); caption(cap);
+} };
+// First-Time Finish: tap it forward, shoot without stopping it
+SCENES['first-time'] = { name: 'First-Time Finish', dur: 8, draw(t) {
+  pitch(); goalTop();
+  const P = 4, u = (t % P) / P, n = Math.floor(t / P), side = n % 2 ? 1 : -1;
+  const start = [480 - side * 170, 440], meet = [480 - side * 30, 360], tgt = [480 + side * 148, 48];
+  let bx, by, px, py, dir, cap;
+  if (u < .2) { bx = start[0] + side * 24; by = start[1] - 10; px = start[0]; py = start[1]; dir = -Math.PI / 2 + side * .9; cap = 'Tap the ball forward into space'; }
+  else if (u < .5) { const k = (u - .2) / .3; [bx, by] = [lerp(start[0] + side * 24, meet[0], k), lerp(start[1] - 10, meet[1], k)]; px = lerp(start[0], meet[0] - side * 20, ease(k)); py = lerp(start[1], meet[1] + 34, ease(k)); dir = -Math.PI / 2 + side * .5; cap = 'Turn your hips toward the goal'; }
+  else if (u < .72) { const k = (u - .5) / .22; [bx, by] = flight(meet, tgt, k); px = meet[0] - side * 20; py = meet[1] + 34; dir = -Math.PI / 2 + side * .2; cap = 'Shoot without stopping it'; }
+  else { [bx, by] = tgt; px = meet[0] - side * 20; py = meet[1] + 34; dir = -Math.PI / 2; cap = 'Quick finish beats the keeper'; }
+  playerTop(px, py, dir, u > .2 && u < .5 ? t * 16 : 0); ball(bx, by, 14, t * 8);
+  title('First-Time Finish'); caption(cap);
+} };
+// Passing Gates: pass through a small gate to the wall
+SCENES['passing-gates'] = { name: 'Passing Gates', dur: 8, draw(t) {
+  pitch(); wall(); const gy = 250; cone(452, gy, 1.2); cone(508, gy, 1.2); dashed([[452, gy], [508, gy]], 'rgba(255,255,255,.6)');
+  const P = 1.6, n = Math.floor(t / P), u = (t % P) / P, px = 480, py = 420;
+  let by; if (u < .4) by = lerp(py - 46, 106, u / .4); else if (u < .8) by = lerp(106, py - 46, (u - .4) / .4); else by = py - 46;
+  playerTop(px, py, -Math.PI / 2, 0); ball(px, by, 14, by / 14);
+  if (u > .18 && u < .3) { ctx.strokeStyle = C.good; ctx.lineWidth = 4; ctx.beginPath(); ctx.arc(480, gy, 40, 0, 7); ctx.stroke(); }
+  title('Passing Gates'); counter('through', n + (u > .25 ? 1 : 0)); caption(t < 4 ? 'Pass it through the gate to the wall' : 'Point your standing foot through the gate');
+} };
+// Speed Dribble: sprint with the ball, longer touches, turn and back
+{
+  const P = path([[110, 300], [850, 300], [880, 285], [850, 270], [110, 270], [80, 285], [110, 300]]);
+  SCENES['speed-dribble'] = { name: 'Speed Dribble', dur: P.len / 260, draw(t) {
+    pitch(); cone(90, 285, 1.3); cone(870, 285, 1.3);
+    const s = (t * 260) % P.len, p = P.at(s), turning = p.x > 800 || p.x < 160;
+    const touch = turning ? .25 : .6, ph = (t % touch) / touch, off = turning ? 30 : 34 + 46 * ph;
+    playerTop(p.x, p.y, p.dir, t * 22, { stride: turning ? .8 : 1.6 });
+    ball(p.x + Math.cos(p.dir) * off, p.y + Math.sin(p.dir) * off, 14, t * 12);
+    title('Speed Dribble'); counter('trips', s > P.len - 40 ? 1 : 0);
+    caption(turning ? 'Small touches to slow down and turn' : 'Sprint: a touch every 2–3 steps');
+  } };
+}
+// Figure 8 around two cones
+{
+  const pts = []; for (let i = 0; i <= 64; i++) { const a = i / 64 * Math.PI * 2; pts.push([480 + 230 * Math.sin(a), 285 + 110 * Math.sin(2 * a)]); }
+  const P = path(pts);
+  SCENES['figure-8'] = { name: 'Figure 8', dur: P.len / 150, draw(t) {
+    pitch(); cone(360, 285, 1.3); cone(600, 285, 1.3); dashed(P.pts.filter((_, i) => i % 2 === 0));
+    const d = dribble(P, t, 150, { touch: .35 });
+    title('Figure 8'); counter('figure 8s', d.s > P.len - 30 ? 1 : 0);
+    caption(d.s < P.len / 2 ? 'Inside of the foot around the first cone' : 'Outside of the foot around the second');
+  } };
+}
+
 /* ---------- Render API ---------- */
 window.SCENE_LIST = Object.entries(SCENES).map(([id, s]) => ({ id, name: s.name, dur: Math.round(s.dur * 100) / 100 }));
 window.renderFrame = (id, t) => { ctx.save(); ctx.clearRect(0, 0, W, H); SCENES[id].draw(t); ctx.restore(); return cv.toDataURL('image/jpeg', .9); };

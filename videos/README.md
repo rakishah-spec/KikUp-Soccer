@@ -37,6 +37,12 @@ The file name must match exactly (lowercase, with the dashes).
 | Juggle & Check | `juggle-check.mp4` |
 | Toe Taps | `toe-taps.mp4` |
 | Box-to-Box Repeats | `repeats.mp4` |
+| Corner Targets (Little Kickers: Kick at the Goal) | `corner-targets.mp4` |
+| Power Strike | `power-strike.mp4` |
+| First-Time Finish | `first-time.mp4` |
+| Passing Gates (Little Kickers: Pass Through the Gate) | `passing-gates.mp4` |
+| Speed Dribble | `speed-dribble.mp4` |
+| Figure 8 | `figure-8.mp4` |
 
 ## Skill moves
 | Move | File name |

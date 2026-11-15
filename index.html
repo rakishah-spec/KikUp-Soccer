@@ -325,6 +325,27 @@ main .wrap{padding-block:24px 56px;display:grid;gap:28px}
 .empty-note{color:var(--muted);margin:0}
 .tip{position:fixed;z-index:50;pointer-events:none;background:var(--ink);color:var(--bg);font-size:13px;font-weight:600;padding:6px 10px;border-radius:8px;max-width:220px;box-shadow:0 4px 14px rgba(0,0,0,.25)}
 
+/* Training page */
+.cat-tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.cat-tab{display:grid;justify-items:center;gap:6px;padding:14px 8px;border-radius:14px;border:2px solid var(--rule);background:var(--surface);color:var(--ink)}
+.cat-tab svg{width:34px;height:34px;color:var(--bib)}
+.cat-tab strong{font-family:var(--display);font-size:clamp(18px,5vw,24px);text-transform:uppercase;line-height:1}
+.cat-tab[aria-selected="true"]{background:var(--bib);border-color:var(--bib);color:var(--bib-ink)}
+.cat-tab[aria-selected="true"] svg{color:var(--bib-ink)}
+.tech p{margin:0;font-size:16px;max-width:60ch}
+.keys{list-style:none;margin:0;padding:0;display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
+.keys li{display:flex;gap:10px;align-items:flex-start;background:var(--surface-2);border-radius:10px;padding:10px 12px;font-weight:600;font-size:15px}
+.keys li::before{content:"";flex:none;width:10px;height:10px;margin-top:6px;border-radius:50%;background:var(--bib)}
+.sess{list-style:none;margin:0;padding:0;display:grid;gap:8px;counter-reset:s}
+.sess li button{width:100%;display:grid;grid-template-columns:auto 1fr auto;gap:2px 12px;align-items:center;text-align:left;background:var(--surface-2);border:2px solid transparent;border-radius:12px;padding:10px 12px;color:var(--ink)}
+.sess li button:hover{border-color:var(--bib)}
+.sess .n{grid-row:span 2;width:34px;height:34px;border-radius:50%;background:var(--bib);color:var(--bib-ink);display:grid;place-items:center;font-family:var(--display);font-weight:800;font-size:18px}
+.sess .role{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.sess b{font-size:16px}
+.sess .meta{grid-row:span 2;font-size:13px;color:var(--muted);text-align:right}
+.sec-h{font-size:24px;text-transform:uppercase}
+.moves-link{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;background:var(--surface);border:1px dashed var(--bib);border-radius:12px;padding:14px 16px;font-weight:600}
+
 /* Live camera counter */
 .cam-tip{position:absolute;left:8px;right:8px;bottom:8px;display:flex;gap:10px;align-items:center;background:rgba(14,38,24,.88);border:2px solid var(--bib);border-radius:12px;padding:10px 12px;color:#fff;text-align:left}
 .cam-tip svg{width:44px;height:44px;flex:none;color:var(--bib)}
@@ -369,7 +390,8 @@ main .wrap{padding-block:24px 56px;display:grid;gap:28px}
 <div class="drawer-wrap" id="drawer" hidden>
   <nav class="drawer" aria-label="Menu">
     <div class="drawer-top"><span class="drawer-logo">Kik<span>Up</span></span><button class="drawer-x" id="drawerX" aria-label="Close menu">✕</button></div>
-    <a href="#train" data-nav="train"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path d="m12 7 4 3-1.5 4.5h-5L8 10Z" fill="currentColor"/></svg>Train</a>
+    <a href="#train" data-nav="train"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11 12 4l9 7v9h-6v-6H9v6H3Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>Home</a>
+    <a href="#training" data-nav="training"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path d="m12 7 4 3-1.5 4.5h-5L8 10Z" fill="currentColor"/></svg>Training: pass, shoot, dribble</a>
     <a href="#progress" data-nav="progress"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>My progress</a>
     <button id="menuGuide"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 11v6M12 7.5v.5" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>Getting started guide</button>
   </nav>
@@ -420,6 +442,20 @@ main .wrap{padding-block:24px 56px;display:grid;gap:28px}
       <div class="grid" id="grid"></div>
     </section>
   </div>
+  <div class="wrap" id="trainingView" hidden>
+    <div class="pg-head"><div><h2>Training</h2><p class="muted" id="trSub">Build the basics every player needs.</p></div><a class="btn-ghost pg-back" href="#train">Back to home</a></div>
+    <div class="cat-tabs" role="tablist" aria-label="Skill" id="catTabs"></div>
+    <section class="panel tech" id="trTech" aria-live="polite"></section>
+    <section class="panel" aria-labelledby="sessH">
+      <div class="panel-head"><h3 id="sessH">Today's session</h3><span class="muted small" id="sessMeta"></span></div>
+      <ol class="sess" id="sess"></ol>
+    </section>
+    <section style="display:grid;gap:14px" aria-labelledby="allH">
+      <div class="panel-head"><h3 id="allH" class="sec-h">All drills</h3><span class="muted small" id="trLevel"></span></div>
+      <div class="grid" id="trGrid"></div>
+      <div id="trMoves"></div>
+    </section>
+  </div>
   <div class="wrap" id="progressView" hidden>
     <div class="pg-head"><div><h2 id="pgTitle">My progress</h2><p class="muted" id="pgSub"></p></div><a class="btn-ghost pg-back" href="#train">Back to training</a></div>
     <section class="tiles" aria-label="Totals">
@@ -466,7 +502,7 @@ const TIERS=[
   {name:'Beginner',blurb:'New, or still learning control'},
   {name:'Developing',blurb:'Plays on a team, has the basics'},
   {name:'Advanced',blurb:'Confident, wants a challenge'}];
-const SKILLS={gamesense:'Game Sense',scanning:'Scanning',touch:'First Touch',passing:'Passing',dribbling:'Dribbling',mastery:'Ball Mastery',weakfoot:'Weak Foot',fitness:'Fitness'};
+const SKILLS={gamesense:'Game Sense',scanning:'Scanning',touch:'First Touch',passing:'Passing',shooting:'Shooting',dribbling:'Dribbling',mastery:'Ball Mastery',weakfoot:'Weak Foot',fitness:'Fitness'};
 const T=(tbl,a,t)=>tbl[a][t];
 const by=(arr,a)=>arr[a];
 
@@ -556,7 +592,46 @@ const DRILLS=[
  tips:['Arms drive forward and back, not across your body.','Push hard on the last rep. That\'s where fitness gets built.','Bring a ball at Advanced: dribble the sprints.'],
  diagram:{cones:[[30,64],[170,64]],player:[30,64],path:'M30,64 L170,64 L30,64',dur:2.4},
  plan(a,t){const r=T([null,[4,5,6],[5,6,8],[6,8,10]],a,t),w=by([0,8,10,12],a),rest=[25,20,15][t];
-  return {rounds:r,work:w,rest,summary:`${r} sprints · ${w}s on, ${rest}s rest`,detail:[t===2?'Dribble the ball during every sprint':'Full speed on every GO']};}}
+  return {rounds:r,work:w,rest,summary:`${r} sprints · ${w}s on, ${rest}s rest`,detail:[t===2?'Dribble the ball during every sprint':'Full speed on every GO']};}},
+{id:'corner-targets',name:'Corner Targets',skill:'shooting',mode:'count',auto:'kicks',ages:[0,1,2,3],minutes:3,
+ setup:['Use a goal, or mark two target boxes in the top corners of a wall with tape or chalk.','Line up a few balls at your shooting spot.','Shoot at the corners. Count every shot.'],
+ tips:['Pick your corner before you shoot, and don\'t change your mind.','Plant your standing foot next to the ball, pointing at the target.','Inside of the foot for accuracy, laces for power.','Corners are hard to save. The middle is easy.'],
+ kid:{name:'Kick at the Goal',steps:['Put the ball down in front of a goal or wall.','Kick it at the goal! Then get the ball and go again.'],tip:'Look at the goal, then kick.'},
+ diagram:{goal:true,player:[100,92],path:'M100,90 L62,16',dur:1.4},
+ plan(a,t){const d=T([[3,4,5],[5,6,8],[8,10,12],[10,12,16]],a,t),n=T([[5,8,10],[8,10,12],[10,12,15],[12,15,20]],a,t),s=a===0?60:90;
+  return {seconds:s,target:n,unit:'shots',summary:`${n} shots in ${s}s`,detail:[`Shoot from ${d} big steps away`,a===0?'Kick it at the goal':['Aim anywhere on target','Aim for the corners','Corners only, and switch feet'][t]]};}},
+{id:'power-strike',name:'Power Strike',skill:'shooting',mode:'count',auto:'kicks',ages:[1,2,3],minutes:3,
+ setup:['Line up 5 balls a good distance from a goal or wall.','Take two or three steps of run-up and strike each ball with your laces.','Collect the balls and go again.'],
+ tips:['Toes pointed down, ankle locked.','Lean over the ball to keep the shot low.','Land on your kicking foot after the shot.','Strike through the middle of the ball, not under it.'],
+ diagram:{goal:true,cones:[[60,80],[80,80],[120,80],[140,80]],player:[100,96],path:'M100,82 L136,16',dur:1.1},
+ plan(a,t){const d=T([null,[6,8,10],[8,10,14],[10,14,18]],a,t),n=T([null,[6,8,10],[8,10,12],[10,12,15]],a,t);
+  return {seconds:120,target:n,unit:'strikes',summary:`${n} laces strikes in 2 min`,detail:[`From ${d} big steps away`,['Focus on clean contact','Keep every shot under the crossbar','Hard and low into a corner'][t]]};}},
+{id:'first-time',name:'First-Time Finish',skill:'shooting',mode:'count',ages:[1,2,3],minutes:3,
+ setup:['Stand a few steps to the side of your shooting spot.','Roll or tap the ball forward into the space in front of you.','Shoot it without stopping it first.'],
+ tips:['Watch the ball all the way onto your foot.','Turn your hips toward the goal before the ball arrives.','A quick finish beats the keeper before they\'re set.'],
+ diagram:{goal:true,player:[64,96],path:'M74,98 L108,84 L140,16',dur:1.6},
+ plan(a,t){const n=T([null,[5,8,10],[8,10,12],[10,12,15]],a,t);
+  return {seconds:120,target:n,unit:'shots',summary:`${n} first-time shots in 2 min`,detail:[['Roll the ball slowly','Tap it a little further ahead first','Have someone pass to you, or play it off a wall'][t]]};}},
+{id:'passing-gates',name:'Passing Gates',skill:'passing',mode:'count',auto:'kicks',ages:[0,1,2,3],minutes:2,
+ setup:['Make a gate with two cones, a little wider than the ball, a couple of steps in front of a wall.','Stand back and pass the ball through the gate so it hits the wall.','Count passes that go through the gate.'],
+ tips:['Point your standing foot through the gate.','Use the inside of your foot and follow through toward the target.','Accuracy first, then speed.'],
+ kid:{name:'Pass Through the Gate',steps:['Put two cones close together.','Pass the ball through the middle!'],tip:'Use the inside of your foot.'},
+ diagram:{wall:true,gates:[[86,44,114,44]],player:[100,96],path:'M100,94 L100,12 L100,94',dur:1.6},
+ plan(a,t){const d=T([[2,3,3],[3,4,5],[5,6,7],[6,8,10]],a,t),n=T([[5,8,10],[8,12,15],[12,16,20],[15,20,25]],a,t);
+  return {seconds:60,target:n,unit:'passes',summary:`${n} passes through the gate in 60s`,detail:[`Stand ${d} big steps from the gate`,['Make the gate wide','Gate just wider than the ball','Narrow gate, one touch, both feet'][t]]};}},
+{id:'speed-dribble',name:'Speed Dribble',skill:'dribbling',mode:'count',auto:'trips',camHow:'Put the phone off to one side so both cones fit in the picture.',ages:[1,2,3],minutes:2,
+ setup:['Put two cones about 15 big steps apart.','Dribble as fast as you can to the far cone, turn, and come back.','There and back is one trip.'],
+ tips:['When you sprint, push the ball a little further: a touch every 2–3 steps.','Use your laces or the outside of your foot at speed.','Slow down with small touches before you turn.'],
+ diagram:{cones:[[30,60],[170,60]],path:'M40,64 L160,64 L160,54 L40,54',dur:2.6},
+ plan(a,t){const n=T([null,[2,3,4],[3,4,5],[4,5,6]],a,t);
+  return {seconds:60,target:n,unit:'trips',summary:`${n} trips in 60s`,detail:[['Jog with the ball','Run, touching it every 2–3 steps','Full sprint, turn with your sole'][t]]};}},
+{id:'figure-8',name:'Figure 8',skill:'dribbling',mode:'count',ages:[0,1,2,3],minutes:2,
+ setup:['Put two cones about 4 big steps apart.','Dribble around them in a figure 8.','Count each full figure 8.'],
+ tips:['Inside of the foot going one way, outside going the other.','Keep the ball close as you go around each cone.','Look up between the cones.'],
+ kid:{name:'Figure 8 Dribble',steps:['Put two cones (or shoes) apart.','Dribble around them like the number 8!'],tip:'Small touches around the cones.'},
+ diagram:{cones:[[70,60],[130,60]],path:'M100,60 C100,28 40,28 40,60 C40,92 100,92 100,60 C100,28 160,28 160,60 C160,92 100,92 100,60',dur:3.4},
+ plan(a,t){const n=T([[2,3,4],[3,5,6],[5,7,8],[6,8,10]],a,t);
+  return {seconds:60,target:n,unit:'figure 8s',summary:`${n} figure 8s in 60s`,detail:[a===0?'Go slow and keep the ball close':['Walk it through','Right foot one way, left foot back','Outside of the foot only'][t]]};}}
 ];
 
 /* ---------- Skill moves ladder ----------
@@ -626,6 +701,7 @@ const reduceMotion=matchMedia('(prefers-reduced-motion: reduce)').matches;
 function diagram(s){
   let g=`<rect width="200" height="110" fill="#1D6A3A"/>`;
   for(let i=0;i<5;i++)g+=`<rect x="${i*40}" y="0" width="20" height="110" fill="#227740"/>`;
+  if(s.goal)g+=`<rect x="50" y="4" width="100" height="14" fill="rgba(255,255,255,.12)"/><path d="M50,18 V4 H150 V18" fill="none" stroke="#fff" stroke-width="2.5"/><rect x="52" y="5" width="16" height="9" fill="none" stroke="#FF8533" stroke-width="2"/><rect x="132" y="5" width="16" height="9" fill="none" stroke="#FF8533" stroke-width="2"/><text x="100" y="28" fill="rgba(255,255,255,.6)" font-size="7" text-anchor="middle" font-family="sans-serif">GOAL</text>`;
   if(s.wall)g+=`<rect x="24" y="3" width="152" height="8" rx="2" fill="#C9D3CB"/><text x="100" y="22" fill="rgba(255,255,255,.6)" font-size="7" text-anchor="middle" font-family="sans-serif">WALL</text>`;
   if(s.box){const[x,y,w,h]=s.box;g+=`<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="none" stroke="rgba(255,255,255,.5)" stroke-dasharray="3 3"/>`;[[x,y],[x+w,y],[x,y+h],[x+w,y+h]].forEach(c=>g+=cone(c));}
   (s.gates||[]).forEach(([a,b,c,d])=>{g+=`<line x1="${a}" y1="${b}" x2="${c}" y2="${d}" stroke="rgba(255,255,255,.45)" stroke-dasharray="2 2"/>`+cone([a,b])+cone([c,d]);});
@@ -674,10 +750,11 @@ function renderHome(){
   if(state.skill!=='all'&&!skillsHere.includes(state.skill))state.skill='all';
   $('#chips').innerHTML=state.age===0?'':[['all','All'],...Object.entries(SKILLS).filter(([s])=>skillsHere.includes(s))].map(([s,n])=>`<button class="chip" data-skill="${s}" aria-pressed="${state.skill===s}">${n}</button>`).join('');
   const list=av.filter(d=>state.skill==='all'||view(d).skill===state.skill);
-  $('#grid').innerHTML=list.length?list.map(d=>{const p=d.plan(...oldAT()),v=view(d);
-    return `<button class="card" data-id="${d.id}">${diagram(d.diagram)}<div class="card-body"><span class="tag">${SKILLS[v.skill]}${d.interactive?'<span class="badge">On screen</span>':''}${d.auto&&camOK()?'<span class="badge cam-b">Camera counts</span>':''}</span><h3>${v.name}</h3><span class="goal">${p.summary}</span><div class="card-foot"><span>${d.minutes} min</span>${starsHtml(state.stars[k(d)]||0)}</div></div></button>`;}).join('')
+  $('#grid').innerHTML=list.length?list.map(drillCard).join('')
     :`<div class="empty">No drills for this skill at this age yet.</div>`;
 }
+function drillCard(d){const p=d.plan(...oldAT()),v=view(d);
+  return `<button class="card" data-id="${d.id}">${diagram(d.diagram)}<div class="card-body"><span class="tag">${SKILLS[v.skill]}${d.interactive?'<span class="badge">On screen</span>':''}${d.auto&&camOK()?'<span class="badge cam-b">Camera counts</span>':''}</span><h3>${v.name}</h3><span class="goal">${p.summary}</span><div class="card-foot"><span>${d.minutes} min</span>${starsHtml(state.stars[k(d)]||0)}</div></div></button>`;}
 function renderMoves(){
   const i=levelIdx();
   $('#chips').innerHTML='';
@@ -767,7 +844,7 @@ function startRun(d){
   setSound(d.mode!=='scan'||state.age===0);
   ({gap:runGap,scan:runScan,count:runCount,intervals:runIntervals})[d.mode](d,p);
 }
-function closeRunner(){endSession();$('#runner').hidden=true;body.innerHTML='';renderHome();}
+function closeRunner(){endSession();$('#runner').hidden=true;body.innerHTML='';renderHome();if(!$('#trainingView').hidden)renderTraining();if(!$('#progressView').hidden)renderProgress();}
 function countdown(cb,see){const el=document.createElement('div');el.className=see?'cd see':'cd';body.appendChild(el);let n=3;
   const step=()=>{if(n===0){el.remove();beep(1320,.25);cb();return;}el.textContent=n;beep(660);n--;later(step,800);};step();}
 
@@ -1196,11 +1273,50 @@ $('#menuBtn').onclick=openMenu;$('#drawerX').onclick=closeMenu;
 $('#drawer').addEventListener('click',e=>{if(e.target.id==='drawer'||e.target.closest('a'))closeMenu();});
 $('#menuGuide').onclick=()=>{closeMenu();openOnb();};
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('#drawer').hidden)closeMenu();});
-function route(){const pg=location.hash==='#progress'?'progress':'train';
-  $('#homeView').hidden=pg!=='train';$('#progressView').hidden=pg!=='progress';
+function route(){const pg=location.hash==='#progress'?'progress':location.hash==='#training'?'training':'train';
+  $('#homeView').hidden=pg!=='train';$('#progressView').hidden=pg!=='progress';$('#trainingView').hidden=pg!=='training';
   document.querySelectorAll('.drawer [data-nav]').forEach(a=>a.toggleAttribute('aria-current',a.dataset.nav===pg)&&a.setAttribute('aria-current','page'));
-  if(pg==='progress')renderProgress();window.scrollTo(0,0);}
+  if(pg==='progress')renderProgress();if(pg==='training')renderTraining();if(pg==='train')renderHome();window.scrollTo(0,0);}
 window.addEventListener('hashchange',route);
+
+/* ---------- Training page: passing, shooting, dribbling ---------- */
+const CATS={
+  passing:{name:'Passing',ids:['passing-gates','wall-pass','weak-foot','receive-turn','check-away'],
+    icon:'<svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><circle cx="9" cy="28" r="5"/><path d="M15 25c6-6 12-8 19-9"/><path d="m28 11 6 5-6 5"/></svg>',
+    why:'Good passing keeps your team moving, and it\'s the first thing coaches notice. Clean, firm passes make everyone around you better.',
+    keys:['Point your standing foot at your target','Lock your ankle and use the inside of your foot','Strike the middle of the ball to keep it on the ground','Follow through toward your target'],
+    kid:['Look at where you want it to go','Kick with the inside of your foot','Not too hard, not too soft']},
+  shooting:{name:'Shooting',ids:['corner-targets','first-time','power-strike'],
+    icon:'<svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="3" stroke-linejoin="round"><path d="M5 30V9h30v21"/><path d="M5 15h30M5 22h30M13 9v21M21 9v21M29 9v21" stroke-width="1.5" opacity=".6"/><circle cx="31" cy="12" r="3.5" fill="currentColor" stroke="none"/></svg>',
+    why:'Goals win games. Placement beats power: a shot into the corner is much harder to save than a blast at the keeper.',
+    keys:['Pick your corner before you shoot','Plant your foot beside the ball, pointing at the target','Inside of the foot to place it, laces for power','Lean over the ball to keep the shot low'],
+    kid:['Look at the goal','Kick with your laces (the top of your shoe)','Aim for the sides of the goal']},
+  dribbling:{name:'Dribbling',ids:['cone-dribble','figure-8','tight-box','speed-dribble','gate-hunt'],
+    icon:'<svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M6 32c6 0 6-8 12-8s6-8 12-8 4-6 6-8" stroke-dasharray="1 6"/><circle cx="32" cy="10" r="5"/></svg>',
+    why:'Dribbling lets you keep the ball under pressure and beat a defender. It\'s all about close control and changing speed.',
+    keys:['Small touches: keep the ball close','Use every surface: inside, outside, sole, laces','Head up between touches','Change speed to get past a defender'],
+    kid:['Little touches','Keep the ball close to your feet','Use both feet']}};
+const ROLES=['Warm-up','Main drill','Challenge'];
+function renderTraining(){
+  const cat=CATS[state.trainCat]?state.trainCat:'passing',c=CATS[cat],kid=state.age===0;
+  $('#catTabs').innerHTML=Object.entries(CATS).map(([id,x])=>`<button class="cat-tab" role="tab" data-cat="${id}" aria-selected="${id===cat}">${x.icon}<strong>${x.name}</strong></button>`).join('');
+  $('#trTech').innerHTML=`<div class="panel-head"><h3>${c.name} basics</h3></div><p>${kid?'Remember these when you play:':c.why}</p><ul class="keys">${(kid?c.kid:c.keys).map(x=>`<li>${x}</li>`).join('')}</ul>`;
+  const old=oldAT()[0],list=c.ids.map(id=>DRILLS.find(d=>d.id===id)).filter(d=>d&&d.ages.includes(old));
+  $('#trLevel').textContent=`${AGES[state.age].name} · ${TIERS[state.tier].name}`;
+  $('#trSub').textContent=state.name?`Build the basics, ${state.name}.`:'Build the basics every player needs.';
+  // session: an easy warm-up, the main drill, then the hardest one as a challenge (in the order listed above)
+  const pickN=list.length>=3?[list[0],list[1],list[list.length-1]]:list;
+  const mins=pickN.reduce((a,d)=>a+d.minutes,0);$('#sessMeta').textContent=pickN.length?`${pickN.length} drills · about ${mins+2} minutes`:'';
+  $('#sess').innerHTML=pickN.length?pickN.map((d,i)=>{const p=d.plan(...oldAT());return `<li><button data-open="${d.id}"><span class="n">${i+1}</span><span class="role">${pickN.length===3?ROLES[i]:'Drill'}</span><span class="meta">${d.minutes} min<br>${starsHtml(state.stars[k(d)]||0)}</span><b>${view(d).name}</b></button></li>`;}).join('')
+    :`<li class="empty-note">No ${c.name.toLowerCase()} drills at this level yet.</li>`;
+  $('#trGrid').innerHTML=list.map(drillCard).join('')||`<div class="empty">No ${c.name.toLowerCase()} drills at this level yet.</div>`;
+  $('#trMoves').innerHTML=cat==='dribbling'?`<div class="moves-link"><span>Want to beat defenders? Learn skill moves for your level.</span><a class="btn-primary" style="font-size:18px;padding:8px 16px;text-decoration:none" href="#train" data-moves>Skill moves</a></div>`:'';
+}
+document.addEventListener('click',e=>{
+  const t=e.target.closest('[data-cat]');if(t){state.trainCat=t.dataset.cat;save();renderTraining();return;}
+  const o=e.target.closest('[data-open]');if(o){openSheet(DRILLS.find(d=>d.id===o.dataset.open));return;}
+  if(e.target.closest('[data-moves]')){state.tab='moves';save();}
+});
 
 /* ---------- Progress page ---------- */
 const DOW=['M','T','W','T','F','S','S'];
