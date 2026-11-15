@@ -41,6 +41,8 @@ The file name must match exactly (lowercase, with the dashes).
 | Power Strike | `power-strike.mp4` |
 | First-Time Finish | `first-time.mp4` |
 | Passing Gates (Little Kickers: Pass Through the Gate) | `passing-gates.mp4` |
+| Pass & Move | `pass-move.mp4` |
+| Long Pass | `long-pass.mp4` |
 | Speed Dribble | `speed-dribble.mp4` |
 | Figure 8 | `figure-8.mp4` |
 | Sole Rolls (Little Kickers: Ball Rolls) | `sole-rolls.mp4` |

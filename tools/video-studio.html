@@ -697,6 +697,30 @@ SCENES['weak-juggle'] = { name: 'Weak Foot Juggles', dur: 9, draw(t) {
   caption(t < 4.5 ? 'Weak foot only: toes up, soft ankle' : 'Keep it low until it feels easy');
 } };
 
+
+// Pass & Move: pass to the wall, move to the next cone, receive, repeat
+SCENES['pass-move'] = { name: 'Pass & Move', dur: 9, draw(t) {
+  pitch(); wall(); const xs = [300, 480, 660], y = 360; xs.forEach((x) => cone(x, y + 40, 1.2));
+  const P = 1.5, n = Math.floor(t / P), u = (t % P) / P, seq = [0, 1, 2, 1], from = xs[seq[n % 4]], to = xs[seq[(n + 1) % 4]];
+  const hit = [(from + to) / 2, 106], px = u < .25 ? from : lerp(from, to, ease(Math.min(1, (u - .25) / .55)));
+  let bx, by; if (u < .45) { const k = u / .45; bx = lerp(from, hit[0], k); by = lerp(y - 46, hit[1], k); } else { const k = (u - .45) / .55; bx = lerp(hit[0], to, k); by = lerp(hit[1], y - 46, k); }
+  playerTop(px, y, -Math.PI / 2 + (to > from ? .35 : -.35), u > .25 ? t * 16 : 0); ball(bx, by, 14, t * 8);
+  title('Pass & Move'); counter('passes', n + (u > .2 ? 1 : 0)); caption(u < .3 ? 'Pass to the wall' : 'Move to the next cone right away');
+} };
+// Long Pass: driven pass into a far target zone
+SCENES['long-pass'] = { name: 'Long Pass', dur: 8, draw(t) {
+  pitch(); ctx.strokeStyle = C.bib; ctx.lineWidth = 4; ctx.setLineDash([12, 8]); ctx.strokeRect(390, 70, 180, 110); ctx.setLineDash([]);
+  [[390, 70], [570, 70], [390, 180], [570, 180]].forEach(([x, y]) => cone(x, y));
+  ctx.fillStyle = 'rgba(255,255,255,.8)'; ctx.font = `700 16px ${FONT}`; ctx.textAlign = 'center'; ctx.fillText('TARGET ZONE', 480, 200);
+  const P = 4, n = Math.floor(t / P), u = (t % P) / P, start = [440, 360], land = [480 + (n % 2 ? 40 : -30), 125];
+  let px = 400, py = 420, bx = start[0], by = start[1], r = 14, cap = 'Approach at a slight angle';
+  if (u < .3) { const k = ease(u / .3); px = lerp(380, start[0] - 26, k); py = lerp(430, start[1] + 26, k); }
+  else if (u < .7) { const k = (u - .3) / .4; px = start[0] - 26; py = start[1] + 26; bx = lerp(start[0], land[0], k); by = lerp(start[1], land[1], k); r = 14 + 10 * Math.sin(Math.PI * k); cap = n % 2 ? 'Lofted: lean back, hit under the middle' : 'Driven: laces through the middle, lean over it'; }
+  else { px = start[0] - 26; py = start[1] + 26; bx = land[0]; by = land[1]; cap = 'In the zone!'; }
+  playerTop(px, py, -Math.PI / 2 + .3, u < .3 ? t * 16 : 0); ball(bx, by, r, t * 8);
+  title('Long Pass'); counter('in the zone', n + (u > .7 ? 1 : 0)); caption(cap);
+} };
+
 /* ---------- Render API ---------- */
 window.SCENE_LIST = Object.entries(SCENES).map(([id, s]) => ({ id, name: s.name, dur: Math.round(s.dur * 100) / 100 }));
 window.renderFrame = (id, t) => { ctx.save(); ctx.clearRect(0, 0, W, H); SCENES[id].draw(t); ctx.restore(); return cv.toDataURL('image/jpeg', .9); };

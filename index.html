@@ -391,7 +391,7 @@ main .wrap{padding-block:24px 56px;display:grid;gap:28px}
   <nav class="drawer" aria-label="Menu">
     <div class="drawer-top"><span class="drawer-logo">Kik<span>Up</span></span><button class="drawer-x" id="drawerX" aria-label="Close menu">✕</button></div>
     <a href="#train" data-nav="train"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11 12 4l9 7v9h-6v-6H9v6H3Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>Home</a>
-    <a href="#training" data-nav="training"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path d="m12 7 4 3-1.5 4.5h-5L8 10Z" fill="currentColor"/></svg>Training: pass, shoot, dribble</a>
+    <a href="#training" data-nav="training"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path d="m12 7 4 3-1.5 4.5h-5L8 10Z" fill="currentColor"/></svg>General Training</a>
     <a href="#progress" data-nav="progress"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>My progress</a>
     <button id="menuGuide"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 11v6M12 7.5v.5" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>Getting started guide</button>
   </nav>
@@ -443,7 +443,7 @@ main .wrap{padding-block:24px 56px;display:grid;gap:28px}
     </section>
   </div>
   <div class="wrap" id="trainingView" hidden>
-    <div class="pg-head"><div><h2>Training</h2><p class="muted" id="trSub">Build the basics every player needs.</p></div><a class="btn-ghost pg-back" href="#train">Back to home</a></div>
+    <div class="pg-head"><div><h2>General Training</h2><p class="muted" id="trSub">Passing, shooting and dribbling.</p></div><a class="btn-ghost pg-back" href="#train">Back to home</a></div>
     <div class="cat-tabs" role="tablist" aria-label="Skill" id="catTabs"></div>
     <section class="panel tech" id="trTech" aria-live="polite"></section>
     <section class="panel" aria-labelledby="sessH">
@@ -678,7 +678,19 @@ const DRILLS=[
  tips:['Same technique as your strong foot: toes up, laces, soft ankle.','Keep the ball low at first.','Five minutes a day and it stops being your weak foot.'],
  diagram:{player:[92,92],path:'M92,90 L92,48 L92,90',dur:1.2},
  plan(a,t){const n=T([null,null,[5,10,15],[10,20,30]],a,t);
-  return {seconds:120,target:n,unit:'in a row',summary:`Best streak: ${n} in a row`,detail:[['Weak foot, bounces allowed','Weak foot, no bounces','Weak foot and thighs only'][t]]};}}
+  return {seconds:120,target:n,unit:'in a row',summary:`Best streak: ${n} in a row`,detail:[['Weak foot, bounces allowed','Weak foot, no bounces','Weak foot and thighs only'][t]]};}},
+{id:'pass-move',name:'Pass & Move',skill:'passing',mode:'count',auto:'kicks',ages:[1,2,3],minutes:2,
+ setup:['Put 3 cones in a line a few steps apart, facing a wall.','Pass to the wall from the first cone, then move to the next cone to receive it.','Keep passing and moving along the line and back. Count every pass.'],
+ tips:['Move as soon as the ball leaves your foot. Never stand still after a pass.','Get side-on so you can receive and pass in one smooth motion.','Pass slightly ahead of where you\'re going to be.'],
+ diagram:{wall:true,cones:[[60,96],[100,96],[140,96]],player:[60,86],path:'M62,92 L100,12 L102,92 L140,12 L140,92',dur:2.6},
+ plan(a,t){const n=T([null,[10,15,20],[15,20,25],[20,25,30]],a,t);
+  return {seconds:60,target:n,unit:'passes',summary:`${n} passes in 60s`,detail:[['Two touches, walk between cones','Two touches max, jog between cones','One touch, run between cones'][t]]};}},
+{id:'long-pass',name:'Long Pass',skill:'passing',mode:'count',ages:[1,2,3],minutes:3,
+ setup:['Mark a target zone (a big square of cones) a long way away, or aim at a wall.','Strike long passes into the zone. Driven passes stay low, lofted passes go up and drop in.','Collect the balls and go again. Count passes that land in the zone.'],
+ tips:['Approach at a slight angle, not straight on.','For a driven pass, strike the middle with your laces and lean over it.','For a lofted pass, lean back a little and hit the bottom half of the ball.'],
+ diagram:{box:[76,8,48,26],player:[100,90],path:'M100,88 L100,20',dur:1.6},
+ plan(a,t){const d=T([null,[10,12,15],[15,18,22],[20,25,30]],a,t),n=T([null,[3,5,6],[4,6,8],[5,7,10]],a,t);
+  return {seconds:120,target:n,unit:'in the zone',summary:`${n} passes in the zone in 2 min`,detail:[`Target ${d} big steps away`,['Any long pass','Driven passes, low the whole way','Alternate driven and lofted, both feet'][t]]};}}
 ];
 
 /* ---------- Skill moves ladder ----------
@@ -792,8 +804,8 @@ function renderHome(){
   $('#tabMoves').setAttribute('aria-selected',state.tab==='moves');
   if(state.tab==='moves'){renderMoves();return;}
   $('#videoSlot').innerHTML='';
-  $('#secIntro').innerHTML=(state.age===0?'Short, fun drills. Grab a ball and some cones (shoes work too).':'Game sense, scanning, first touch, ball mastery, weak foot and fitness.')+' Passing, shooting and dribbling are on the <a href="#training">Training page</a>.';
-  const onTraining=d=>TRAINING_SKILLS.includes(view(d).skill)||Object.values(CATS).some(c=>c.ids.includes(d.id));
+  $('#secIntro').innerHTML=(state.age===0?'Short, fun drills. Grab a ball and some cones (shoes work too).':'Drills for your level. Tap one to see your goal.')+' For passing, shooting and dribbling, open <a href="#training">General Training</a>.';
+  const onTraining=d=>TRAINING_SKILLS.includes(view(d).skill);
   const av=avAll.filter(d=>!onTraining(d));   // passing, shooting and dribbling (and drills built on them) live on the Training page
   const skillsHere=[...new Set(av.map(d=>view(d).skill))];
   if(state.skill!=='all'&&!skillsHere.includes(state.skill))state.skill='all';
@@ -1335,7 +1347,7 @@ window.addEventListener('hashchange',route);
 
 /* ---------- Training page: passing, shooting, dribbling ---------- */
 const CATS={
-  passing:{name:'Passing',ids:['passing-gates','wall-pass','weak-foot','receive-turn','check-away'],
+  passing:{name:'Passing',ids:['passing-gates','wall-pass','pass-move','long-pass'],
     icon:'<svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><circle cx="9" cy="28" r="5"/><path d="M15 25c6-6 12-8 19-9"/><path d="m28 11 6 5-6 5"/></svg>',
     why:'Good passing keeps your team moving, and it\'s the first thing coaches notice. Clean, firm passes make everyone around you better.',
     keys:['Point your standing foot at your target','Lock your ankle and use the inside of your foot','Strike the middle of the ball to keep it on the ground','Follow through toward your target'],
@@ -1345,7 +1357,7 @@ const CATS={
     why:'Goals win games. Placement beats power: a shot into the corner is much harder to save than a blast at the keeper.',
     keys:['Pick your corner before you shoot','Plant your foot beside the ball, pointing at the target','Inside of the foot to place it, laces for power','Lean over the ball to keep the shot low'],
     kid:['Look at the goal','Kick with your laces (the top of your shoe)','Aim for the sides of the goal']},
-  dribbling:{name:'Dribbling',ids:['cone-dribble','figure-8','tight-box','speed-dribble','gate-hunt'],
+  dribbling:{name:'Dribbling',ids:['cone-dribble','figure-8','tight-box','speed-dribble'],
     icon:'<svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M6 32c6 0 6-8 12-8s6-8 12-8 4-6 6-8" stroke-dasharray="1 6"/><circle cx="32" cy="10" r="5"/></svg>',
     why:'Dribbling lets you keep the ball under pressure and beat a defender. It\'s all about close control and changing speed.',
     keys:['Small touches: keep the ball close','Use every surface: inside, outside, sole, laces','Head up between touches','Change speed to get past a defender'],
@@ -1356,9 +1368,9 @@ function renderTraining(){
   $('#catTabs').innerHTML=Object.entries(CATS).map(([id,x])=>`<button class="cat-tab" role="tab" data-cat="${id}" aria-selected="${id===cat}">${x.icon}<strong>${x.name}</strong></button>`).join('');
   $('#trTech').innerHTML=`<div class="panel-head"><h3>${c.name} basics</h3></div><p>${kid?'Remember these when you play:':c.why}</p><ul class="keys">${(kid?c.kid:c.keys).map(x=>`<li>${x}</li>`).join('')}</ul>`;
   const old=oldAT()[0],avail=d=>d&&d.ages.includes(old);
-  const list=[...c.ids.map(id=>DRILLS.find(d=>d.id===id)),...DRILLS.filter(d=>!c.ids.includes(d.id)&&view(d).skill===cat)].filter(avail);
+  const list=[...c.ids.map(id=>DRILLS.find(d=>d.id===id)),...DRILLS.filter(d=>!c.ids.includes(d.id))].filter(d=>avail(d)&&view(d).skill===cat);
   $('#trLevel').textContent=`${AGES[state.age].name} · ${TIERS[state.tier].name}`;
-  $('#trSub').textContent=state.name?`Build the basics, ${state.name}.`:'Build the basics every player needs.';
+  $('#trSub').textContent=state.name?`Passing, shooting and dribbling. Let's go, ${state.name}!`:'Passing, shooting and dribbling.';
   // session: an easy warm-up, the main drill, then the hardest one as a challenge (in the order listed above)
   const pickN=list.length>=3?[list[0],list[1],list[list.length-1]]:list;
   const mins=pickN.reduce((a,d)=>a+d.minutes,0);$('#sessMeta').textContent=pickN.length?`${pickN.length} drills · about ${mins+2} minutes`:'';
