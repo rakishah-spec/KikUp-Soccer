@@ -24,7 +24,7 @@ export function loadModels() {
         // Anything round counts as a candidate ball; shape, size and position checks pick the real one.
         const det = await ObjectDetector.createFromOptions(vision, {
           baseOptions: { modelAssetPath: here('../models/efficientdet_lite0.tflite'), delegate },
-          runningMode: 'IMAGE', scoreThreshold: 0.12, maxResults: 6, categoryAllowlist: ROUND,
+          runningMode: 'IMAGE', scoreThreshold: 0.12, maxResults: 8, categoryAllowlist: [...ROUND, 'person'],
         });
         return { pose, det };
       };
@@ -111,7 +111,9 @@ export class LiveCounter {
 
     this.draw(W, H, pose, ball);
     // Ready to count: shoulder checks need the head; everything else just needs the ball (feet-only framing is fine).
-    const seen = !!usable, ready = this.kind === 'checks' ? seen : this.kind === 'trips' ? seen || !!ball : !!ball;
+    // Feet seen: the body tracker found them, or the detector saw a person (works with only legs in view).
+    const seen = this.kind === 'checks' ? !!usable : !!usable || (this.personT != null && t - this.personT < 1500);
+    const ready = this.kind === 'checks' ? seen : this.kind === 'trips' ? seen || !!ball : !!ball;
     this.onStatus?.({ body: seen, ball: this.needsBall ? !!ball : null, ready });
   }
 
@@ -145,6 +147,7 @@ export class LiveCounter {
   findBall(v, W, H, pose, t) {
     const cands = [], det = this.models.det;
     const add = (res, sx, sy, k) => { for (const d of res.detections || []) { const bb = d.boundingBox, c = d.categories[0]; if (!bb) continue;
+      if (c.categoryName === 'person') { this.personT = t; continue; }   // a person (even just legs) in view: lights up Feet
       cands.push({ x: (sx + (bb.originX + bb.width / 2) * k) / H, y: (sy + (bb.originY + bb.height / 2) * k) / H, r: Math.max(bb.width, bb.height) * k / 2 / H,
         aspect: Math.min(bb.width, bb.height) / Math.max(bb.width, bb.height), score: c.score, name: c.categoryName }); } };
     const roi = this.frame % 4 === 0 ? null : this.roi(W, H, pose, t);
@@ -194,7 +197,7 @@ export class LiveCounter {
     let best = null, bestScore = -1e9;
     this.fixed ??= [];   // round things that never move (cones, a clock on the wall): ignored once spotted
     for (const c of cands) {
-      if (c.aspect < 0.6) continue;                                            // not round enough
+      if (c.aspect < (c.name === 'sports ball' ? 0.4 : 0.5)) continue;          // not round enough (a moving ball blurs into an oval, so allow some stretch)
       if (this.fixed.some((f) => f.n > 40 && Math.hypot(c.x - f.x, c.y - f.y) < Math.max(f.r, 0.01))) continue;
       if (pose && pose.feet && (c.r < 0.025 * S || c.r > 0.3 * S)) continue;                // wrong size for a ball next to this player
       if (pose && pose.upper && Math.hypot(c.x - pose.nose.x, c.y - pose.nose.y) < 0.15 * S && !(c.name === 'sports ball' && c.score > 0.4)) continue;  // that's the head

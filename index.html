@@ -742,7 +742,7 @@ const CAM_HOW={
 const camHowFor=d=>d.camHow||CAM_HOW[d.auto];
 const camOK=()=>!!(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia)&&!window.claude;
 function runCount(d,p){
-  let count=0,phase='ready',endAt=0,lastAuto=0,cam=null,readySince=null,camMod=null;
+  let count=0,phase='ready',endAt=0,lastAuto=0,cam=null,camMod=null,seenHits=[],autoStartAt=0;
   const kidCatch=d.id==='juggle'&&state.age===0,best=d.best&&!kidCatch;   // Little Kickers count catches, not streaks
   const label=kidCatch?'Catches':best?'Best streak':'Count',auto=!!d.auto;
   body.innerHTML=`<div class="run-center">
@@ -789,12 +789,18 @@ function runCount(d,p){
         onStatus:st=>{const m=$('#camMsg');if(!m)return;if(st.text)m.textContent=st.text;
           if('body' in st){$('#dotBody').classList.toggle('on',st.body);const db=$('#dotBall');if(db&&st.ball!==null)db.classList.toggle('on',st.ball);
             const ok='ready' in st?st.ready:st.body&&st.ball!==false;
-            if(phase==='ready'){if(ok){readySince??=performance.now();m.textContent='Got you! Starting…';if(performance.now()-readySince>1200)begin();}else{readySince=null;m.textContent=camHowFor(d);}}
+            if(phase==='ready'){const now=performance.now();seenHits.push(ok);if(seenHits.length>10)seenHits.shift();   // last 10 frames, any phone speed
+              const left=autoStartAt?Math.max(0,Math.ceil((autoStartAt-now)/1000)):null,tail=left!=null?` Starting in ${left}s either way.`:'';
+              const hits=seenHits.filter(Boolean).length;
+              if(hits>=3){m.textContent='Got you! Starting…';begin();}            // 3 sightings in the last 10 frames is enough: detection flickers
+              else m.textContent=(hits?'Almost there, hold still…':camHowFor(d))+tail;}
             else if(phase==='run')m.textContent=ok?'Counting…':(d.auto==='checks'?'Can\'t see your head. ':'Can\'t see the ball. ')+camHowFor(d);}},
         onCount:r=>{if(!$('#cnt'))return;const rc=kidCatch?r.total:r.count;if(rc>lastAuto){count+=rc-lastAuto;lastAuto=rc;upd();pulse();beep(1250,.05);}
           const sub=$('#camSub');if(sub&&d.auto==='juggle'&&!kidCatch){sub.hidden=false;sub.textContent=`Streak ${r.streak}`;}}});
       S.cam=cam;
       await cam.open();
+      // Never leave them waiting: if the camera hasn't locked on after 15 s, start anyway and keep looking during the drill.
+      if(phase==='ready'&&!autoStartAt){autoStartAt=performance.now()+15000;later(()=>{if(phase==='ready'){$('#camMsg').textContent='Starting! The camera keeps looking for the ball as you go.';begin();}},15000);}
       if(phase==='run'){lastAuto=0;cam.setCounting(true);}
     }catch(e){
       const denied=e&&['NotAllowedError','SecurityError','PermissionDeniedError'].includes(e.name);
