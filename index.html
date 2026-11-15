@@ -268,6 +268,63 @@ main .wrap{padding-block:24px 56px;display:grid;gap:28px}
 .onb-note{font-size:14px;color:#cfe0d4;text-align:center;margin:0}
 .link-btn{background:none;border:0;padding:0;color:var(--muted);font-weight:600;text-decoration:underline;justify-self:start;font-size:14px}
 
+/* Menu */
+.menu-btn{position:absolute;top:calc(14px + env(safe-area-inset-top,0px));right:max(12px,env(safe-area-inset-right,0px));z-index:2;width:46px;height:46px;border-radius:12px;border:1px solid rgba(255,255,255,.3);background:rgba(0,0,0,.28);display:grid;align-content:center;justify-items:center;gap:5px;padding:0}
+.menu-btn span{display:block;width:22px;height:2.5px;border-radius:2px;background:var(--chalk)}
+.hdr .wrap{padding-right:max(72px,env(safe-area-inset-right,0px))}
+.drawer-wrap{position:fixed;inset:0;z-index:35;background:rgba(5,15,9,.55)}
+.drawer{position:absolute;top:0;right:0;bottom:0;width:min(300px,86vw);background:var(--bg);box-shadow:-8px 0 30px rgba(0,0,0,.3);display:flex;flex-direction:column;gap:4px;padding:calc(14px + env(safe-area-inset-top,0px)) max(14px,env(safe-area-inset-right,0px)) 20px 14px}
+.drawer-top{display:flex;justify-content:space-between;align-items:center;padding:0 4px 12px;border-bottom:1px solid var(--rule);margin-bottom:8px}
+.drawer-logo{font-family:var(--display);font-weight:800;font-size:30px;text-transform:uppercase}
+.drawer-logo span{color:var(--bib)}
+.drawer-x{width:40px;height:40px;border-radius:50%;border:0;background:var(--surface-2);font-size:18px}
+.drawer a,.drawer button:not(.drawer-x){display:flex;align-items:center;gap:12px;padding:14px 12px;border-radius:10px;color:var(--ink);text-decoration:none;font-weight:700;font-size:17px;background:none;border:0;text-align:left;width:100%}
+.drawer a:hover,.drawer button:not(.drawer-x):hover{background:var(--surface-2)}
+.drawer a[aria-current="page"]{background:var(--surface-2);box-shadow:inset 4px 0 0 var(--bib)}
+.drawer svg{width:22px;height:22px;flex:none;color:var(--bib)}
+
+/* Progress page */
+:root{--h0:#E1EAE2;--h1:#FFD3B3;--h2:#FF9A57;--h3:#D9580A}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--h0:#1C3024;--h1:#5A3018;--h2:#A9501A;--h3:#FF8533}}
+:root[data-theme="dark"]{--h0:#1C3024;--h1:#5A3018;--h2:#A9501A;--h3:#FF8533}
+.pg-head{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap}
+.pg-head h2{font-size:clamp(34px,8vw,44px);text-transform:uppercase}
+.pg-head p{margin:4px 0 0}
+.pg-back{text-decoration:none;color:var(--ink);font-size:14px}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+.tile{background:var(--surface);border:1px solid var(--rule);border-radius:14px;padding:14px 16px;display:grid;gap:2px}
+.tile-k{font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.tile-v{font-family:var(--display);font-weight:800;font-size:52px;line-height:1;font-variant-numeric:tabular-nums}
+.tile-s{font-size:13px;color:var(--muted)}
+.tile.hot{border-color:var(--bib)}
+.tile.hot .tile-v{color:var(--bib)}
+.panel{background:var(--surface);border:1px solid var(--rule);border-radius:14px;padding:16px;display:grid;gap:14px}
+.panel-head{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap}
+.panel h3{font-size:24px;text-transform:uppercase}
+.small{font-size:13px}
+.heat-key{display:flex;align-items:center;gap:4px;font-size:12px;color:var(--muted)}
+.heat-key i{width:14px;height:14px;border-radius:4px;display:inline-block}
+.h0{background:var(--h0)}.h1{background:var(--h1)}.h2{background:var(--h2)}.h3{background:var(--h3)}
+.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;max-width:460px}
+.cal .dow{font-size:12px;font-weight:700;color:var(--muted);text-align:center}
+.cal .day{aspect-ratio:1;border-radius:6px;display:grid;place-items:center;font-size:12px;font-weight:600;color:var(--muted);font-variant-numeric:tabular-nums;cursor:default;outline-offset:2px}
+.cal .day.h2,.cal .day.h3{color:#1A0B00}
+.cal .day.today{box-shadow:0 0 0 2px var(--ink)}
+.cal .day.future{background:transparent;border:1px dashed var(--rule)}
+.sk{display:grid;gap:10px}
+.sk-row{display:grid;grid-template-columns:minmax(90px,130px) 1fr auto;align-items:center;gap:10px;font-size:14px;font-weight:600}
+.sk-track{display:block;height:12px;border-radius:6px;background:var(--h0);overflow:hidden}
+.sk-fill{display:block;height:100%;border-radius:6px;background:var(--star);min-width:0}
+.sk-val{font-variant-numeric:tabular-nums;color:var(--muted);font-weight:700;min-width:52px;text-align:right}
+.rec{list-style:none;margin:0;padding:0;display:grid}
+.rec li{display:grid;grid-template-columns:1fr auto;gap:2px 12px;padding:10px 0;border-top:1px solid var(--rule)}
+.rec li:first-child{border-top:0}
+.rec b{font-size:15px}
+.rec .when{font-size:13px;color:var(--muted)}
+.rec .stars{grid-row:span 2;align-self:center}
+.empty-note{color:var(--muted);margin:0}
+.tip{position:fixed;z-index:50;pointer-events:none;background:var(--ink);color:var(--bg);font-size:13px;font-weight:600;padding:6px 10px;border-radius:8px;max-width:220px;box-shadow:0 4px 14px rgba(0,0,0,.25)}
+
 /* Live camera counter */
 .cam-tip{position:absolute;left:8px;right:8px;bottom:8px;display:flex;gap:10px;align-items:center;background:rgba(14,38,24,.88);border:2px solid var(--bib);border-radius:12px;padding:10px 12px;color:#fff;text-align:left}
 .cam-tip svg{width:44px;height:44px;flex:none;color:var(--bib)}
@@ -309,12 +366,22 @@ main .wrap{padding-block:24px 56px;display:grid;gap:28px}
     <div class="onb-body" id="onbBody"></div>
   </div>
 </div>
+<div class="drawer-wrap" id="drawer" hidden>
+  <nav class="drawer" aria-label="Menu">
+    <div class="drawer-top"><span class="drawer-logo">Kik<span>Up</span></span><button class="drawer-x" id="drawerX" aria-label="Close menu">✕</button></div>
+    <a href="#train" data-nav="train"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path d="m12 7 4 3-1.5 4.5h-5L8 10Z" fill="currentColor"/></svg>Train</a>
+    <a href="#progress" data-nav="progress"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>My progress</a>
+    <button id="menuGuide"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 11v6M12 7.5v.5" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>Getting started guide</button>
+  </nav>
+</div>
+<div class="tip" id="tip" role="tooltip" hidden></div>
 <header class="hdr">
   <div class="wrap">
     <div class="brand">
       <h1>Kik<span>Up</span></h1>
       <p id="hello">Soccer training on your own. Level up.</p>
     </div>
+    <button class="menu-btn" id="menuBtn" aria-label="Open menu" aria-expanded="false" aria-controls="drawer"><span></span><span></span><span></span></button>
     <div class="hdr-stats">
       <span class="pill" id="pillLevel"></span>
       <span class="pill"><b id="pillStars">0</b> stars</span>
@@ -324,7 +391,7 @@ main .wrap{padding-block:24px 56px;display:grid;gap:28px}
 </header>
 
 <main>
-  <div class="wrap">
+  <div class="wrap" id="homeView">
     <section class="level" aria-labelledby="lvlh">
       <div>
         <h2 id="lvlh">Your level</h2>
@@ -351,6 +418,27 @@ main .wrap{padding-block:24px 56px;display:grid;gap:28px}
       </div>
       <div id="videoSlot"></div>
       <div class="grid" id="grid"></div>
+    </section>
+  </div>
+  <div class="wrap" id="progressView" hidden>
+    <div class="pg-head"><div><h2 id="pgTitle">My progress</h2><p class="muted" id="pgSub"></p></div><a class="btn-ghost pg-back" href="#train">Back to training</a></div>
+    <section class="tiles" aria-label="Totals">
+      <div class="tile"><span class="tile-k">Total stars</span><span class="tile-v" id="pgStars">0</span><span class="tile-s">across all levels</span></div>
+      <div class="tile hot"><span class="tile-k">Current streak</span><span class="tile-v" id="pgStreak">0</span><span class="tile-s" id="pgStreakSub">days in a row</span></div>
+      <div class="tile"><span class="tile-k">Best streak</span><span class="tile-v" id="pgBest">0</span><span class="tile-s">days in a row</span></div>
+      <div class="tile"><span class="tile-k">Days trained</span><span class="tile-v" id="pgDays">0</span><span class="tile-s" id="pgDaysSub">all time</span></div>
+    </section>
+    <section class="panel" aria-labelledby="calH">
+      <div class="panel-head"><h3 id="calH">Last 5 weeks</h3><div class="heat-key" aria-hidden="true">Fewer <i class="h0"></i><i class="h1"></i><i class="h2"></i><i class="h3"></i> More drills</div></div>
+      <div class="cal" id="cal"></div>
+    </section>
+    <section class="panel" aria-labelledby="skH">
+      <div class="panel-head"><h3 id="skH">Stars by skill</h3><span class="muted small" id="skLevel"></span></div>
+      <div class="sk" id="skBars"></div>
+    </section>
+    <section class="panel" aria-labelledby="recH">
+      <div class="panel-head"><h3 id="recH">Recent drills</h3></div>
+      <ol class="rec" id="recent"></ol>
     </section>
   </div>
 </main>
@@ -528,7 +616,8 @@ const state=Object.assign({age:2,tier:2,skill:'all',tab:'drills',stars:{},best:{
 const k=(d)=>`${d.id}|${state.age}|${state.tier}`;
 const dayStr=(dt)=>`${dt.getFullYear()}-${dt.getMonth()+1}-${dt.getDate()}`;
 function bumpStreak(){const today=dayStr(new Date()),y=new Date();y.setDate(y.getDate()-1);
-  if(state.lastDay===today)return; state.streak=state.lastDay===dayStr(y)?(state.streak||0)+1:1; state.lastDay=today;}
+  if(state.lastDay===today)return; state.streak=state.lastDay===dayStr(y)?(state.streak||0)+1:1; state.lastDay=today;
+  state.bestStreak=Math.max(state.bestStreak||0,state.streak);}
 function liveStreak(){const today=dayStr(new Date()),y=new Date();y.setDate(y.getDate()-1);
   return (state.lastDay===today||state.lastDay===dayStr(y))?state.streak:0;}
 
@@ -683,7 +772,7 @@ function countdown(cb,see){const el=document.createElement('div');el.className=s
   const step=()=>{if(n===0){el.remove();beep(1320,.25);cb();return;}el.textContent=n;beep(660);n--;later(step,800);};step();}
 
 function showResult(d,stars,headline,lines,fb){
-  const key=k(d),prev=state.stars[key]||0; state.stars[key]=Math.max(prev,stars); bumpStreak(); save();
+  const key=k(d),prev=state.stars[key]||0; state.stars[key]=Math.max(prev,stars); bumpStreak(); logSession(d,stars,lines[0]); save();
   body.innerHTML=`<div class="run-center result">
     <div class="stars-big">${[1,2,3].map(i=>`<span class="${i<=stars?'on':''}">★</span>`).join('')}</div>
     <h2>${headline}</h2>${lines.map(l=>`<p>${l}</p>`).join('')}
@@ -1092,7 +1181,70 @@ $('#onbBack').onclick=()=>{if(onbStep>0){onbStep--;renderOnb();}};
 $('#onbSkip').onclick=()=>{onbStep=4;renderOnb();};
 $('#reOnb').onclick=openOnb;
 
+/* ---------- Training log (for the progress page) ---------- */
+function logSession(d,stars,line){
+  const today=dayStr(new Date());(state.days||={})[today]=(state.days[today]||0)+1;
+  (state.history||=[]).unshift({t:Date.now(),id:d.id,name:view(d).name,skill:d.skill==='moves'?'moves':view(d).skill,stars,line:line||'',age:state.age,tier:state.tier});
+  state.history=state.history.slice(0,200);
+  const keys=Object.keys(state.days);if(keys.length>400){keys.sort((a,b)=>new Date(a)-new Date(b)).slice(0,keys.length-400).forEach(x=>delete state.days[x]);}
+}
+
+/* ---------- Menu and pages ---------- */
+function openMenu(){$('#drawer').hidden=false;$('#menuBtn').setAttribute('aria-expanded','true');$('#drawerX').focus();}
+function closeMenu(){$('#drawer').hidden=true;$('#menuBtn').setAttribute('aria-expanded','false');}
+$('#menuBtn').onclick=openMenu;$('#drawerX').onclick=closeMenu;
+$('#drawer').addEventListener('click',e=>{if(e.target.id==='drawer'||e.target.closest('a'))closeMenu();});
+$('#menuGuide').onclick=()=>{closeMenu();openOnb();};
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('#drawer').hidden)closeMenu();});
+function route(){const pg=location.hash==='#progress'?'progress':'train';
+  $('#homeView').hidden=pg!=='train';$('#progressView').hidden=pg!=='progress';
+  document.querySelectorAll('.drawer [data-nav]').forEach(a=>a.toggleAttribute('aria-current',a.dataset.nav===pg)&&a.setAttribute('aria-current','page'));
+  if(pg==='progress')renderProgress();window.scrollTo(0,0);}
+window.addEventListener('hashchange',route);
+
+/* ---------- Progress page ---------- */
+const DOW=['M','T','W','T','F','S','S'];
+const fmtDay=dt=>dt.toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'});
+function ago(t){const m=Math.round((Date.now()-t)/60000);if(m<1)return'just now';if(m<60)return`${m} min ago`;const h=Math.round(m/60);if(h<24)return`${h} hr ago`;
+  const dd=Math.round(h/24);return dd===1?'yesterday':dd<7?`${dd} days ago`:new Date(t).toLocaleDateString(undefined,{month:'short',day:'numeric'});}
+function renderProgress(){
+  const total=Object.values(state.stars).reduce((a,n)=>a+n,0),streak=liveStreak(),best=Math.max(state.bestStreak||0,state.streak||0,streak);
+  const days=state.days||{},trained=Object.keys(days).length||(state.lastDay?1:0),hist=state.history||[];
+  $('#pgSub').textContent=state.name?`Keep it up, ${state.name}!`:'Every drill you finish shows up here.';
+  $('#pgStars').textContent=total;$('#pgStreak').textContent=streak;$('#pgBest').textContent=best;$('#pgDays').textContent=trained;
+  const today=dayStr(new Date());
+  $('#pgStreakSub').textContent=streak===0?'Train today to start one':state.lastDay===today?'days in a row. Back tomorrow!':'Train today to keep it going';
+  const monthAgo=Date.now()-30*864e5;$('#pgDaysSub').textContent=`${Object.keys(days).filter(x=>new Date(x)>=monthAgo).length} in the last 30 days`;
+  // calendar: 5 weeks, Monday first, ending with this week
+  const now=new Date();now.setHours(0,0,0,0);const dow=(now.getDay()+6)%7,start=new Date(now);start.setDate(now.getDate()-dow-28);
+  const starsOn={};hist.forEach(h=>{const k2=dayStr(new Date(h.t));starsOn[k2]=(starsOn[k2]||0)+h.stars;});
+  let html=DOW.map(x=>`<span class="dow" aria-hidden="true">${x}</span>`).join('');
+  for(let i=0;i<35;i++){const dt=new Date(start);dt.setDate(start.getDate()+i);const key=dayStr(dt),n=days[key]||0,fut=dt>now;
+    const lvl=fut?'':n===0?'h0':n===1?'h1':n<=3?'h2':'h3';
+    const label=fut?'':`${fmtDay(dt)}: ${n?`${n} drill${n>1?'s':''}${starsOn[key]?`, ${starsOn[key]} star${starsOn[key]>1?'s':''}`:''}`:'no drills'}`;
+    html+=`<span class="day ${lvl}${fut?' future':''}${key===today?' today':''}"${fut?' aria-hidden="true"':` tabindex="0" data-tip="${label}" aria-label="${label}"`}>${dt.getDate()}</span>`;}
+  $('#cal').innerHTML=html;
+  // stars by skill at the current level (drills + skill moves)
+  const lvlName=`${AGES[state.age].name} · ${TIERS[state.tier].name}`;$('#skLevel').textContent=lvlName;
+  const groups={};
+  available().forEach(d=>{const sk=view(d).skill;(groups[sk]||={got:0,max:0});groups[sk].got+=state.stars[k(d)]||0;groups[sk].max+=3;});
+  const mv=MOVES.filter(m=>m.from<=levelIdx()).map(moveAsDrill);if(mv.length){groups.moves={got:mv.reduce((a,d)=>a+(state.stars[k(d)]||0),0),max:mv.length*3};}
+  const label=sk=>sk==='moves'?'Skill Moves':SKILLS[sk];
+  $('#skBars').innerHTML=Object.entries(groups).map(([sk,g])=>`<div class="sk-row" tabindex="0" data-tip="${label(sk)}: ${g.got} of ${g.max} stars at ${lvlName}"><span>${label(sk)}</span><span class="sk-track"><span class="sk-fill" style="width:${g.max?Math.round(100*g.got/g.max):0}%"></span></span><span class="sk-val">${g.got} / ${g.max}</span></div>`).join('');
+  // recent drills
+  $('#recent').innerHTML=hist.length?hist.slice(0,10).map(h=>`<li><b>${esc(h.name)}</b>${starsHtml(h.stars)}<span class="when">${ago(h.t)} · ${esc(h.line)}</span></li>`).join('')
+    :`<li><p class="empty-note">Finish your first drill and it shows up here, with your stars and score.</p></li>`;
+}
+// tooltips for calendar days and skill bars (hover, keyboard focus or tap)
+(()=>{const tip=$('#tip');const show=el=>{tip.textContent=el.dataset.tip;tip.hidden=false;const r=el.getBoundingClientRect(),tw=tip.offsetWidth,th=tip.offsetHeight;
+    tip.style.left=Math.max(8,Math.min(innerWidth-tw-8,r.left+r.width/2-tw/2))+'px';tip.style.top=(r.top-th-8<8?r.bottom+8:r.top-th-8)+'px';};
+  const hide=()=>{tip.hidden=true;};
+  document.addEventListener('pointerover',e=>{const el=e.target.closest('[data-tip]');el?show(el):hide();});
+  document.addEventListener('focusin',e=>{const el=e.target.closest('[data-tip]');el?show(el):hide();});
+  document.addEventListener('scroll',hide,{passive:true});})();
+
 renderHome();
+route();
 if(!state.onboarded)openOnb();
 </script>
 
