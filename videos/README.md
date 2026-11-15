@@ -53,6 +53,16 @@ The file name must match exactly (lowercase, with the dashes).
 | Weak Foot Dribble | `weak-dribble.mp4` |
 | Weak Foot Juggles | `weak-juggle.mp4` |
 
+## Endurance workouts
+| Workout | File name |
+|---|---|
+| Sprint–Jog Laps (Little Kickers: Run & Walk Laps) | `sprint-jog-laps.mp4` |
+| 30-30 Runs (Little Kickers: Fast & Slow) | `interval-runs.mp4` |
+| Steady Jog (Little Kickers: Keep Going) | `steady-jog.mp4` |
+| Sprint Pyramid | `pyramid.mp4` |
+| Dribble Endurance | `ball-endurance.mp4` |
+| Speed Play | `fartlek.mp4` |
+
 ## Skill moves
 | Move | File name |
 |---|---|

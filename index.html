@@ -346,6 +346,15 @@ main .wrap{padding-block:24px 56px;display:grid;gap:28px}
 .sec-h{font-size:24px;text-transform:uppercase}
 .moves-link{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;background:var(--surface);border:1px dashed var(--bib);border-radius:12px;padding:14px 16px;font-weight:600}
 
+.wbar{width:100%;max-width:480px;height:8px;border-radius:99px;background:rgba(255,255,255,.12);overflow:hidden}
+.wbar i{display:block;height:100%;width:0;background:var(--bib)}
+.lap-btn{width:200px;height:200px;font-size:40px;line-height:1}
+.end-hero{background:linear-gradient(135deg,#FF8533,#D9580A);color:#1A0B00;border:0}
+.end-hero h3{font-size:28px}
+.end-hero p{font-size:16px;color:#2a1405}
+.end-hero .keys li{background:rgba(255,255,255,.35)}
+.end-hero .keys li::before{background:#1A0B00}
+
 /* Live camera counter */
 .cam-tip{position:absolute;left:8px;right:8px;bottom:8px;display:flex;gap:10px;align-items:center;background:rgba(14,38,24,.88);border:2px solid var(--bib);border-radius:12px;padding:10px 12px;color:#fff;text-align:left}
 .cam-tip svg{width:44px;height:44px;flex:none;color:var(--bib)}
@@ -392,6 +401,7 @@ main .wrap{padding-block:24px 56px;display:grid;gap:28px}
     <div class="drawer-top"><span class="drawer-logo">Kik<span>Up</span></span><button class="drawer-x" id="drawerX" aria-label="Close menu">✕</button></div>
     <a href="#train" data-nav="train"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11 12 4l9 7v9h-6v-6H9v6H3Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>Home</a>
     <a href="#training" data-nav="training"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path d="m12 7 4 3-1.5 4.5h-5L8 10Z" fill="currentColor"/></svg>General Training</a>
+    <a href="#endurance" data-nav="endurance"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M5 12h4l1.5-3 3 6 1.5-3h4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>Endurance</a>
     <a href="#progress" data-nav="progress"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>My progress</a>
     <button id="menuGuide"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 11v6M12 7.5v.5" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>Getting started guide</button>
   </nav>
@@ -456,6 +466,18 @@ main .wrap{padding-block:24px 56px;display:grid;gap:28px}
       <div id="trMoves"></div>
     </section>
   </div>
+  <div class="wrap" id="enduranceView" hidden>
+    <div class="pg-head"><div><h2>Endurance</h2><p class="muted" id="enSub">Build the engine to run all game.</p></div><a class="btn-ghost pg-back" href="#train">Back to home</a></div>
+    <section class="panel end-hero" aria-labelledby="enWhy">
+      <div class="panel-head"><h3 id="enWhy">Why it matters</h3><span class="small" id="enWeek"></span></div>
+      <p id="enText"></p>
+      <ul class="keys" id="enKeys"></ul>
+    </section>
+    <section style="display:grid;gap:14px" aria-labelledby="enAll">
+      <div class="panel-head"><h3 id="enAll" class="sec-h">Workouts</h3><span class="muted small" id="enLevel"></span></div>
+      <div class="grid" id="enGrid"></div>
+    </section>
+  </div>
   <div class="wrap" id="progressView" hidden>
     <div class="pg-head"><div><h2 id="pgTitle">My progress</h2><p class="muted" id="pgSub"></p></div><a class="btn-ghost pg-back" href="#train">Back to training</a></div>
     <section class="tiles" aria-label="Totals">
@@ -502,8 +524,8 @@ const TIERS=[
   {name:'Beginner',blurb:'New, or still learning control'},
   {name:'Developing',blurb:'Plays on a team, has the basics'},
   {name:'Advanced',blurb:'Confident, wants a challenge'}];
-const TRAINING_SKILLS=['passing','shooting','dribbling'];
-const SKILLS={gamesense:'Game Sense',scanning:'Scanning',touch:'First Touch',passing:'Passing',shooting:'Shooting',dribbling:'Dribbling',mastery:'Ball Mastery',weakfoot:'Weak Foot',fitness:'Fitness'};
+const TRAINING_SKILLS=['passing','shooting','dribbling','endurance'];   // shown on their own pages, not on Home
+const SKILLS={gamesense:'Game Sense',scanning:'Scanning',touch:'First Touch',passing:'Passing',shooting:'Shooting',dribbling:'Dribbling',mastery:'Ball Mastery',weakfoot:'Weak Foot',fitness:'Fitness',endurance:'Endurance'};
 const T=(tbl,a,t)=>tbl[a][t];
 const by=(arr,a)=>arr[a];
 
@@ -690,7 +712,51 @@ const DRILLS=[
  tips:['Approach at a slight angle, not straight on.','For a driven pass, strike the middle with your laces and lean over it.','For a lofted pass, lean back a little and hit the bottom half of the ball.'],
  diagram:{box:[76,8,48,26],player:[100,90],path:'M100,88 L100,20',dur:1.6},
  plan(a,t){const d=T([null,[10,12,15],[15,18,22],[20,25,30]],a,t),n=T([null,[3,5,6],[4,6,8],[5,7,10]],a,t);
-  return {seconds:120,target:n,unit:'long passes',summary:`${n} long passes in 2 min`,detail:[`Aim for a zone ${d} big steps away`,['Any long pass','Driven passes, low the whole way','Alternate driven and lofted, both feet'][t]]};}}
+  return {seconds:120,target:n,unit:'long passes',summary:`${n} long passes in 2 min`,detail:[`Aim for a zone ${d} big steps away`,['Any long pass','Driven passes, low the whole way','Alternate driven and lofted, both feet'][t]]};}},
+{id:'sprint-jog-laps',name:'Sprint–Jog Laps',skill:'endurance',mode:'workout',ages:[0,1,2,3],minutes:12,
+ setup:['Find a track, the edge of a field, or a loop around 4 cones.','Sprint one lap, then jog one lap to get your breath back.','Tap Lap done after each lap. Keep going until the time runs out.'],
+ tips:['Sprint means fast, not all-out: you have to repeat it.','Jog slowly enough to recover before the next fast lap.','Run tall: head up, arms pumping front to back, not across your body.'],
+ kid:{name:'Run & Walk Laps',steps:['Make a small loop with 4 cones (or shoes).','Run one lap, walk one lap. Tap Lap done each time!'],tip:'Run fast on the run laps, then walk and breathe.'},
+ diagram:{track:true,path:'M70,14 H130 A41,41 0 0 1 130,96 H70 A41,41 0 0 1 70,14 Z',dur:3},
+ plan(a,t){const min=T([[4,5,6],[8,10,12],[10,12,15],[12,15,20]],a,t),laps=T([[3,4,5],[4,5,6],[5,6,8],[6,8,10]],a,t),kid=a===0;
+  return {kind:'laps',totalSec:min*60,targetLaps:laps,pattern:kid?[{label:'RUN',hard:true,say:'Run!'},{label:'WALK',hard:false,say:'Walk'}]:[{label:'SPRINT',hard:true,say:'Sprint!'},{label:'JOG',hard:false,say:'Jog'}],
+    summary:`${min} min · aim for ${laps} laps`,detail:[kid?'Run a lap, walk a lap. Use a small loop.':'Sprint a lap, jog a lap. Tap Lap done after each one.',kid?'Tap Lap done after every lap':['Fast laps at a strong run','Fast laps at about 80%','Fast laps at about 90%'][t]]};}},
+{id:'interval-runs',name:'30-30 Runs',skill:'endurance',mode:'workout',ages:[0,1,2,3],minutes:10,
+ setup:['Find some open space: a field, a park, or a long driveway.','Run hard when the phone says RUN HARD, jog easy when it says JOG.','The phone calls out every change, so you don\'t have to watch it.'],
+ tips:['Hard means you could keep it up for the whole interval, but only just.','Never stop completely on the easy parts. Keep jogging.','Breathe out hard; the breath in takes care of itself.'],
+ kid:{name:'Fast & Slow',steps:['Find some open space.','When the phone says FAST, run fast. When it says SLOW, jog slowly.'],tip:'Listen for the phone, it tells you when to change.'},
+ diagram:{track:true,path:'M70,14 H130 A41,41 0 0 1 130,96 H70 A41,41 0 0 1 70,14 Z',dur:2},
+ plan(a,t){const r=T([[4,5,6],[6,8,10],[8,10,12],[10,12,15]],a,t),w=T([[15,15,20],[20,25,30],[30,30,30],[30,30,40]],a,t),e=a===0?30:[40,30,30][t],kid=a===0,ph=[];
+  for(let i=0;i<r;i++){ph.push({label:kid?'FAST':'RUN HARD',hard:true,sec:w,say:kid?'Fast!':'Run hard!'});ph.push({label:kid?'SLOW':'JOG',hard:false,sec:e,say:kid?'Slow':'Jog'});}
+  return {kind:'timed',phases:ph,summary:`${r} rounds · ${w}s ${kid?'fast':'hard'}, ${e}s ${kid?'slow':'easy'}`,detail:[`About ${Math.round(r*(w+e)/60)} minutes`]};}},
+{id:'steady-jog',name:'Steady Jog',skill:'endurance',mode:'workout',ages:[0,1,2,3],minutes:12,
+ setup:['Jog at a pace you could keep up while talking.','Don\'t stop or walk until the time is up.','The phone tells you when you\'re halfway.'],
+ tips:['If you can\'t talk, slow down.','Short, quick steps use less energy than long strides.','Steady jogging builds the engine that lets you run all game.'],
+ kid:{name:'Keep Going',steps:['Jog slowly around the yard or field.','Don\'t stop until the phone says you\'re done!'],tip:'Slow is fine. Just keep going!'},
+ diagram:{track:true,path:'M70,14 H130 A41,41 0 0 1 130,96 H70 A41,41 0 0 1 70,14 Z',dur:5},
+ plan(a,t){const min=T([[2,3,4],[5,8,10],[10,12,15],[12,15,20]],a,t),half=min*30;
+  return {kind:'timed',phases:[{label:'JOG',hard:false,sec:half,say:'Jog. Nice and steady.'},{label:'JOG',hard:false,sec:min*60-half,say:'Halfway! Keep going.'}],summary:`${min} minutes without stopping`,detail:['A pace you could talk at']};}},
+{id:'pyramid',name:'Sprint Pyramid',skill:'endurance',mode:'workout',ages:[1,2,3],minutes:8,
+ setup:['Find a long straight: a field, a track, or a quiet street.','Sprint for the time on the screen, then walk or jog back while you rest.','The sprints get longer, then shorter again.'],
+ tips:['Start each sprint fast; don\'t save energy for later.','Use the rest to walk back to your start line.','Drive your knees up and pump your arms.'],
+ diagram:{track:true,path:'M70,14 H130 A41,41 0 0 1 130,96 H70 A41,41 0 0 1 70,14 Z',dur:1.6},
+ plan(a,t){const steps=t===2&&a>=2?[10,20,30,40,30,20,10]:[10,20,30,20,10],k=[2,1.5,1.2][t],ph=[];
+  steps.forEach(x=>{ph.push({label:'SPRINT',hard:true,sec:x,say:`Sprint, ${x} seconds!`});ph.push({label:'REST',hard:false,sec:Math.round(x*k),say:'Rest'});});
+  return {kind:'timed',phases:ph,summary:`Sprints of ${steps.join(', ')} seconds`,detail:[`Rest ${k}× as long as each sprint`]};}},
+{id:'ball-endurance',name:'Dribble Endurance',skill:'endurance',mode:'workout',ages:[1,2,3],minutes:8,
+ setup:['Take a ball to an open space.','Jog with the ball, keeping it close, the whole time.','When the phone says SPRINT, dribble as fast as you can until it says JOG.'],
+ tips:['Lots of small touches when you jog; bigger pushes when you sprint.','Look up as you go, like you\'re finding a pass.','Use both feet.'],
+ diagram:{track:true,path:'M70,14 H130 A41,41 0 0 1 130,96 H70 A41,41 0 0 1 70,14 Z',dur:2.6},
+ plan(a,t){const min=T([null,[4,5,6],[5,6,8],[6,8,10]],a,t),sp=[10,10,15][t],ph=[];
+  for(let i=0;i<min;i++){ph.push({label:'JOG + BALL',hard:false,sec:60-sp,say:i?'Jog with the ball':'Jog with the ball. Keep it close.'});ph.push({label:'SPRINT + BALL',hard:true,sec:sp,say:'Sprint with the ball!'});}
+  return {kind:'timed',phases:ph,summary:`${min} min · ${sp}s sprint-dribble every minute`,detail:['Keep the ball close the whole time']};}},
+{id:'fartlek',name:'Speed Play',skill:'endurance',mode:'workout',ages:[1,2,3],minutes:10,
+ setup:['Find some open space, or run a loop.','Listen to the phone: it calls out JOG, STRIDE, SPRINT or WALK at random.','Change speed the moment you hear it, like in a real game.'],
+ tips:['Stride means fast and relaxed, about 3/4 speed.','React fast to each call: that\'s the game-like part.','Games are lots of changes of speed. This trains exactly that.'],
+ diagram:{track:true,path:'M70,14 H130 A41,41 0 0 1 130,96 H70 A41,41 0 0 1 70,14 Z',dur:2.2},
+ plan(a,t){const min=T([null,[6,8,10],[8,10,12],[10,12,15]],a,t);
+  return {kind:'timed',random:true,totalSec:min*60,summary:`${min} minutes of random speed changes`,detail:['Jog, stride, sprint and walk, called out at random']};}}
+
 ];
 
 /* ---------- Skill moves ladder ----------
@@ -772,8 +838,9 @@ function diagram(s){
   if(s.carrier)g+=`<circle cx="${s.carrier[0]}" cy="${s.carrier[1]}" r="7" fill="#FF8533" stroke="#fff" stroke-width="1.2"/>`;
   if(s.player)g+=`<circle cx="${s.player[0]}" cy="${s.player[1]+10}" r="7" fill="#FF8533" stroke="#fff" stroke-width="1.2"/><text x="${s.player[0]}" y="${s.player[1]+12.6}" font-size="6.5" font-weight="700" text-anchor="middle" fill="#1A0B00" font-family="sans-serif">YOU</text>`;
   if(s.phone)g+=`<rect x="${s.phone[0]}" y="${s.phone[1]}" width="12" height="18" rx="2" fill="#10241A" stroke="#fff"/><rect x="${s.phone[0]+2}" y="${s.phone[1]+3}" width="8" height="11" fill="#FF8533"/>`;
+  if(s.track)g+=`<rect x="28" y="14" width="144" height="82" rx="41" fill="none" stroke="rgba(255,255,255,.75)" stroke-width="3"/><rect x="40" y="26" width="120" height="58" rx="29" fill="none" stroke="rgba(255,255,255,.35)" stroke-width="1.5" stroke-dasharray="4 4"/>`;
   if(s.path){const start=s.path.match(/M([\d.]+),([\d.]+)/);
-    g+=`<circle r="4" cx="0" cy="0" fill="#fff" stroke="#10241A" stroke-width="1"${reduceMotion?` transform="translate(${start[1]},${start[2]})"`:''}>${reduceMotion?'':`<animateMotion dur="${s.dur||2}s" repeatCount="indefinite" path="${s.path}"/>`}</circle>`;}
+    g+=`<circle r="${s.track?6:4}" cx="0" cy="0" fill="${s.track?'#FF8533':'#fff'}" stroke="${s.track?'#fff':'#10241A'}" stroke-width="${s.track?2:1}"${reduceMotion?` transform="translate(${start[1]},${start[2]})"`:''}>${reduceMotion?'':`<animateMotion dur="${s.dur||2}s" repeatCount="indefinite" path="${s.path}"/>`}</circle>`;}
   return `<svg viewBox="0 0 200 110" role="img" aria-label="Drill diagram">${g}</svg>`;
 }
 function cone([x,y]){return `<path d="M${x},${y-4} L${x+3.5},${y+3} L${x-3.5},${y+3} Z" fill="#FF8533"/>`;}
@@ -814,8 +881,9 @@ function renderHome(){
   $('#grid').innerHTML=list.length?list.map(drillCard).join('')
     :`<div class="empty">No drills for this skill at this age yet.</div>`;
 }
+const planMinutes=(d,p)=>p.totalSec?Math.round(p.totalSec/60):p.phases?Math.round(p.phases.reduce((a,x)=>a+x.sec,0)/60):d.minutes;
 function drillCard(d){const p=d.plan(...oldAT()),v=view(d);
-  return `<button class="card" data-id="${d.id}">${diagram(d.diagram)}<div class="card-body"><span class="tag">${SKILLS[v.skill]}${d.interactive?'<span class="badge">On screen</span>':''}${d.auto&&camOK()?'<span class="badge cam-b">Camera counts</span>':''}</span><h3>${v.name}</h3><span class="goal">${p.summary}</span><div class="card-foot"><span>${d.minutes} min</span>${starsHtml(state.stars[k(d)]||0)}</div></div></button>`;}
+  return `<button class="card" data-id="${d.id}">${diagram(d.diagram)}<div class="card-body"><span class="tag">${SKILLS[v.skill]}${d.interactive?'<span class="badge">On screen</span>':''}${d.auto&&camOK()?'<span class="badge cam-b">Camera counts</span>':''}</span><h3>${v.name}</h3><span class="goal">${p.summary}</span><div class="card-foot"><span>${planMinutes(d,p)} min</span>${starsHtml(state.stars[k(d)]||0)}</div></div></button>`;}
 function renderMoves(){
   const i=levelIdx();
   $('#chips').innerHTML='';
@@ -853,7 +921,7 @@ function openSheet(d,move){
     <span class="car-hint" id="carHint">Swipe for video →</span><button class="x" id="sheetX" aria-label="Close">✕</button></div>`;
   $('#sheetInner').innerHTML=`${top}
   <div class="sheet-in">
-    <div><span class="tag">${move?`Skill move · Level ${unlockLevel(move)+1}`:`${SKILLS[view(d).skill]} · ${d.minutes} min${d.interactive?' · on screen':' · on the field'}`}</span><h2 id="sheetTitle">${v.name}</h2></div>
+    <div><span class="tag">${move?`Skill move · Level ${unlockLevel(move)+1}`:`${SKILLS[view(d).skill]} · ${planMinutes(d,p)} min${d.interactive?' · on screen':' · on the field'}`}</span><h2 id="sheetTitle">${v.name}</h2></div>
     <div class="goalbox"><span class="lbl">Your goal · ${AGES[state.age].name}, ${TIERS[state.tier].name}</span><span class="big">${p.summary}</span><ul>${p.detail.map(x=>`<li>${x}</li>`).join('')}</ul><span>Your best: ${starsHtml(state.stars[k(d)]||0)}</span></div>
     <div><h3>${kid?'What to do':'How to do it'}</h3><ol>${v.setup.map(x=>`<li>${x}</li>`).join('')}</ol></div>
     <div><h3>${kid?'Tip':'Coaching points'}</h3><ul>${v.tips.map(x=>`<li>${x}</li>`).join('')}</ul></div>
@@ -903,9 +971,9 @@ function startRun(d){
   try{navigator.wakeLock&&navigator.wakeLock.request('screen').then(l=>S.lock=l).catch(()=>{});}catch(e){}
   const p=d.plan(...oldAT());
   setSound(d.mode!=='scan'||state.age===0);
-  ({gap:runGap,scan:runScan,count:runCount,intervals:runIntervals})[d.mode](d,p);
+  ({gap:runGap,scan:runScan,count:runCount,intervals:runIntervals,workout:runWorkout})[d.mode](d,p);
 }
-function closeRunner(){endSession();$('#runner').hidden=true;body.innerHTML='';renderHome();if(!$('#trainingView').hidden)renderTraining();if(!$('#progressView').hidden)renderProgress();}
+function closeRunner(){endSession();$('#runner').hidden=true;body.innerHTML='';renderHome();if(!$('#trainingView').hidden)renderTraining();if(!$('#enduranceView').hidden)renderEndurance();if(!$('#progressView').hidden)renderProgress();}
 function countdown(cb,see){const el=document.createElement('div');el.className=see?'cd see':'cd';body.appendChild(el);let n=3;
   const step=()=>{if(n===0){el.remove();beep(1320,.25);cb();return;}el.textContent=n;beep(660);n--;later(step,800);};step();}
 
@@ -1111,6 +1179,48 @@ function runCount(d,p){
   $('#go').onclick=()=>{if(phase==='ready')begin();else if(phase==='run'||phase==='done')finish();};
 }
 
+
+/* ---------- Workout mode (endurance) ---------- */
+function say(text){if(!sound||!window.speechSynthesis)return;try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(text);u.rate=1.05;speechSynthesis.speak(u);}catch(e){}}
+function speedPlay(total){const ph=[];let tt=0,last='';const opts=[{label:'JOG',hard:false,say:'Jog',min:30,max:60},{label:'STRIDE',hard:true,say:'Stride!',min:15,max:20},{label:'SPRINT',hard:true,say:'Sprint!',min:8,max:12},{label:'WALK',hard:false,say:'Walk',min:15,max:25}];
+  ph.push({...opts[0],sec:45,say:'Jog to start.'});tt=45;last='JOG';
+  while(tt<total){let o;do{o=opts[Math.floor(Math.random()*(last==='JOG'?3:1))+(last==='JOG'?1:0)];}while(o.label===last);
+    if(last!=='JOG')o=opts[0];const sec=Math.min(total-tt,Math.round(o.min+Math.random()*(o.max-o.min)));ph.push({...o,sec});tt+=sec;last=o.label;}
+  return ph;}
+function runWorkout(d,p){
+  const laps=p.kind==='laps',phases=laps?null:(p.random?speedPlay(p.totalSec):p.phases),total=laps?p.totalSec:phases.reduce((a,x)=>a+x.sec,0);
+  const plan=laps?`${p.pattern[0].label.toLowerCase()} a lap, ${p.pattern[1].label.toLowerCase()} a lap`:p.summary;
+  body.innerHTML=`<div class="run-center"><div class="run-goal"><b>${fmt(total)}</b> · ${plan}</div>
+    <ol class="run-steps">${view(d).setup.map(x=>`<li>${x}</li>`).join('')}</ol>
+    <p class="run-goal">The phone calls out every change${laps?'. Tap Lap done each time you finish a lap.':', so you can keep it in your pocket.'} Turn your volume up.</p>
+    <button class="btn-primary big" id="go">Start</button></div>`;
+  $('#go').onclick=()=>countdown(()=>{
+    const t0=performance.now();let i=0,lapCount=0,phaseEnd=0,done=false;
+    const cur=()=>laps?p.pattern[lapCount%2]:phases[i];
+    const view_=()=>{const c=cur(),next=laps?p.pattern[(lapCount+1)%2]:phases[i+1];
+      body.innerHTML=`<div class="run-center">
+        <div class="run-goal">${laps?`Lap <b>${lapCount+1}</b> · aim for ${p.targetLaps}`:`Part <b>${i+1}</b> of ${phases.length}`} · <b id="wTotal">${fmt(total-(performance.now()-t0)/1000)}</b> left</div>
+        <div class="phase ${c.hard?'go':'rest'}"><span class="p">${c.label}</span>${laps?'<span class="run-goal" style="color:inherit">one lap</span>':`<span class="clock" id="wClock">${fmt(c.sec)}</span>`}</div>
+        <div class="wbar"><i id="wBar" style="width:${Math.min(100,100*(performance.now()-t0)/1000/total)}%"></i></div>
+        ${laps?'<button class="tap lap-btn" id="lapBtn">Lap done</button>':`<p class="run-goal" id="wNext">${next?`Next: ${next.label} ${fmt(next.sec)}`:'Last one!'}</p>`}
+        <button class="btn-ghost" id="wEnd">Finish early</button></div>`;
+      if(laps)$('#lapBtn').onclick=()=>{lapCount++;beep(1100,.12);say(cur().say);view_();};
+      $('#wEnd').onclick=()=>end(true);};
+    const start=k=>{i=k;phaseEnd=performance.now()+phases[i].sec*1000;S.lastTick=null;beep(phases[i].hard?1320:600,.25);say(phases[i].say);view_();};
+    const end=(early)=>{if(done)return;done=true;endSession();beep(1320,.5);
+      const elapsed=Math.min(total,(performance.now()-t0)/1000),f=elapsed/total;
+      if(laps){const st=lapCount>=p.targetLaps?3:lapCount>=p.targetLaps*.7?2:1;say(`Done! ${lapCount} laps.`);
+        showResult(d,st,headline(st),[`${lapCount} laps in ${fmt(elapsed)}. Goal was ${p.targetLaps}.`]);}
+      else{const st=f>=.99?3:f>=.7?2:1;say('Done! Great work.');showResult(d,st,st===3?'Workout done!':headline(st),[`${fmt(elapsed)} of ${fmt(total)} done.`]);}};
+    if(laps){say(p.pattern[0].say);beep(1320,.25);view_();}else start(0);
+    every(()=>{const now=performance.now(),left=total-(now-t0)/1000;const tEl=$('#wTotal');if(tEl)tEl.textContent=fmt(left);
+      const bar=$('#wBar');if(bar)bar.style.width=Math.min(100,100*(1-left/total))+'%';
+      if(left<=0){end(false);return;}
+      if(!laps){const pl=(phaseEnd-now)/1000;const c=$('#wClock');if(c)c.textContent=fmt(pl);
+        if(pl<=3.05&&pl>0&&Math.ceil(pl)!==S.lastTick){S.lastTick=Math.ceil(pl);beep(700,.08);}
+        if(pl<=0&&i<phases.length-1)start(i+1);}},200);
+  });
+}
 /* ---------- Intervals mode ---------- */
 function runIntervals(d,p){
   body.innerHTML=`<div class="run-center"><div class="run-goal"><b>${p.rounds} sprints</b> · ${p.work}s on, ${p.rest}s rest</div>
@@ -1339,10 +1449,10 @@ $('#menuBtn').onclick=openMenu;$('#drawerX').onclick=closeMenu;
 $('#drawer').addEventListener('click',e=>{if(e.target.id==='drawer'||e.target.closest('a'))closeMenu();});
 $('#menuGuide').onclick=()=>{closeMenu();openOnb();};
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('#drawer').hidden)closeMenu();});
-function route(){const pg=location.hash==='#progress'?'progress':location.hash==='#training'?'training':'train';
-  $('#homeView').hidden=pg!=='train';$('#progressView').hidden=pg!=='progress';$('#trainingView').hidden=pg!=='training';
+function route(){const pg={'#progress':'progress','#training':'training','#endurance':'endurance'}[location.hash]||'train';
+  $('#homeView').hidden=pg!=='train';$('#progressView').hidden=pg!=='progress';$('#trainingView').hidden=pg!=='training';$('#enduranceView').hidden=pg!=='endurance';
   document.querySelectorAll('.drawer [data-nav]').forEach(a=>a.toggleAttribute('aria-current',a.dataset.nav===pg)&&a.setAttribute('aria-current','page'));
-  if(pg==='progress')renderProgress();if(pg==='training')renderTraining();if(pg==='train')renderHome();window.scrollTo(0,0);}
+  if(pg==='progress')renderProgress();if(pg==='training')renderTraining();if(pg==='endurance')renderEndurance();if(pg==='train')renderHome();window.scrollTo(0,0);}
 window.addEventListener('hashchange',route);
 
 /* ---------- Training page: passing, shooting, dribbling ---------- */
@@ -1384,6 +1494,18 @@ document.addEventListener('click',e=>{
   const o=e.target.closest('[data-open]');if(o){openSheet(DRILLS.find(d=>d.id===o.dataset.open));return;}
   if(e.target.closest('[data-moves]')){state.tab='moves';save();}
 });
+
+/* ---------- Endurance page ---------- */
+function renderEndurance(){
+  const kid=state.age===0,old=oldAT()[0],list=DRILLS.filter(d=>d.skill==='endurance'&&d.ages.includes(old));
+  $('#enSub').textContent=state.name?`Build the engine to run all game, ${state.name}.`:'Build the engine to run all game.';
+  $('#enText').textContent=kid?'Running makes you stronger and faster, and it\'s fun! Do these with a grown-up.':'Players who can still sprint in the last ten minutes win games. These workouts build that engine, with and without the ball.';
+  $('#enKeys').innerHTML=(kid?['Have a drink of water first','Run fast, then rest','Have fun and keep moving']:['Warm up with 3 minutes of easy jogging first','Drink water before and after','Hard parts hard, easy parts really easy','Two or three workouts a week is plenty']).map(x=>`<li>${x}</li>`).join('');
+  const week=(state.history||[]).filter(h=>h.skill==='endurance'&&Date.now()-h.t<7*864e5).length;
+  $('#enWeek').textContent=week?`${week} workout${week>1?'s':''} this week`:'';
+  $('#enLevel').textContent=`${AGES[state.age].name} · ${TIERS[state.tier].name}`;
+  $('#enGrid').innerHTML=list.map(drillCard).join('');
+}
 
 /* ---------- Progress page ---------- */
 const DOW=['M','T','W','T','F','S','S'];

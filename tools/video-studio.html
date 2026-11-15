@@ -721,6 +721,35 @@ SCENES['long-pass'] = { name: 'Long Pass', dur: 8, draw(t) {
   title('Long Pass'); counter('in the zone', n + (u > .7 ? 1 : 0)); caption(cap);
 } };
 
+
+/* ---------- Endurance workouts: a runner around a track ---------- */
+function trackScene(id, name, phases, opt = {}) {
+  const ox = 480, oy = 270, rx = 300, ry = 150, straight = 230;           // a running track: two straights joined by bends
+  const P = path((() => { const pts = []; for (let i = 0; i <= 48; i++) { const a = -Math.PI / 2 + i / 48 * Math.PI * 2, c = Math.cos(a), sgn = c >= 0 ? 1 : -1;
+    pts.push([ox + sgn * straight / 2 + c * (rx - straight / 2), oy + Math.sin(a) * ry]); } return pts; })());
+  const dur = phases.reduce((a, x) => a + x.sec, 0);
+  SCENES[id] = { name, dur, draw(t) {
+    pitch();
+    ctx.strokeStyle = 'rgba(255,255,255,.75)'; ctx.lineWidth = 34; ctx.lineJoin = 'round'; ctx.beginPath(); P.pts.forEach(([x, y], i) => i ? ctx.lineTo(x, y) : ctx.moveTo(x, y)); ctx.closePath(); ctx.stroke();
+    ctx.strokeStyle = '#B5473A'; ctx.lineWidth = 28; ctx.stroke();
+    ctx.strokeStyle = 'rgba(255,255,255,.55)'; ctx.lineWidth = 1.5; ctx.setLineDash([10, 10]); ctx.stroke(); ctx.setLineDash([]);
+    // distance covered: hard phases fast, easy phases slow
+    let dist = 0, el = 0, cur = phases[0];
+    for (const ph of phases) { const d = Math.min(ph.sec, Math.max(0, t - el)); dist += d * (ph.hard ? 1 : .45); if (t >= el && t < el + ph.sec) cur = ph; el += ph.sec; }
+    const lapLen = opt.lapSec || 2.2, s = (dist / lapLen) * P.len, p = P.at(s % P.len);
+    if (opt.ball) ball(p.x + Math.cos(p.dir) * 34, p.y + Math.sin(p.dir) * 34, 13, t * 8);
+    playerTop(p.x, p.y, p.dir, t * (cur.hard ? 22 : 12), { stride: cur.hard ? 1.6 : .9 });
+    ctx.font = `800 64px ${FONT}`; ctx.textAlign = 'center'; ctx.fillStyle = cur.hard ? C.bib : '#fff'; ctx.fillText(cur.label, ox, oy + 22);
+    title(name); if (opt.laps) counter('laps', Math.floor(s / P.len)); caption(cur.cap);
+  } };
+}
+trackScene('sprint-jog-laps', 'Sprint–Jog Laps', [{ label: 'SPRINT', hard: true, sec: 2.2, cap: 'Sprint one lap' }, { label: 'JOG', hard: false, sec: 4.9, cap: 'Jog one lap to recover. Tap Lap done each lap.' }, { label: 'SPRINT', hard: true, sec: 2.2, cap: 'Sprint the next lap' }], { laps: true });
+trackScene('interval-runs', '30-30 Runs', [{ label: 'RUN HARD', hard: true, sec: 2.5, cap: 'Run hard when the phone says so' }, { label: 'JOG', hard: false, sec: 2.5, cap: 'Jog easy, never stop' }, { label: 'RUN HARD', hard: true, sec: 2.5, cap: 'The phone calls every change' }, { label: 'JOG', hard: false, sec: 1.5, cap: 'Jog easy, never stop' }]);
+trackScene('steady-jog', 'Steady Jog', [{ label: 'JOG', hard: false, sec: 4.5, cap: 'A pace you could talk at' }, { label: 'JOG', hard: false, sec: 4.5, cap: 'Don\'t stop until the time is up' }], { lapSec: 1.6 });
+trackScene('pyramid', 'Sprint Pyramid', [{ label: 'SPRINT 10', hard: true, sec: 1, cap: 'Short sprint' }, { label: 'REST', hard: false, sec: 1.2, cap: 'Walk back and rest' }, { label: 'SPRINT 20', hard: true, sec: 2, cap: 'Longer sprint' }, { label: 'REST', hard: false, sec: 1.6, cap: 'Rest' }, { label: 'SPRINT 30', hard: true, sec: 3, cap: 'Longest sprint, then back down' }]);
+trackScene('ball-endurance', 'Dribble Endurance', [{ label: 'JOG + BALL', hard: false, sec: 4, cap: 'Jog with the ball, small touches' }, { label: 'SPRINT + BALL', hard: true, sec: 2, cap: 'Sprint-dribble when the phone says' }, { label: 'JOG + BALL', hard: false, sec: 3, cap: 'Back to jogging, keep it close' }], { ball: true, lapSec: 3 });
+trackScene('fartlek', 'Speed Play', [{ label: 'JOG', hard: false, sec: 2, cap: 'Listen for the next call' }, { label: 'SPRINT', hard: true, sec: 1.2, cap: 'Sprint!' }, { label: 'JOG', hard: false, sec: 1.6, cap: 'Jog' }, { label: 'STRIDE', hard: true, sec: 1.8, cap: 'Stride: fast and relaxed' }, { label: 'WALK', hard: false, sec: 1.6, cap: 'Walk' }]);
+
 /* ---------- Render API ---------- */
 window.SCENE_LIST = Object.entries(SCENES).map(([id, s]) => ({ id, name: s.name, dur: Math.round(s.dur * 100) / 100 }));
 window.renderFrame = (id, t) => { ctx.save(); ctx.clearRect(0, 0, W, H); SCENES[id].draw(t); ctx.restore(); return cv.toDataURL('image/jpeg', .9); };
