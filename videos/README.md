@@ -63,6 +63,17 @@ The file name must match exactly (lowercase, with the dashes).
 | Dribble Endurance | `ball-endurance.mp4` |
 | Speed Play | `fartlek.mp4` |
 
+## Goalkeeper
+| Drill | File name |
+|---|---|
+| Wall Catches (Little Kickers: Catch the Bounce) | `wall-catch.mp4` |
+| High Ball Catch (Little Kickers: Toss & Catch) | `high-ball.mp4` |
+| Ready & Shuffle (Little Kickers: Side Steps) | `gk-shuffle.mp4` |
+| Reaction Saves (Little Kickers: Left or Right) | `reaction-saves.mp4` |
+| Collapse Dive (Little Kickers: Fall & Catch) | `collapse-dive.mp4` |
+| Ball Handling (Little Kickers: Ball Around Your Waist) | `ball-handling.mp4` |
+| Distribution | `distribution.mp4` |
+
 ## Skill moves
 | Move | File name |
 |---|---|

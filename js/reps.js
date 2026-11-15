@@ -267,19 +267,29 @@ export class MoveCounter extends Base {
 
 // SOLE STOP: the ball is rolling, then stops dead next to a foot.
 export class StopCounter extends Base {
-  constructor() { super(); this.hist = []; this.moving = false; this.stopSince = null; }
+  constructor() { super(); this.hist = []; this.moving = false; this.stopSince = null; this.stillBelow = 0.08; }
+  // A stop counts next to a foot (sole stop / cushion); CatchCounter changes this to "held above the knees".
+  stopOk(o, b, S) { return !o.pose || Math.min(dist(o.pose.lf, b), dist(o.pose.rf, b)) < b.r + 0.12 * S; }
   update(o) {
     const S = this.scale(o), b = o.ball; if (!b) return { count: this.count };
     this.hist.push({ t: o.t, x: b.x, y: b.y }); while (this.hist.length > 2 && o.t - this.hist[0].t > 300) this.hist.shift();
-    const a = this.hist[0], dt = (o.t - a.t) / 1000, speed = dt > 0 ? Math.hypot(b.x - a.x, b.y - a.y) / dt : 0;
-    if (speed > 0.5 * S) { this.moving = true; this.stopSince = null; }
-    else if (this.moving && speed < 0.08 * S) {
+    // speed from the distance actually travelled, so a bounce off a wall (out and back) never looks "stopped"
+    let path = 0; for (let i = 1; i < this.hist.length; i++) path += Math.hypot(this.hist[i].x - this.hist[i - 1].x, this.hist[i].y - this.hist[i - 1].y);
+    const dt = (o.t - this.hist[0].t) / 1000, net = dt > 0 ? Math.hypot(b.x - this.hist[0].x, b.y - this.hist[0].y) / dt : 0, speed = dt > 0 ? Math.max(net, path / dt * 0.5) : 0;
+    if (net > 0.5 * S) { this.moving = true; this.stopSince = null; }
+    else if (this.moving && speed < this.stillBelow * S) {
       this.stopSince ??= o.t;
-      const nearFoot = !o.pose || Math.min(dist(o.pose.lf, b), dist(o.pose.rf, b)) < b.r + 0.12 * S;
-      if (o.t - this.stopSince > 250 && nearFoot) { this.count++; this.moving = false; this.events.push({ t: o.t, type: 'rep' }); }
+      if (o.t - this.stopSince > 250 && this.stopOk(o, b, S)) { this.count++; this.moving = false; this.events.push({ t: o.t, type: 'rep' }); }
     }
     return { count: this.count };
   }
+}
+
+// GOALKEEPER CATCHES: a moving ball stops dead and stays up in the hands (above the knees).
+// Hands are never perfectly still, so "stopped" is looser than for a sole stop.
+export class CatchCounter extends StopCounter {
+  constructor() { super(); this.stillBelow = 0.2; }
+  stopOk(o, b) { return !o.pose || !o.pose.lk || b.y < mid(o.pose.lk, o.pose.rk).y; }
 }
 
 // RAINBOW FLICK: the ball goes up over the player's head.
@@ -341,5 +351,5 @@ export class FrameStats {
 }
 
 export const COUNTERS = { juggle: JuggleCounter, taps: TapCounter, touches: TouchCounter, kicks: KickCounter, trips: TripCounter, checks: CheckCounter,
-  cut: MoveCounter, stop: StopCounter, flick: FlickCounter, eights: EightCounter };
-export const NEEDS_BALL = { juggle: true, taps: true, touches: true, kicks: true, trips: true, checks: false, cut: true, stop: true, flick: true, eights: true };
+  cut: MoveCounter, stop: StopCounter, flick: FlickCounter, eights: EightCounter, catch: CatchCounter };
+export const NEEDS_BALL = { juggle: true, taps: true, touches: true, kicks: true, trips: true, checks: false, cut: true, stop: true, flick: true, eights: true, catch: true };

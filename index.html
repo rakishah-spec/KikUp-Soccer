@@ -355,6 +355,12 @@ main .wrap{padding-block:24px 56px;display:grid;gap:28px}
 .end-hero .keys li{background:rgba(255,255,255,.35)}
 .end-hero .keys li::before{background:#1A0B00}
 
+.gk-hero{background:linear-gradient(135deg,#2F6FE0,#1C4FB0);color:#fff;border:0}
+.gk-hero h3{font-size:28px}
+.gk-hero p{color:#e6eeff}
+.gk-hero .keys li{background:rgba(255,255,255,.16);color:#fff}
+.gk-hero .keys li::before{background:#FFC633}
+
 /* Live camera counter */
 .cam-tip{position:absolute;left:8px;right:8px;bottom:8px;display:flex;gap:10px;align-items:center;background:rgba(14,38,24,.88);border:2px solid var(--bib);border-radius:12px;padding:10px 12px;color:#fff;text-align:left}
 .cam-tip svg{width:44px;height:44px;flex:none;color:var(--bib)}
@@ -402,6 +408,7 @@ main .wrap{padding-block:24px 56px;display:grid;gap:28px}
     <a href="#train" data-nav="train"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11 12 4l9 7v9h-6v-6H9v6H3Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>Home</a>
     <a href="#training" data-nav="training"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path d="m12 7 4 3-1.5 4.5h-5L8 10Z" fill="currentColor"/></svg>General Training</a>
     <a href="#endurance" data-nav="endurance"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M5 12h4l1.5-3 3 6 1.5-3h4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>Endurance</a>
+    <a href="#goalkeeper" data-nav="goalkeeper"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 21v-6l-2.5-3.5a1.6 1.6 0 0 1 2.6-1.8L8 11V5a1.5 1.5 0 0 1 3 0v4-6a1.5 1.5 0 0 1 3 0v6-4a1.5 1.5 0 0 1 3 0v4.5-2a1.5 1.5 0 0 1 3 0V15c0 3-2 6-5 6Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>Goalkeeper</a>
     <a href="#progress" data-nav="progress"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>My progress</a>
     <button id="menuGuide"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 11v6M12 7.5v.5" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>Getting started guide</button>
   </nav>
@@ -478,6 +485,23 @@ main .wrap{padding-block:24px 56px;display:grid;gap:28px}
       <div class="grid" id="enGrid"></div>
     </section>
   </div>
+  <div class="wrap" id="goalkeeperView" hidden>
+    <div class="pg-head"><div><h2>Goalkeeper</h2><p class="muted" id="gkSub">Train like a keeper.</p></div><a class="btn-ghost pg-back" href="#train">Back to home</a></div>
+    <section class="panel gk-hero" aria-labelledby="gkB">
+      <div class="panel-head"><h3 id="gkB">Keeper basics</h3></div>
+      <p id="gkText"></p>
+      <ul class="keys" id="gkKeys"></ul>
+      <p class="small" id="gkSafe"></p>
+    </section>
+    <section class="panel" aria-labelledby="gkSessH">
+      <div class="panel-head"><h3 id="gkSessH">Today's session</h3><span class="muted small" id="gkSessMeta"></span></div>
+      <ol class="sess" id="gkSess"></ol>
+    </section>
+    <section style="display:grid;gap:14px" aria-labelledby="gkAll">
+      <div class="panel-head"><h3 id="gkAll" class="sec-h">All goalkeeper drills</h3><span class="muted small" id="gkLevel"></span></div>
+      <div class="grid" id="gkGrid"></div>
+    </section>
+  </div>
   <div class="wrap" id="progressView" hidden>
     <div class="pg-head"><div><h2 id="pgTitle">My progress</h2><p class="muted" id="pgSub"></p></div><a class="btn-ghost pg-back" href="#train">Back to training</a></div>
     <section class="tiles" aria-label="Totals">
@@ -524,8 +548,8 @@ const TIERS=[
   {name:'Beginner',blurb:'New, or still learning control'},
   {name:'Developing',blurb:'Plays on a team, has the basics'},
   {name:'Advanced',blurb:'Confident, wants a challenge'}];
-const TRAINING_SKILLS=['passing','shooting','dribbling','endurance'];   // shown on their own pages, not on Home
-const SKILLS={gamesense:'Game Sense',scanning:'Scanning',touch:'First Touch',passing:'Passing',shooting:'Shooting',dribbling:'Dribbling',mastery:'Ball Mastery',weakfoot:'Weak Foot',fitness:'Fitness',endurance:'Endurance'};
+const TRAINING_SKILLS=['passing','shooting','dribbling','endurance','goalkeeping'];   // shown on their own pages, not on Home
+const SKILLS={gamesense:'Game Sense',scanning:'Scanning',touch:'First Touch',passing:'Passing',shooting:'Shooting',dribbling:'Dribbling',mastery:'Ball Mastery',weakfoot:'Weak Foot',fitness:'Fitness',endurance:'Endurance',goalkeeping:'Goalkeeping'};
 const T=(tbl,a,t)=>tbl[a][t];
 const by=(arr,a)=>arr[a];
 
@@ -756,6 +780,55 @@ const DRILLS=[
  diagram:{track:true,path:'M70,14 H130 A41,41 0 0 1 130,96 H70 A41,41 0 0 1 70,14 Z',dur:2.2},
  plan(a,t){const min=T([null,[6,8,10],[8,10,12],[10,12,15]],a,t);
   return {kind:'timed',random:true,totalSec:min*60,summary:`${min} minutes of random speed changes`,detail:['Jog, stride, sprint and walk, called out at random']};}}
+,
+{id:'wall-catch',name:'Wall Catches',skill:'goalkeeping',mode:'count',auto:'catch',camHow:'Put the phone off to the side, 3–4 big steps away, so you and the ball are in the picture.',ages:[0,1,2,3],minutes:2,
+ setup:['Stand a few big steps from a wall in your ready position.','Throw the ball against the wall and catch the rebound.','Hold it for a second (that\'s a clean catch), then go again.'],
+ tips:['High balls: make a W with your thumbs and fingers behind the ball.','Watch the ball all the way into your hands.','Bring the ball into your chest once you have it.'],
+ kid:{name:'Catch the Bounce',steps:['Bounce the ball on the ground.','Catch it with both hands!'],tip:'Watch the ball into your hands.'},
+ diagram:{wall:true,player:[100,92],path:'M100,90 L100,12 L100,90',dur:1.6},
+ plan(a,t){const d=T([[1,2,3],[3,4,5],[4,5,6],[5,6,8]],a,t),n=T([[5,8,10],[10,15,20],[15,20,25],[20,25,30]],a,t);
+  return {seconds:60,target:n,unit:'catches',summary:`${n} clean catches in 60s`,detail:[a===0?'Bounce it gently, catch with two hands':`Stand ${d} big steps from the wall`,a===0?'Big hands!':['Throw it at chest height','Mix high and low throws','Throw it hard, catch with a W every time'][t]]};}},
+{id:'high-ball',name:'High Ball Catch',skill:'goalkeeping',mode:'count',auto:'catch',camHow:'Put the phone 4–5 big steps away so the picture shows from your feet to well above your head.',ages:[0,1,2,3],minutes:2,
+ setup:['Toss the ball high in the air above you.','Jump off one leg and catch it at the highest point you can reach.','Land, bring it into your chest, and go again.'],
+ tips:['Catch it in front of your head, never behind it.','Drive your knee up when you jump: it protects you in a crowd.','Shout "KEEPER!" so everyone knows it\'s yours.'],
+ kid:{name:'Toss & Catch',steps:['Toss the ball up, not too high.','Catch it with both hands!'],tip:'Hands up high to catch.'},
+ diagram:{player:[100,92],path:'M100,80 L100,22 L100,80',dur:1.8},
+ plan(a,t){const n=T([[4,6,8],[6,8,10],[8,10,12],[10,12,15]],a,t);
+  return {seconds:90,target:n,unit:'catches',summary:`${n} high catches in 90s`,detail:[a===0?'A small toss, catch with two hands':['Catch standing','Jump and catch','Jump off one leg, knee up, shout KEEPER!'][t]]};}},
+{id:'gk-shuffle',name:'Ready & Shuffle',skill:'goalkeeping',mode:'count',auto:'trips',camHow:'Put the phone in front of you, 4–5 big steps away, so both cones fit in the picture.',ages:[0,1,2,3],minutes:2,
+ setup:['Put two cones about 5 big steps apart, like two goalposts.','Get in your ready position: feet apart, knees bent, hands out.','Shuffle sideways to one cone, touch it, and shuffle back. There and back is one.'],
+ tips:['Shuffle, don\'t cross your feet.','Stay low the whole time: don\'t bob up and down.','Hands stay out in front, ready to save.'],
+ kid:{name:'Side Steps',steps:['Put two cones (or shoes) apart.','Step sideways to one, then back to the other, like a crab!'],tip:'Don\'t cross your feet.'},
+ diagram:{cones:[[40,60],[160,60]],player:[100,50],path:'M50,64 L150,64 L50,64',dur:2.4},
+ plan(a,t){const n=T([[4,6,8],[6,8,10],[8,10,12],[10,12,15]],a,t);
+  return {seconds:45,target:n,unit:'shuffles',summary:`${n} shuffles in 45s`,detail:[a===0?'Big side steps':['Stay low','Stay low, touch each cone','Stay low, touch each cone, fast'][t]]};}},
+{id:'reaction-saves',name:'Reaction Saves',skill:'goalkeeping',mode:'scan',interactive:true,ages:[0,1,2,3],minutes:2,
+ setup:['Prop the phone up in front of you, where a shooter would be.','Stand in your ready position between two cones (your goal).','When an arrow flashes, move or dive that way. High arrows: hands up. Low arrows: get down.'],
+ tips:['Push off with the foot nearest the ball.','Stay on your toes so you can go either way.','Get back up and into your ready position fast.'],
+ kid:{name:'Left or Right',steps:['Stand between two cones, ready.','When an arrow shows, step and reach that way!'],tip:'Big reach with both hands.'},
+ diagram:{goal:true,player:[100,80],phone:[92,30],path:'M100,90 L60,84 L100,90 L140,84',dur:2.4},
+ plan(a,t){const dur=T([[45,60,60],[60,60,90],[60,90,90],[90,90,120]],a,t),show=T([[1500,1200,1000],[1200,1000,800],[1000,800,600],[800,600,500]],a,t),gap=[[4,6],[3,5],[2.5,4]][t],mode=a===0||(a===1&&t===0)?'gk2':'gk4';
+  return {dur,show,gap,mode,summary:`${dur}s · cues flash for ${show/1000}s`,detail:[mode==='gk2'?'Step and reach left or right':'Dive to the corner: high left, high right, low left, low right']};}},
+{id:'collapse-dive',name:'Collapse Dive',skill:'goalkeeping',mode:'count',ages:[0,1,2,3],minutes:3,
+ setup:['Use soft grass. Put a ball on the ground one big step to your side.','From your ready position, collapse sideways onto the ball: hands first, then hip and shoulder.','Hold it, get up fast, and do the other side. Count each save.'],
+ tips:['Land on your side, never on your elbow or stomach.','One hand behind the ball, one on top.','Get up fast: the next shot is coming.'],
+ kid:{name:'Fall & Catch',steps:['Kneel on soft grass with a ball beside you.','Fall sideways and grab the ball!'],tip:'Fall on your side, soft like a pillow.'},
+ diagram:{goal:true,player:[100,72],path:'M100,82 L58,86',dur:1.6},
+ plan(a,t){const n=T([[4,6,8],[6,8,10],[8,10,12],[10,12,15]],a,t),from=T([['knees','knees','knees'],['knees','crouch','crouch'],['crouch','standing','standing'],['standing','standing','standing + a step']],a,t);
+  return {seconds:90,target:n,unit:'saves',summary:`${n} saves in 90s`,detail:[`Start from ${from}`,'Alternate sides every save']};}},
+{id:'ball-handling',name:'Ball Handling',skill:'goalkeeping',mode:'count',ages:[0,1,2,3],minutes:1,
+ setup:['Hold the ball in both hands.','Pass it around your waist, hand to hand, as fast as you can without dropping it.','Then around your knees and your head. Count every full circle.'],
+ tips:['Use your fingertips, not your palms.','Keep your eyes up once you\'ve got the rhythm.','Soft, quick hands make safe catches.'],
+ kid:{name:'Ball Around Your Waist',steps:['Hold the ball in your hands.','Pass it all the way around your tummy!'],tip:'Go slow, don\'t drop it.'},
+ diagram:{player:[100,80],path:'M86,82 A14,6 0 1 0 114,82 A14,6 0 1 0 86,82',dur:1.2},
+ plan(a,t){const n=T([[5,8,10],[10,15,20],[15,20,25],[20,25,30]],a,t);
+  return {seconds:30,target:n,unit:'circles',summary:`${n} circles in 30s`,detail:[a===0?'Around your tummy':['Around your waist','Waist, then knees','Waist, knees, head, and figure 8s through your legs'][t]]};}},
+{id:'distribution',name:'Distribution',skill:'goalkeeping',mode:'count',auto:'kicks',camHow:'Put the phone off to the side near you, so you and the ball are in the picture.',ages:[1,2,3],minutes:3,
+ setup:['Mark a target zone (cones) a good distance away.','Get the ball to the target: roll it, throw it overarm, then kick it from your hands.','Collect the balls and go again. The camera counts every throw and kick.'],
+ tips:['Rolling: step toward the target and bowl it along the ground.','Overarm: straight arm over the top, like a windmill.','Kick from your hands: drop it, don\'t throw it up.'],
+ diagram:{box:[76,8,48,26],player:[100,90],path:'M100,88 L100,20',dur:1.6},
+ plan(a,t){const n=T([null,[6,8,10],[8,10,12],[10,12,15]],a,t),d=T([null,[8,10,12],[12,15,18],[15,20,25]],a,t);
+  return {seconds:120,target:n,unit:'throws & kicks',summary:`${n} throws & kicks in 2 min`,detail:[`Aim for a zone ${d} big steps away`,['Rolls and underarm throws','Rolls, overarm throws','Overarm throws and kicks from your hands'][t]]};}}
 
 ];
 
@@ -973,7 +1046,7 @@ function startRun(d){
   setSound(d.mode!=='scan'||state.age===0);
   ({gap:runGap,scan:runScan,count:runCount,intervals:runIntervals,workout:runWorkout})[d.mode](d,p);
 }
-function closeRunner(){endSession();$('#runner').hidden=true;body.innerHTML='';renderHome();if(!$('#trainingView').hidden)renderTraining();if(!$('#enduranceView').hidden)renderEndurance();if(!$('#progressView').hidden)renderProgress();}
+function closeRunner(){endSession();$('#runner').hidden=true;body.innerHTML='';renderHome();if(!$('#trainingView').hidden)renderTraining();if(!$('#enduranceView').hidden)renderEndurance();if(!$('#goalkeeperView').hidden)renderGoalkeeper();if(!$('#progressView').hidden)renderProgress();}
 function countdown(cb,see){const el=document.createElement('div');el.className=see?'cd see':'cd';body.appendChild(el);let n=3;
   const step=()=>{if(n===0){el.remove();beep(1320,.25);cb();return;}el.textContent=n;beep(660);n--;later(step,800);};step();}
 
@@ -1258,6 +1331,10 @@ function runScan(d,p){
     const arrows=['←','→','↑'];
     const show=()=>{
       if(p.mode==='traffic'){const go=last!=='go';last=go?'go':'stop';stage.className='cue-stage '+last;cue.textContent=go?'GO':'STOP';beep(go?1100:400,.15);}
+      else if(p.mode==='gk2'||p.mode==='gk4'){const opts=p.mode==='gk2'?[['←','LEFT'],['→','RIGHT']]:[['↖','HIGH LEFT'],['↗','HIGH RIGHT'],['↙','LOW LEFT'],['↘','LOW RIGHT']];
+        let c;do{c=opts[Math.floor(Math.random()*opts.length)];}while(c[1]===last&&Math.random()<.7);last=c[1];
+        cue.innerHTML=`${c[0]}<small style="font-size:.28em;display:block;text-align:center">${c[1]}</small>`;cue.style.flexDirection='column';stage.className='cue-stage flash';beep(990,.1);
+        later(()=>{stage.className='cue-stage';cue.innerHTML='';},p.show);}
       else if(p.mode==='colors'||p.mode==='numbers'){const opts=p.mode==='colors'?CORNER_COLORS:['1','2','3','4'];let c;do{c=opts[Math.floor(Math.random()*4)];}while(c===last);last=c;
         if(p.mode==='colors'){stage.className='cue-stage';stage.style.background=c.bg;stage.style.color=c.fg;cue.textContent=c.name;}else{stage.className='cue-stage flash';cue.textContent=c;}
         beep(990,.12);}
@@ -1449,10 +1526,10 @@ $('#menuBtn').onclick=openMenu;$('#drawerX').onclick=closeMenu;
 $('#drawer').addEventListener('click',e=>{if(e.target.id==='drawer'||e.target.closest('a'))closeMenu();});
 $('#menuGuide').onclick=()=>{closeMenu();openOnb();};
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('#drawer').hidden)closeMenu();});
-function route(){const pg={'#progress':'progress','#training':'training','#endurance':'endurance'}[location.hash]||'train';
-  $('#homeView').hidden=pg!=='train';$('#progressView').hidden=pg!=='progress';$('#trainingView').hidden=pg!=='training';$('#enduranceView').hidden=pg!=='endurance';
+function route(){const pg={'#progress':'progress','#training':'training','#endurance':'endurance','#goalkeeper':'goalkeeper'}[location.hash]||'train';
+  $('#homeView').hidden=pg!=='train';$('#progressView').hidden=pg!=='progress';$('#trainingView').hidden=pg!=='training';$('#enduranceView').hidden=pg!=='endurance';$('#goalkeeperView').hidden=pg!=='goalkeeper';
   document.querySelectorAll('.drawer [data-nav]').forEach(a=>a.toggleAttribute('aria-current',a.dataset.nav===pg)&&a.setAttribute('aria-current','page'));
-  if(pg==='progress')renderProgress();if(pg==='training')renderTraining();if(pg==='endurance')renderEndurance();if(pg==='train')renderHome();window.scrollTo(0,0);}
+  if(pg==='progress')renderProgress();if(pg==='training')renderTraining();if(pg==='endurance')renderEndurance();if(pg==='goalkeeper')renderGoalkeeper();if(pg==='train')renderHome();window.scrollTo(0,0);}
 window.addEventListener('hashchange',route);
 
 /* ---------- Training page: passing, shooting, dribbling ---------- */
@@ -1505,6 +1582,21 @@ function renderEndurance(){
   $('#enWeek').textContent=week?`${week} workout${week>1?'s':''} this week`:'';
   $('#enLevel').textContent=`${AGES[state.age].name} · ${TIERS[state.tier].name}`;
   $('#enGrid').innerHTML=list.map(drillCard).join('');
+}
+
+/* ---------- Goalkeeper page ---------- */
+const GK_ORDER=['gk-shuffle','wall-catch','ball-handling','high-ball','collapse-dive','reaction-saves','distribution'];
+function renderGoalkeeper(){
+  const kid=state.age===0,old=oldAT()[0],list=GK_ORDER.map(id=>DRILLS.find(d=>d.id===id)).filter(d=>d&&d.ages.includes(old));
+  $('#gkSub').textContent=state.name?`Train like a keeper, ${state.name}.`:'Train like a keeper.';
+  $('#gkText').textContent=kid?'Keepers are the only players who can use their hands! Here\'s how to be a great one:':'The keeper is the last line of defense and the first line of attack. Great keepers are brave, have safe hands and quick feet, and talk to their team.';
+  $('#gkKeys').innerHTML=(kid?['Get ready: knees bent, hands out','Catch with two hands','Fall on your side, soft like a pillow']:['Ready position: feet apart, knees bent, on your toes, hands out','High balls: catch with a W, thumbs behind the ball','Low balls: scoop it up like a basket, body behind it','Move your feet first, dive last','Talk: shout "KEEPER!" when you come for the ball']).map(x=>`<li>${x}</li>`).join('');
+  $('#gkSafe').textContent='Practice diving on soft grass, never on hard ground. Keeper gloves help.';
+  $('#gkLevel').textContent=`${AGES[state.age].name} · ${TIERS[state.tier].name}`;
+  const pick=[list.find(d=>d.id==='gk-shuffle'),list.find(d=>d.id==='wall-catch'),list.find(d=>d.id==='reaction-saves')].filter(Boolean),roles=['Warm-up','Main drill','Challenge'];
+  $('#gkSessMeta').textContent=`${pick.length} drills · about ${pick.reduce((a,d)=>a+planMinutes(d,d.plan(...oldAT())),0)+2} minutes`;
+  $('#gkSess').innerHTML=pick.map((d,i)=>`<li><button data-open="${d.id}"><span class="n">${i+1}</span><span class="role">${roles[i]}</span><span class="meta">${planMinutes(d,d.plan(...oldAT()))} min<br>${starsHtml(state.stars[k(d)]||0)}</span><b>${view(d).name}</b></button></li>`).join('');
+  $('#gkGrid').innerHTML=list.map(drillCard).join('');
 }
 
 /* ---------- Progress page ---------- */

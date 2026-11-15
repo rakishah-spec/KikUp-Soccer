@@ -1,9 +1,9 @@
 // Simulated-movement tests for the rep counters. Run: node tests/reps.test.mjs
-import { JuggleCounter, TapCounter, TouchCounter, KickCounter, TripCounter, CheckCounter, MoveCounter, StopCounter, FlickCounter, EightCounter } from '../js/reps.js';
+import { JuggleCounter, TapCounter, TouchCounter, KickCounter, TripCounter, CheckCounter, MoveCounter, StopCounter, FlickCounter, EightCounter, CatchCounter } from '../js/reps.js';
 let seed = 7; const rnd = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
 const noise = (a) => (rnd() - 0.5) * 2 * a;
 const FPS = 15, dt = 1000 / FPS;
-const pose = (o = {}) => ({ lf: { x: .45, y: .92 }, rf: { x: .55, y: .92 }, la: { x: .45, y: .9 }, ra: { x: .55, y: .9 },
+const pose = (o = {}) => ({ lf: { x: .45, y: .92 }, rf: { x: .55, y: .92 }, la: { x: .45, y: .9 }, ra: { x: .55, y: .9 }, lk: { x: .45, y: .72 }, rk: { x: .55, y: .72 },
   lh: { x: .45, y: .55 }, rh: { x: .55, y: .55 }, ls: { x: .42, y: .3 }, rs: { x: .58, y: .3 }, nose: { x: .5, y: .2 }, ...o });
 let fails = 0;
 const check = (name, got, want, tol = 0) => { const ok = Math.abs(got - want) <= tol; if (!ok) fails++; console.log(`${ok ? 'PASS' : 'FAIL'} ${name}: counted ${got}, expected ${want}${tol ? ' ±' + tol : ''}`); };
@@ -123,6 +123,18 @@ for (const withPose of [true, false]) { const c = new KickCounter(); let t = 0, 
     for (let i = 0; i < 25; i++) fr.push(null);                                // ball gone, player fetches another
     for (const b of fr) { t += dt; n = c.update({ t, pose: withPose ? pose({ rf: { x: .5, y: .88 } }) : null, ball: b ? { x: b[0] + noise(.003), y: b[1], r: .04 } : null }).count; } }
   check(`first-time shots (${withPose ? 'whole body' : 'feet only'})`, n, 8, 1); }
+
+
+// Goalkeeper catches: thrown at a wall, rebound caught and held in the hands (waist height), 10 times; balls dropped on the ground don't count.
+for (const withPose of [true, false]) { const c = new CatchCounter(); let t = 0, n = 0;
+  const step = (x, y) => { t += dt; n = c.update({ t, pose: withPose ? pose() : null, ball: { x: x + noise(.004), y: y + noise(.004), r: .04 } }).count; };
+  for (let k = 0; k < 10; k++) {
+    for (let i = 1; i <= 6; i++) step(.5 + .35 * i / 6, .6);          // thrown to the wall
+    for (let i = 1; i <= 6; i++) step(.85 - .35 * i / 6, .6);          // rebound
+    for (let i = 0; i < 12; i++) step(.5, .6);                         // caught, held
+  }
+  if (withPose) { for (let i = 1; i <= 6; i++) step(.5, .6 + .3 * i / 6); for (let i = 0; i < 12; i++) step(.5, .9); }   // dropped: lands by the feet
+  check(`keeper catches (${withPose ? 'whole body' : 'feet only'})`, n, 10, withPose ? 0 : 1); }
 
 // Standing still with a noisy ball should count nothing.
 { const cs = [new JuggleCounter(), new TapCounter(), new TouchCounter(), new KickCounter(), new MoveCounter(), new StopCounter(), new FlickCounter()]; let t = 0; const out = cs.map(() => 0);

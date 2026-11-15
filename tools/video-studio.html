@@ -750,6 +750,96 @@ trackScene('pyramid', 'Sprint Pyramid', [{ label: 'SPRINT 10', hard: true, sec: 
 trackScene('ball-endurance', 'Dribble Endurance', [{ label: 'JOG + BALL', hard: false, sec: 4, cap: 'Jog with the ball, small touches' }, { label: 'SPRINT + BALL', hard: true, sec: 2, cap: 'Sprint-dribble when the phone says' }, { label: 'JOG + BALL', hard: false, sec: 3, cap: 'Back to jogging, keep it close' }], { ball: true, lapSec: 3 });
 trackScene('fartlek', 'Speed Play', [{ label: 'JOG', hard: false, sec: 2, cap: 'Listen for the next call' }, { label: 'SPRINT', hard: true, sec: 1.2, cap: 'Sprint!' }, { label: 'JOG', hard: false, sec: 1.6, cap: 'Jog' }, { label: 'STRIDE', hard: true, sec: 1.8, cap: 'Stride: fast and relaxed' }, { label: 'WALK', hard: false, sec: 1.6, cap: 'Walk' }]);
 
+
+/* ---------- Goalkeeper ---------- */
+function goalBottom() { ctx.strokeStyle = '#fff'; ctx.lineWidth = 6; ctx.beginPath(); ctx.moveTo(300, 470); ctx.lineTo(300, 440); ctx.lineTo(660, 440); ctx.lineTo(660, 470); ctx.stroke();
+  ctx.strokeStyle = 'rgba(255,255,255,.5)'; ctx.lineWidth = 3; ctx.strokeRect(240, 330, 480, 110); }
+// A keeper lying on their side mid-dive (top-down): body along the ground, arms reaching
+function diver(x, y, side, k) {
+  ctx.save(); ctx.translate(x, y); ctx.rotate(side * k * Math.PI / 2);
+  ctx.fillStyle = 'rgba(0,0,0,.25)'; ctx.beginPath(); ctx.ellipse(4, 8, 26, 18, 0, 0, 7); ctx.fill();
+  ctx.fillStyle = '#2F6FE0'; ctx.beginPath(); ctx.ellipse(0, 0, 17, 32, 0, 0, 7); ctx.fill();
+  ctx.strokeStyle = '#8a5a3e'; ctx.lineWidth = 9; ctx.lineCap = 'round'; ctx.beginPath(); ctx.moveTo(-10, -20); ctx.lineTo(-14, -48 - 8 * k); ctx.moveTo(10, -20); ctx.lineTo(14, -48 - 8 * k); ctx.stroke();
+  ctx.fillStyle = '#FFC633'; ctx.beginPath(); ctx.arc(-14, -50 - 8 * k, 7, 0, 7); ctx.arc(14, -50 - 8 * k, 7, 0, 7); ctx.fill();
+  ctx.fillStyle = '#5a3a26'; ctx.beginPath(); ctx.arc(0, -4, 14, 0, 7); ctx.fill(); ctx.restore();
+}
+// Wall Catches (side view): throw at the wall, catch the rebound
+SCENES['wall-catch'] = { name: 'Wall Catches', dur: 8, draw(t) {
+  pitch(); groundLine(); ctx.fillStyle = '#C9D3CB'; ctx.fillRect(780, 120, 40, GROUND - 116); ctx.fillStyle = 'rgba(0,0,0,.18)'; for (let y = 120; y < GROUND; y += 30) ctx.fillRect(780, y, 40, 2);
+  const P = 2, u = (t % P) / P, n = Math.floor(t / P), chest = [500, 250], wallP = [778, 236];
+  let b = chest, cap;
+  if (u < .35) { const k = u / .35; b = [lerp(chest[0], wallP[0], k), lerp(chest[1], wallP[1], k)]; cap = 'Throw it at the wall'; }
+  else if (u < .65) { const k = (u - .35) / .3; b = [lerp(wallP[0], chest[0] + 6, k), lerp(wallP[1], chest[1], k)]; cap = 'Hands up, make a W'; }
+  else cap = 'Catch it and hold it';
+  const reach = u > .5 && u < .7 ? 1 : 0;
+  sideFigure({ hip: [430, GROUND - 158], la: [418, GROUND - 4], ra: [446, GROUND - 4], hands: u < .35 ? [lerp(500, 540, u / .35), 250] : [lerp(500, 520, reach), 250], arm: .3 });
+  ball(b[0], b[1], 20, 0, false);
+  title('Wall Catches'); counter('catches', n + (u > .65 ? 1 : 0)); caption(cap);
+} };
+// High Ball Catch (side view): toss up, jump, catch at the top
+SCENES['high-ball'] = { name: 'High Ball Catch', dur: 8, draw(t) {
+  pitch(); groundLine();
+  const P = 4, u = (t % P) / P, n = Math.floor(t / P), jump = u > .45 && u < .75 ? Math.sin(Math.PI * (u - .45) / .3) * 50 : 0;
+  const hip = [430, GROUND - 158 - jump], top = [470, 60];
+  let b, hands, cap;
+  if (u < .45) { const k = u / .45; b = [lerp(480, top[0], k), lerp(260, top[1], 1 - (1 - k) * (1 - k))]; hands = [lerp(480, 470, k), lerp(262, 200, Math.min(1, k * 2))]; cap = 'Toss it high'; }
+  else if (u < .6) { const k = (u - .45) / .15; b = [top[0], lerp(top[1], 118 - jump, k * k)]; hands = [470, 122 - jump]; cap = 'Jump, knee up'; }
+  else if (u < .78) { b = [470, 118 - jump]; hands = [470, 122 - jump]; cap = 'Catch it at the highest point'; }
+  else { const k = (u - .78) / .22; b = [lerp(470, 488, k), lerp(118, 250, k)]; hands = [lerp(470, 488, k), lerp(122, 252, k)]; cap = 'Bring it into your chest'; }
+  sideFigure({ hip, la: [jump ? 410 : 418, GROUND - 4 - jump * .9], ra: [jump ? 454 : 446, GROUND - 4 - jump * (jump ? 1.6 : 0)], hands, arm: .3 });
+  ball(b[0], b[1], 20, 0, false);
+  title('High Ball Catch'); counter('catches', n + (u > .6 ? 1 : 0)); caption(cap);
+} };
+// Ready & Shuffle (top-down): shuffle between two cones facing forward
+SCENES['gk-shuffle'] = { name: 'Ready & Shuffle', dur: 8, draw(t) {
+  pitch(); cone(300, 300, 1.4); cone(660, 300, 1.4);
+  const P = 2.6, u = (t % P) / P, x = 480 + 150 * Math.sin(u * Math.PI * 2);
+  playerTop(x, 300, -Math.PI / 2, t * 18, { stride: .5, color: '#2F6FE0' });
+  ctx.fillStyle = '#FFC633'; [[-24, -22], [24, -22]].forEach(([dx, dy]) => { ctx.beginPath(); ctx.arc(x + dx, 300 + dy, 8, 0, 7); ctx.fill(); });
+  title('Ready & Shuffle'); counter('shuffles', Math.floor(t / P)); caption(t < 4 ? 'Shuffle sideways, don\'t cross your feet' : 'Stay low, hands out in front');
+} };
+// Reaction Saves (top-down): the phone flashes a corner, the keeper dives to it
+SCENES['reaction-saves'] = { name: 'Reaction Saves', dur: 8, draw(t) {
+  pitch(); goalBottom();
+  const P = 2.7, i = Math.floor(t / P), u = (t % P) / P, cues = [['↖', 'HIGH LEFT', -1], ['↘', 'LOW RIGHT', 1], ['↗', 'HIGH RIGHT', 1]], c = cues[i % 3];
+  ctx.fillStyle = '#10241A'; roundRect(430, 90, 100, 150, 12); ctx.fill(); ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.stroke();
+  const flash = u > .1 && u < .4; ctx.fillStyle = flash ? C.bib : '#0c1a12'; ctx.fillRect(440, 102, 80, 126);
+  if (flash) { ctx.fillStyle = C.ink; ctx.font = `800 54px ${FONT}`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(c[0], 480, 152); ctx.font = `800 13px ${FONT}`; ctx.fillText(c[1], 480, 205); ctx.textBaseline = 'alphabetic'; }
+  const k = u < .35 ? 0 : u < .6 ? ease((u - .35) / .25) : u < .8 ? 1 : 1 - ease((u - .8) / .2);
+  if (k < .2) { playerTop(480, 400, -Math.PI / 2, 0, { color: '#2F6FE0' }); }
+  else diver(480 + c[2] * 130 * k, 400, c[2], k);
+  title('Reaction Saves'); caption(u < .35 ? 'Ready position, watch the phone' : u < .8 ? `Dive ${c[1].toLowerCase()}` : 'Up fast, back to ready');
+} };
+// Collapse Dive (top-down): collapse onto a ball at your side
+SCENES['collapse-dive'] = { name: 'Collapse Dive', dur: 8, draw(t) {
+  pitch(); goalBottom();
+  const P = 4, i = Math.floor(t / P), u = (t % P) / P, side = i % 2 ? 1 : -1, bx = 480 + side * 70;
+  const k = u < .3 ? 0 : u < .55 ? ease((u - .3) / .25) : u < .8 ? 1 : 1 - ease((u - .8) / .2);
+  ball(bx, 400, 14, 0);
+  if (k < .15) playerTop(480, 400, -Math.PI / 2, 0, { color: '#2F6FE0' }); else diver(480 + side * 40 * k, 400, side, k);
+  title('Collapse Dive'); counter('saves', i + (u > .55 ? 1 : 0));
+  caption(u < .3 ? 'Ready position, ball at your side' : u < .8 ? 'Collapse sideways: hands first, then hip and shoulder' : 'Get up fast for the next one');
+} };
+// Ball Handling (side view): pass the ball around the waist
+SCENES['ball-handling'] = { name: 'Ball Handling', dur: 7, draw(t) {
+  pitch(); groundLine();
+  const a = t * Math.PI * 2 / 1.1, bx = 436 + Math.cos(a) * 60, by = GROUND - 170 + Math.sin(a) * 6, behind = Math.sin(a) < 0;
+  if (behind) ball(bx, by, 20, 0, false);
+  sideFigure({ hip: [430, GROUND - 158], la: [410, GROUND - 4], ra: [452, GROUND - 4], hands: behind ? [470, 250] : [bx, by], arm: .3 });
+  if (!behind) ball(bx, by, 20, 0, false);
+  title('Ball Handling'); counter('circles', Math.floor(t / 1.1)); caption(t < 3.5 ? 'Pass it around your waist, hand to hand' : 'Fingertips, soft and quick');
+} };
+// Distribution (top-down): overarm throw to a target zone
+SCENES['distribution'] = { name: 'Distribution', dur: 8, draw(t) {
+  pitch(); goalBottom(); ctx.strokeStyle = C.bib; ctx.lineWidth = 4; ctx.setLineDash([12, 8]); ctx.strokeRect(560, 60, 200, 110); ctx.setLineDash([]);
+  ctx.fillStyle = 'rgba(255,255,255,.8)'; ctx.font = `700 16px ${FONT}`; ctx.textAlign = 'center'; ctx.fillText('TARGET ZONE', 660, 190);
+  const P = 4, i = Math.floor(t / P), u = (t % P) / P, start = [480, 380], land = [650 + (i % 2 ? 40 : -20), 115];
+  let bx = start[0] + 16, by = start[1] - 20, r = 14;
+  if (u > .3 && u < .7) { const k = (u - .3) / .4; bx = lerp(start[0] + 16, land[0], k); by = lerp(start[1] - 20, land[1], k); r = 14 + 10 * Math.sin(Math.PI * k); } else if (u >= .7) { bx = land[0]; by = land[1]; }
+  playerTop(480, 400, -Math.PI / 2 + .5, 0, { color: '#2F6FE0' }); ball(bx, by, r, t * 6);
+  title('Distribution'); counter('throws', i + (u > .3 ? 1 : 0)); caption(u < .3 ? 'Step toward your target' : u < .7 ? 'Overarm: straight arm over the top' : 'Into the zone!');
+} };
+
 /* ---------- Render API ---------- */
 window.SCENE_LIST = Object.entries(SCENES).map(([id, s]) => ({ id, name: s.name, dur: Math.round(s.dur * 100) / 100 }));
 window.renderFrame = (id, t) => { ctx.save(); ctx.clearRect(0, 0, W, H); SCENES[id].draw(t); ctx.restore(); return cv.toDataURL('image/jpeg', .9); };
