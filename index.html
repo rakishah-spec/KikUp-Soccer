@@ -607,7 +607,7 @@ const DRILLS=[
  diagram:{goal:true,cones:[[60,80],[80,80],[120,80],[140,80]],player:[100,96],path:'M100,82 L136,16',dur:1.1},
  plan(a,t){const d=T([null,[6,8,10],[8,10,14],[10,14,18]],a,t),n=T([null,[6,8,10],[8,10,12],[10,12,15]],a,t);
   return {seconds:120,target:n,unit:'strikes',summary:`${n} laces strikes in 2 min`,detail:[`From ${d} big steps away`,['Focus on clean contact','Keep every shot under the crossbar','Hard and low into a corner'][t]]};}},
-{id:'first-time',name:'First-Time Finish',skill:'shooting',mode:'count',ages:[1,2,3],minutes:3,
+{id:'first-time',name:'First-Time Finish',skill:'shooting',mode:'count',auto:'kicks',ages:[1,2,3],minutes:3,
  setup:['Stand a few steps to the side of your shooting spot.','Roll or tap the ball forward into the space in front of you.','Shoot it without stopping it first.'],
  tips:['Watch the ball all the way onto your foot.','Turn your hips toward the goal before the ball arrives.','A quick finish beats the keeper before they\'re set.'],
  diagram:{goal:true,player:[64,96],path:'M74,98 L108,84 L140,16',dur:1.6},
@@ -626,7 +626,7 @@ const DRILLS=[
  diagram:{cones:[[30,60],[170,60]],path:'M40,64 L160,64 L160,54 L40,54',dur:2.6},
  plan(a,t){const n=T([null,[2,3,4],[3,4,5],[4,5,6]],a,t);
   return {seconds:60,target:n,unit:'trips',summary:`${n} trips in 60s`,detail:[['Jog with the ball','Run, touching it every 2–3 steps','Full sprint, turn with your sole'][t]]};}},
-{id:'figure-8',name:'Figure 8',skill:'dribbling',mode:'count',ages:[0,1,2,3],minutes:2,
+{id:'figure-8',name:'Figure 8',skill:'dribbling',mode:'count',auto:'eights',camHow:'Put the phone 3–4 big steps away, facing the cones, so both cones and the ball are in the picture.',ages:[0,1,2,3],minutes:2,
  setup:['Put two cones about 4 big steps apart.','Dribble around them in a figure 8.','Count each full figure 8.'],
  tips:['Inside of the foot going one way, outside going the other.','Keep the ball close as you go around each cone.','Look up between the cones.'],
  kid:{name:'Figure 8 Dribble',steps:['Put two cones (or shoes) apart.','Dribble around them like the number 8!'],tip:'Small touches around the cones.'},
@@ -685,12 +685,12 @@ const DRILLS=[
  diagram:{wall:true,cones:[[60,96],[100,96],[140,96]],player:[60,86],path:'M62,92 L100,12 L102,92 L140,12 L140,92',dur:2.6},
  plan(a,t){const n=T([null,[10,15,20],[15,20,25],[20,25,30]],a,t);
   return {seconds:60,target:n,unit:'passes',summary:`${n} passes in 60s`,detail:[['Two touches, walk between cones','Two touches max, jog between cones','One touch, run between cones'][t]]};}},
-{id:'long-pass',name:'Long Pass',skill:'passing',mode:'count',ages:[1,2,3],minutes:3,
- setup:['Mark a target zone (a big square of cones) a long way away, or aim at a wall.','Strike long passes into the zone. Driven passes stay low, lofted passes go up and drop in.','Collect the balls and go again. Count passes that land in the zone.'],
+{id:'long-pass',name:'Long Pass',skill:'passing',mode:'count',auto:'kicks',camHow:'Put the phone off to the side near where you kick, so you and the ball are in the picture.',ages:[1,2,3],minutes:3,
+ setup:['Mark a target zone (a big square of cones) a long way away, or aim at a wall.','Strike long passes into the zone. Driven passes stay low, lofted passes go up and drop in.','Collect the balls and go again. The camera counts every long pass. Try to land each one in the zone.'],
  tips:['Approach at a slight angle, not straight on.','For a driven pass, strike the middle with your laces and lean over it.','For a lofted pass, lean back a little and hit the bottom half of the ball.'],
  diagram:{box:[76,8,48,26],player:[100,90],path:'M100,88 L100,20',dur:1.6},
  plan(a,t){const d=T([null,[10,12,15],[15,18,22],[20,25,30]],a,t),n=T([null,[3,5,6],[4,6,8],[5,7,10]],a,t);
-  return {seconds:120,target:n,unit:'in the zone',summary:`${n} passes in the zone in 2 min`,detail:[`Target ${d} big steps away`,['Any long pass','Driven passes, low the whole way','Alternate driven and lofted, both feet'][t]]};}}
+  return {seconds:120,target:n,unit:'long passes',summary:`${n} long passes in 2 min`,detail:[`Aim for a zone ${d} big steps away`,['Any long pass','Driven passes, low the whole way','Alternate driven and lofted, both feet'][t]]};}}
 ];
 
 /* ---------- Skill moves ladder ----------

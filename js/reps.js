@@ -160,7 +160,8 @@ export class KickCounter extends Base {
   update(o) {
     const S = this.scale(o); this.touch.update(o);
     const b = o.ball;
-    if (!o.pose && b) {                                   // feet not tracked: a pass is the ball bursting off after slowing or reversing
+    let burst = false;
+    if (b) {                                              // a pass is the ball bursting off after slowing or reversing (works with or without the body)
       (this.bh ??= []).push({ t: o.t, x: b.x, y: b.y }); while (this.bh.length > 2 && o.t - this.bh[0].t > 600) this.bh.shift();
       const near = (ms) => this.bh.reduce((a, p) => Math.abs(p.t - (o.t - ms)) < Math.abs(a.t - (o.t - ms)) ? p : a, this.bh[0]);
       const a0 = near(450), a1 = near(150);
@@ -171,9 +172,9 @@ export class KickCounter extends Base {
         const s0 = path / ((a1.t - a0.t) / 1000), s1 = Math.hypot(v1.x, v1.y), rev = Math.hypot(v0.x, v0.y) > 0.3 * S && (v0.x * v1.x + v0.y * v1.y) < 0;
         if (s0 < 0.5 * S) this.home = this.home ? { x: .9 * this.home.x + .1 * a1.x, y: .9 * this.home.y + .1 * a1.y } : { x: a1.x, y: a1.y };   // where the ball gets controlled = the player's end
         const atHome = this.home && Math.hypot(a1.x - this.home.x, a1.y - this.home.y) < 6 * b.r;
-        if (s1 > 1.2 * S && (s0 < 0.5 * S || (rev && atHome)) && o.t - (this.lastKick || -1e9) > 400) { this.lastKick = o.t; this.count++; this.events.push({ t: o.t, type: 'rep', side: null }); }
+        if (s1 > 1.2 * S && (s0 < 0.5 * S || (rev && atHome)) && o.t - (this.lastKick || -1e9) > 400) burst = true;
       }
-      return { count: this.count };
+      if (!o.pose) { if (burst) { this.lastKick = o.t; this.count++; this.events.push({ t: o.t, type: 'rep', side: null }); } return { count: this.count }; }
     }
     if (b) {
       this.hist.push({ t: o.t, x: b.x, y: b.y }); if (this.hist.length > 3) this.hist.shift();
@@ -184,11 +185,16 @@ export class KickCounter extends Base {
         if (speed > 1.2 * S) {
           let side = this.pending.side;
           if (side === 'x' && o.pose) side = dist(o.pose.lf, this.pending.from || b) < dist(o.pose.rf, this.pending.from || b) ? 'l' : 'r';
-          if (!this.foot || side === this.foot || side == null) { this.count++; this.events.push({ t: o.t, type: 'rep', side }); }
-          else this.events.push({ t: o.t, type: 'other-foot', side });
-          this.pending = null;
+          if (o.t - (this.lastKick || -1e9) > 400) {
+            if (!this.foot || side === this.foot || side == null) { this.count++; this.events.push({ t: o.t, type: 'rep', side }); this.lastKick = o.t; }
+            else this.events.push({ t: o.t, type: 'other-foot', side });   // strong foot in the weak-foot drill: noted, not counted
+          }
+          this.pending = null; burst = false;
         }
       }
+    }
+    if (burst && !this.foot && o.t - (this.lastKick || -1e9) > 900) {   // no touch was seen (the ball rolled onto the foot): count the burst
+      this.lastKick = o.t; this.count++; this.events.push({ t: o.t, type: 'rep', side: null });
     }
     if (this.pending && o.t - this.pending.t > 450) this.pending = null;
     return { count: this.count };
@@ -198,12 +204,16 @@ export class KickCounter extends Base {
 // CONE DRIBBLE TRIPS: with the camera side-on, the player crosses from one end
 // of the picture to the other and back. One trip = there and back.
 export class TripCounter extends Base {
-  constructor() { super(); this.side = null; this.crossings = 0; }
+  constructor(opts = {}) { super(); this.side = null; this.crossings = 0; this.lo = null; this.hi = null; this.followBall = !!opts.followBall; }
   update(o, width = 1) {
-    const at = o.pose ? mid(o.pose.lh, o.pose.rh) : o.ball;     // feet-only framing: follow the ball instead
+    // Follow the hips (or the ball when no body is found, or always for figure 8s)
+    const at = this.followBall ? (o.ball || (o.pose && mid(o.pose.lh, o.pose.rh))) : (o.pose ? mid(o.pose.lh, o.pose.rh) : o.ball);
     if (at) {
       const x = at.x / width;
-      const zone = x < 0.3 ? 'a' : x > 0.7 ? 'b' : null;
+      // Learn how far left and right they actually go, so short courses (two close cones) still count.
+      if (this.lo == null) { this.lo = this.hi = x; } else { this.lo = Math.min(this.lo + 0.0004, x); this.hi = Math.max(this.hi - 0.0004, x); }
+      const span = this.hi - this.lo, wide = span > 0.12;
+      const zone = wide ? (x < this.lo + span * 0.25 ? 'a' : x > this.hi - span * 0.25 ? 'b' : null) : (x < 0.3 ? 'a' : x > 0.7 ? 'b' : null);
       if (zone && this.side && zone !== this.side) { this.crossings++; this.events.push({ t: o.t, type: 'cross' }); if (this.crossings % 2 === 0) this.events.push({ t: o.t, type: 'rep' }); }
       if (zone) this.side = zone;
       this.count = Math.floor(this.crossings / 2);
@@ -211,6 +221,9 @@ export class TripCounter extends Base {
     return { count: this.count, half: this.crossings % 2 === 1 };
   }
 }
+
+// FIGURE 8s: the ball goes around the left cone and the right cone. Same idea as a trip, following the ball.
+export class EightCounter extends TripCounter { constructor() { super({ followBall: true }); } }
 
 // SHOULDER CHECKS: facing the camera, turning the head moves the nose toward
 // one shoulder. Each turn out (and back) is one check.
@@ -328,5 +341,5 @@ export class FrameStats {
 }
 
 export const COUNTERS = { juggle: JuggleCounter, taps: TapCounter, touches: TouchCounter, kicks: KickCounter, trips: TripCounter, checks: CheckCounter,
-  cut: MoveCounter, stop: StopCounter, flick: FlickCounter };
-export const NEEDS_BALL = { juggle: true, taps: true, touches: true, kicks: true, trips: true, checks: false, cut: true, stop: true, flick: true };
+  cut: MoveCounter, stop: StopCounter, flick: FlickCounter, eights: EightCounter };
+export const NEEDS_BALL = { juggle: true, taps: true, touches: true, kicks: true, trips: true, checks: false, cut: true, stop: true, flick: true, eights: true };

@@ -113,7 +113,7 @@ export class LiveCounter {
     // Ready to count: shoulder checks need the head; everything else just needs the ball (feet-only framing is fine).
     // Feet seen: the body tracker found them, or the detector saw a person (works with only legs in view).
     const seen = this.kind === 'checks' ? !!usable : !!usable || (this.personT != null && t - this.personT < 1500);
-    const ready = this.kind === 'checks' ? seen : this.kind === 'trips' ? seen || !!ball : !!ball;
+    const ready = this.kind === 'checks' ? seen : (this.kind === 'trips' || this.kind === 'eights') ? seen || !!ball : !!ball;
     this.onStatus?.({ body: seen, ball: this.needsBall ? !!ball : null, ready });
   }
 

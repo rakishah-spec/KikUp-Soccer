@@ -1,5 +1,5 @@
 // Simulated-movement tests for the rep counters. Run: node tests/reps.test.mjs
-import { JuggleCounter, TapCounter, TouchCounter, KickCounter, TripCounter, CheckCounter, MoveCounter, StopCounter, FlickCounter } from '../js/reps.js';
+import { JuggleCounter, TapCounter, TouchCounter, KickCounter, TripCounter, CheckCounter, MoveCounter, StopCounter, FlickCounter, EightCounter } from '../js/reps.js';
 let seed = 7; const rnd = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
 const noise = (a) => (rnd() - 0.5) * 2 * a;
 const FPS = 15, dt = 1000 / FPS;
@@ -106,6 +106,23 @@ check('weak foot only counts left foot (5 right-foot kicks ignored)', passes('l'
 { const cs = [new JuggleCounter(), new TouchCounter(), new KickCounter(), new TapCounter(), new MoveCounter()]; let t = 0; const out = cs.map(() => 0);
   for (let i = 0; i < 300; i++, t += dt) cs.forEach((c, j) => out[j] = c.update({ t, pose: null, ball: { x: .6 + noise(.005), y: .85 + noise(.005), r: .05 }, tap: 3 + noise(2) }).count);
   check('feet-only: no false reps while idle', out.reduce((a, b) => a + b, 0), 0); }
+
+
+// Figure 8s: a small figure 8 in the middle of the picture (two close cones), 6 laps, with and without a body.
+for (const withPose of [true, false]) { const c = new EightCounter(); let t = 0, n = 0; const per = 3000;
+  for (let i = 0; i < 6 * per / dt; i++, t += dt) { const a = (t / per) * Math.PI * 2;
+    n = c.update({ t, pose: withPose ? pose() : null, ball: { x: .5 + .14 * Math.sin(a) + noise(.004), y: .85 + .05 * Math.sin(2 * a), r: .03 } }).count; }
+  check(`figure 8s (${withPose ? 'whole body' : 'feet only'})`, n, 6, 1); }
+
+
+// First-time finish: ball tapped forward slowly, then struck first time, 8 times (with and without a body).
+for (const withPose of [true, false]) { const c = new KickCounter(); let t = 0, n = 0;
+  for (let k = 0; k < 8; k++) { const fr = [];
+    for (let i = 0; i <= 12; i++) fr.push([.4 + .12 * i / 12, .85]);           // tapped forward, rolling slowly
+    for (let i = 1; i <= 6; i++) fr.push([.52 + .08 * i, .85 - .06 * i]);      // shot first time
+    for (let i = 0; i < 25; i++) fr.push(null);                                // ball gone, player fetches another
+    for (const b of fr) { t += dt; n = c.update({ t, pose: withPose ? pose({ rf: { x: .5, y: .88 } }) : null, ball: b ? { x: b[0] + noise(.003), y: b[1], r: .04 } : null }).count; } }
+  check(`first-time shots (${withPose ? 'whole body' : 'feet only'})`, n, 8, 1); }
 
 // Standing still with a noisy ball should count nothing.
 { const cs = [new JuggleCounter(), new TapCounter(), new TouchCounter(), new KickCounter(), new MoveCounter(), new StopCounter(), new FlickCounter()]; let t = 0; const out = cs.map(() => 0);
