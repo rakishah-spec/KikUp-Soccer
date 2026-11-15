@@ -502,6 +502,7 @@ const TIERS=[
   {name:'Beginner',blurb:'New, or still learning control'},
   {name:'Developing',blurb:'Plays on a team, has the basics'},
   {name:'Advanced',blurb:'Confident, wants a challenge'}];
+const TRAINING_SKILLS=['passing','shooting','dribbling'];
 const SKILLS={gamesense:'Game Sense',scanning:'Scanning',touch:'First Touch',passing:'Passing',shooting:'Shooting',dribbling:'Dribbling',mastery:'Ball Mastery',weakfoot:'Weak Foot',fitness:'Fitness'};
 const T=(tbl,a,t)=>tbl[a][t];
 const by=(arr,a)=>arr[a];
@@ -631,7 +632,53 @@ const DRILLS=[
  kid:{name:'Figure 8 Dribble',steps:['Put two cones (or shoes) apart.','Dribble around them like the number 8!'],tip:'Small touches around the cones.'},
  diagram:{cones:[[70,60],[130,60]],path:'M100,60 C100,28 40,28 40,60 C40,92 100,92 100,60 C100,28 160,28 160,60 C160,92 100,92 100,60',dur:3.4},
  plan(a,t){const n=T([[2,3,4],[3,5,6],[5,7,8],[6,8,10]],a,t);
-  return {seconds:60,target:n,unit:'figure 8s',summary:`${n} figure 8s in 60s`,detail:[a===0?'Go slow and keep the ball close':['Walk it through','Right foot one way, left foot back','Outside of the foot only'][t]]};}}
+  return {seconds:60,target:n,unit:'figure 8s',summary:`${n} figure 8s in 60s`,detail:[a===0?'Go slow and keep the ball close':['Walk it through','Right foot one way, left foot back','Outside of the foot only'][t]]};}},
+{id:'sole-rolls',name:'Sole Rolls',skill:'mastery',mode:'count',auto:'touches',camHow:'Put the phone 2–3 big steps away, facing you, so your feet and the ball are in the picture.',ages:[0,1,2,3],minutes:1,
+ setup:['Stand with the ball under the sole of one foot.','Roll it across to your other foot, then roll it back with that sole.','Keep going side to side. Count every roll.'],
+ tips:['Light touches on top of the ball, don\'t stamp on it.','Stay on your toes and keep your knees bent.','Eyes up once you have the rhythm.'],
+ kid:{name:'Ball Rolls',steps:['Put your foot on top of the ball.','Roll it to your other foot, then roll it back!'],tip:'Gentle, like you\'re petting a cat.'},
+ diagram:{ballOnly:[100,70],path:'M84,70 L116,70 L84,70',dur:1.2},
+ plan(a,t){const n=T([[10,15,20],[20,30,40],[30,45,60],[40,60,75]],a,t);
+  return {seconds:30,target:n,unit:'rolls',summary:`${n} rolls in 30s`,detail:[a===0?'Go slow and steady':['Eyes on the ball is fine','Look up every few rolls','Eyes up the whole time'][t]]};}},
+{id:'quick-feet',name:'Quick Feet',skill:'fitness',mode:'intervals',ages:[0,1,2,3],minutes:3,
+ setup:['Find a line on the ground, or lay down a stick or a shoelace.','On GO, hop your feet side to side over the line as fast as you can.','Rest when it says REST.'],
+ tips:['Stay on the balls of your feet.','Small, quick hops beat big jumps.','Arms help: pump them like you\'re running.'],
+ kid:{name:'Hop Over the Line',steps:['Find a line on the ground.','On GO, hop over it and back, over and back!'],tip:'Little hops, as fast as you can.'},
+ diagram:{cones:[[60,60],[140,60]],player:[100,50],path:'M92,62 L108,62 L92,62',dur:.6},
+ plan(a,t){const r=T([[3,4,5],[4,5,6],[5,6,8],[6,8,10]],a,t),w=by([10,15,20,20],a),rest=[20,15,10][t];
+  return {rounds:r,work:w,rest,summary:`${r} rounds · ${w}s fast feet, ${rest}s rest`,detail:[a===0?'Hop with both feet together':['Two feet together','One foot at a time, side to side','Forward, back, then side to side'][t]]};}},
+{id:'shuttle',name:'Shuttle Run (5-10-5)',skill:'fitness',mode:'intervals',ages:[1,2,3],minutes:4,
+ setup:['Put 3 cones in a line, 5 big steps apart.','Start at the middle cone. Sprint to one end, all the way to the other end, then back to the middle.','Walk around while you rest.'],
+ tips:['Stay low when you change direction.','Touch the line with your hand at each turn.','Push off your outside foot to turn fast.'],
+ diagram:{cones:[[40,60],[100,60],[160,60]],player:[100,50],path:'M100,64 L40,64 L160,64 L100,64',dur:2.4},
+ plan(a,t){const r=T([null,[4,5,6],[5,6,8],[6,8,10]],a,t),rest=[30,25,20][t];
+  return {rounds:r,work:6,rest,summary:`${r} shuttles · ${rest}s rest`,detail:[t===2?'Dribble a ball through the shuttle':'Touch the line at every turn']};}},
+{id:'cushion-control',name:'Toss & Cushion',skill:'touch',mode:'count',auto:'stop',camHow:'Put the phone off to the side, 3–4 big steps away, so the ball is in the picture as it comes down.',ages:[0,1,2,3],minutes:2,
+ setup:['Toss the ball up in front of you.','As it comes down, cushion it with your foot so it stops dead next to you.','Pick it up and go again. Count every ball you stop.'],
+ tips:['Meet the ball early and pull your foot back as it lands, like catching an egg.','Relax your foot, don\'t stab at it.','Try different parts: inside, laces, thigh, sole.'],
+ kid:{name:'Throw & Trap',steps:['Throw the ball up, not too high.','When it lands, stop it with your foot!'],tip:'Step on it gently.'},
+ diagram:{player:[100,90],path:'M100,40 L100,92',dur:1.2},
+ plan(a,t){const n=T([[4,6,8],[6,8,10],[8,10,12],[10,12,15]],a,t),h=T([['a little','a little','head height'],['head height','higher','high'],['high','high','really high'],['high','really high','really high']],a,t);
+  return {seconds:90,target:n,unit:'stops',summary:`${n} clean stops in 90s`,detail:[`Toss it ${h}`,a===0?'Stop it with your foot':['Inside of the foot','Inside, then laces','Thigh first, then foot'][t]]};}},
+{id:'corner-call',name:'Corner Call',skill:'scanning',mode:'scan',interactive:true,ages:[0,1,2,3],minutes:2,
+ setup:['Make a square with 4 cones, about 6 big steps across. Number them 1 to 4 (Little Kickers: use colored cones or shoes).','Dribble in the middle with the phone where you can see it.','When the screen calls a cone, dribble to it, touch it, and come back to the middle.'],
+ tips:['Keep glancing at the screen while you dribble.','Turn toward the cone before you get there.','Big push out of the turn, small touches near the cone.'],
+ kid:{name:'Color Corners',steps:['Put 4 colored cones (or shoes) in a square.','When the screen shows a color, dribble to that cone!'],tip:'Look at the screen while you dribble.'},
+ diagram:{box:[56,22,88,76],player:[100,50],phone:[166,92],path:'M100,62 L60,26 L100,62 L140,96',dur:3},
+ plan(a,t){const dur=T([[60,60,90],[60,90,90],[90,90,120],[90,120,120]],a,t),gap=T([[[7,9],[6,8],[5,7]],[[6,8],[5,7],[4,6]],[[5,7],[4,6],[3,5]],[[4,6],[3.5,5],[3,4]]],a,t),mode=a===0?'colors':'numbers';
+  return {dur,show:0,gap,mode,summary:`${dur}s · a new cone every ${gap[0]}–${gap[1]}s`,detail:[mode==='colors'?'Dribble to the color on the screen':'Dribble to the cone number on the screen, touch it, come back']};}},
+{id:'weak-dribble',name:'Weak Foot Dribble',skill:'weakfoot',mode:'count',auto:'touches',ages:[1,2,3],minutes:2,
+ setup:['Mark out a small box with 4 cones.','Dribble around inside it using only your weak foot.','Count your touches.'],
+ tips:['Inside and outside of your weak foot both count.','Slow and clean beats fast and sloppy.','Your weak foot gets better fast when you only use it.'],
+ diagram:{box:[60,26,80,68],path:'M80,56 L104,48 L118,70 L92,80 L84,60',dur:3},
+ plan(a,t){const n=T([null,[30,45,60],[45,60,80],[60,80,100]],a,t);
+  return {seconds:60,target:n,unit:'touches',summary:`${n} weak-foot touches in 60s`,detail:[['Inside of the foot only','Inside and outside','Inside, outside and sole, at speed'][t]]};}},
+{id:'weak-juggle',name:'Weak Foot Juggles',skill:'weakfoot',mode:'count',auto:'juggle',best:true,ages:[2,3],minutes:3,
+ setup:['Juggle using only your weak foot. Your thighs can help.','When you drop it, start again.','Your best streak counts.'],
+ tips:['Same technique as your strong foot: toes up, laces, soft ankle.','Keep the ball low at first.','Five minutes a day and it stops being your weak foot.'],
+ diagram:{player:[92,92],path:'M92,90 L92,48 L92,90',dur:1.2},
+ plan(a,t){const n=T([null,null,[5,10,15],[10,20,30]],a,t);
+  return {seconds:120,target:n,unit:'in a row',summary:`Best streak: ${n} in a row`,detail:[['Weak foot, bounces allowed','Weak foot, no bounces','Weak foot and thighs only'][t]]};}}
 ];
 
 /* ---------- Skill moves ladder ----------
@@ -732,7 +779,7 @@ function renderHome(){
   $('#hello').textContent=state.name?`Hi ${state.name}! Ready to train?`:'Soccer training on your own. Level up.';
   const total=Object.values(state.stars).reduce((s,n)=>s+n,0);
   $('#pillStars').textContent=total; $('#pillStreak').textContent=liveStreak();
-  const av=available(), mv=MOVES.filter(m=>m.from<=levelIdx()).map(moveAsDrill), all=[...av,...mv];
+  const avAll=available(), mv=MOVES.filter(m=>m.from<=levelIdx()).map(moveAsDrill), all=[...avAll,...mv];
   const max=all.length*3, got=all.reduce((s,d)=>s+(state.stars[k(d)]||0),0);
   $('#progLabel').textContent=`Stars at ${lvl}`; $('#progNum').textContent=`${got} / ${max}`;
   $('#progBar').style.width=(max?got/max*100:0)+'%';
@@ -745,7 +792,9 @@ function renderHome(){
   $('#tabMoves').setAttribute('aria-selected',state.tab==='moves');
   if(state.tab==='moves'){renderMoves();return;}
   $('#videoSlot').innerHTML='';
-  $('#secIntro').textContent=state.age===0?'Short, fun drills. Grab a ball and some cones (shoes work too).':'Drills to practice on your own. Tap one to see your goal.';
+  $('#secIntro').innerHTML=(state.age===0?'Short, fun drills. Grab a ball and some cones (shoes work too).':'Game sense, scanning, first touch, ball mastery, weak foot and fitness.')+' Passing, shooting and dribbling are on the <a href="#training">Training page</a>.';
+  const onTraining=d=>TRAINING_SKILLS.includes(view(d).skill)||Object.values(CATS).some(c=>c.ids.includes(d.id));
+  const av=avAll.filter(d=>!onTraining(d));   // passing, shooting and dribbling (and drills built on them) live on the Training page
   const skillsHere=[...new Set(av.map(d=>view(d).skill))];
   if(state.skill!=='all'&&!skillsHere.includes(state.skill))state.skill='all';
   $('#chips').innerHTML=state.age===0?'':[['all','All'],...Object.entries(SKILLS).filter(([s])=>skillsHere.includes(s))].map(([s,n])=>`<button class="chip" data-skill="${s}" aria-pressed="${state.skill===s}">${n}</button>`).join('');
@@ -1072,6 +1121,7 @@ function runIntervals(d,p){
   });
 }
 
+const CORNER_COLORS=[{name:'RED',bg:'#D63A3A',fg:'#fff'},{name:'BLUE',bg:'#2F6FE0',fg:'#fff'},{name:'YELLOW',bg:'#F2C200',fg:'#1A1400'},{name:'GREEN',bg:'#1FA454',fg:'#06210F'}];
 /* ---------- Scan mode ---------- */
 function runScan(d,p){
   body.innerHTML=`<div class="run-center"><div class="run-goal"><b>${p.summary}</b></div>
@@ -1086,6 +1136,9 @@ function runScan(d,p){
     const arrows=['←','→','↑'];
     const show=()=>{
       if(p.mode==='traffic'){const go=last!=='go';last=go?'go':'stop';stage.className='cue-stage '+last;cue.textContent=go?'GO':'STOP';beep(go?1100:400,.15);}
+      else if(p.mode==='colors'||p.mode==='numbers'){const opts=p.mode==='colors'?CORNER_COLORS:['1','2','3','4'];let c;do{c=opts[Math.floor(Math.random()*4)];}while(c===last);last=c;
+        if(p.mode==='colors'){stage.className='cue-stage';stage.style.background=c.bg;stage.style.color=c.fg;cue.textContent=c.name;}else{stage.className='cue-stage flash';cue.textContent=c;}
+        beep(990,.12);}
       else{let a;do{a=arrows[Math.floor(Math.random()*3)];}while(a===last&&Math.random()<.6);last=a;
         cue.innerHTML=p.mode==='arrownum'?`${a}<small>${1+Math.floor(Math.random()*5)}</small>`:a;
         stage.className='cue-stage flash';beep(990,.1);
@@ -1094,7 +1147,8 @@ function runScan(d,p){
       later(show,g+(p.show||0));
     };
     if(p.mode==='traffic'){stage.className='cue-stage go';cue.textContent='GO';last='go';later(show,p.gap[0]*1000);}
-    else later(show,1500);
+    else if(p.mode==='colors'||p.mode==='numbers'){cue.textContent='GO!';later(show,1500);}
+    else if(p.mode!=='colors'&&p.mode!=='numbers')later(show,1500);
     every(()=>{const left=(endAt-performance.now())/1000;$('#ct').textContent=fmt(left);
       if(left<=0){endSession();beep(1000,.5);
         body.innerHTML=`<div class="run-center"><h2 style="font-size:40px;text-transform:uppercase">Time!</h2><p>How many cues did you react to correctly?</p>
@@ -1301,7 +1355,8 @@ function renderTraining(){
   const cat=CATS[state.trainCat]?state.trainCat:'passing',c=CATS[cat],kid=state.age===0;
   $('#catTabs').innerHTML=Object.entries(CATS).map(([id,x])=>`<button class="cat-tab" role="tab" data-cat="${id}" aria-selected="${id===cat}">${x.icon}<strong>${x.name}</strong></button>`).join('');
   $('#trTech').innerHTML=`<div class="panel-head"><h3>${c.name} basics</h3></div><p>${kid?'Remember these when you play:':c.why}</p><ul class="keys">${(kid?c.kid:c.keys).map(x=>`<li>${x}</li>`).join('')}</ul>`;
-  const old=oldAT()[0],list=c.ids.map(id=>DRILLS.find(d=>d.id===id)).filter(d=>d&&d.ages.includes(old));
+  const old=oldAT()[0],avail=d=>d&&d.ages.includes(old);
+  const list=[...c.ids.map(id=>DRILLS.find(d=>d.id===id)),...DRILLS.filter(d=>!c.ids.includes(d.id)&&view(d).skill===cat)].filter(avail);
   $('#trLevel').textContent=`${AGES[state.age].name} · ${TIERS[state.tier].name}`;
   $('#trSub').textContent=state.name?`Build the basics, ${state.name}.`:'Build the basics every player needs.';
   // session: an easy warm-up, the main drill, then the hardest one as a challenge (in the order listed above)

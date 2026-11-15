@@ -43,6 +43,13 @@ The file name must match exactly (lowercase, with the dashes).
 | Passing Gates (Little Kickers: Pass Through the Gate) | `passing-gates.mp4` |
 | Speed Dribble | `speed-dribble.mp4` |
 | Figure 8 | `figure-8.mp4` |
+| Sole Rolls (Little Kickers: Ball Rolls) | `sole-rolls.mp4` |
+| Quick Feet (Little Kickers: Hop Over the Line) | `quick-feet.mp4` |
+| Shuttle Run (5-10-5) | `shuttle.mp4` |
+| Toss & Cushion (Little Kickers: Throw & Trap) | `cushion-control.mp4` |
+| Corner Call (Little Kickers: Color Corners) | `corner-call.mp4` |
+| Weak Foot Dribble | `weak-dribble.mp4` |
+| Weak Foot Juggles | `weak-juggle.mp4` |
 
 ## Skill moves
 | Move | File name |

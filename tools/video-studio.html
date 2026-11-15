@@ -305,7 +305,7 @@ function groundLine() { ctx.fillStyle = 'rgba(0,0,0,.15)'; ctx.fillRect(0, GROUN
 // Juggling: ball contact on the laces, peak at waist height, feet alternate.
 function juggleState(t, period, opt = {}) {
   const hip = [430, GROUND - 158], stand = { l: [418, GROUND - 4], r: [442, GROUND - 4] };
-  const n = Math.floor(t / period), u = (t % period) / period, side = n % 2 ? 'l' : 'r';
+  const n = Math.floor(t / period), u = (t % period) / period, side = opt.only || (n % 2 ? 'l' : 'r');
   const kickUp = u > .78 ? (u - .78) / .22 : u < .12 ? 1 - u / .12 : 0, k = ease(kickUp);
   const contact = { l: [462, GROUND - 52], r: [470, GROUND - 52] };
   const la = side === 'l' ? [lerp(stand.l[0], contact.l[0], k), lerp(stand.l[1], contact.l[1], k)] : stand.l;
@@ -616,6 +616,86 @@ SCENES['passing-gates'] = { name: 'Passing Gates', dur: 8, draw(t) {
     caption(d.s < P.len / 2 ? 'Inside of the foot around the first cone' : 'Outside of the foot around the second');
   } };
 }
+
+
+/* ---------- Ball mastery, fitness, first touch, scanning, weak foot ---------- */
+// Sole Rolls: close-up of the feet, rolling the ball across under each sole
+{
+  const steps = []; for (let i = 0; i < 6; i++) { const r = i % 2 === 0;
+    steps.push({ d: .35, cap: r ? 'Right sole rolls it across' : 'Left sole rolls it back', [r ? 'rf' : 'lf']: r ? [24, -6, 0] : [-24, -6, 0], [r ? 'lr' : 'll']: .55, hi: r ? 'r' : 'l' });
+    steps.push({ d: .35, cap: r ? 'Right sole rolls it across' : 'Left sole rolls it back', [r ? 'rf' : 'lf']: r ? [-14, -6, 0] : [14, -6, 0], ball: r ? [-40, -10] : [40, -10] });
+    steps.push({ d: .2, cap: 'Light touches on top of the ball', [r ? 'rf' : 'lf']: r ? [62, 20, 6] : [-62, 20, -6], [r ? 'lr' : 'll']: 0, hi: '' }); }
+  const K = keyed(st({ lf: [-62, 20, -6], rf: [62, 20, 6], ball: [40, -10] }), steps);
+  SCENES['sole-rolls'] = { name: 'Sole Rolls', dur: K.dur + .4, draw(t) { const f = K.at(Math.min(K.dur, t)); moveScene(f.s); title('Sole Rolls'); counter('rolls', Math.min(6, Math.floor(t / .9 + .4))); caption(f.cap); } };
+}
+// Quick Feet: hop side to side over a line, GO / REST
+SCENES['quick-feet'] = { name: 'Quick Feet', dur: 8, draw(t) {
+  pitch(); ctx.strokeStyle = '#fff'; ctx.lineWidth = 5; ctx.beginPath(); ctx.moveTo(480, 150); ctx.lineTo(480, 430); ctx.stroke();
+  const go = t % 4 < 2.6, x = go ? 480 + 34 * Math.sign(Math.sin(t * Math.PI * 4.5)) : 430;
+  playerTop(x, 290, -Math.PI / 2, go ? t * 30 : 0, { stride: .5 });
+  ctx.font = `800 70px ${FONT}`; ctx.textAlign = 'center'; ctx.fillStyle = go ? C.bib : 'rgba(255,255,255,.75)'; ctx.fillText(go ? 'GO!' : 'REST', 760, 170);
+  title('Quick Feet'); caption(go ? 'Hop side to side over the line, fast' : 'Rest, then go again');
+} };
+// Shuttle Run 5-10-5
+{
+  const P = path([[480, 300], [300, 300], [290, 300], [660, 300], [670, 300], [480, 300]]);
+  SCENES['shuttle'] = { name: 'Shuttle Run (5-10-5)', dur: 7, draw(t) {
+    pitch(); [300, 480, 660].forEach((x) => cone(x, 330, 1.3));
+    const run = Math.min(1, t / 3.6), p = P.at(P.len * run), go = t < 3.6;
+    playerTop(p.x, p.y - 10, p.dir, t * 22, { stride: 1.5 });
+    ctx.font = `800 70px ${FONT}`; ctx.textAlign = 'center'; ctx.fillStyle = go ? C.bib : 'rgba(255,255,255,.75)'; ctx.fillText(go ? 'GO!' : 'REST', 480, 170);
+    title('Shuttle Run (5-10-5)'); caption(!go ? 'Walk it off, then go again' : run < .3 ? 'Sprint to one end and touch the line' : run < .8 ? 'All the way to the other end' : 'Back through the middle');
+  } };
+}
+// Toss & Cushion: toss it up, meet it with the foot, it stops dead
+SCENES['cushion-control'] = { name: 'Toss & Cushion', dur: 9, draw(t) {
+  pitch(); groundLine();
+  const R = 3, u = t % R, n = Math.floor(t / R), hold = [486, 286], top = [500, 110], meet = [500, GROUND - 70], rest = [504, GROUND - 22];
+  let b = hold, hands = [486, 288], held = true, k = 0, cap;
+  if (u < .5) cap = 'Toss the ball up';
+  else if (u < 1.0) { const q = (u - .5) / .5; b = [lerp(hold[0], top[0], q), lerp(hold[1], top[1], 1 - (1 - q) * (1 - q))]; held = false; hands = [496, lerp(288, 200, q)]; cap = 'Toss the ball up'; }
+  else if (u < 1.55) { const q = (u - 1.0) / .55; b = [top[0], lerp(top[1], meet[1], q * q)]; held = false; hands = [470, 300]; k = q > .5 ? ease((q - .5) / .5) : 0; cap = 'Meet it early with your foot'; }
+  else if (u < 1.9) { const q = (u - 1.55) / .35; b = [lerp(meet[0], rest[0], q), lerp(meet[1], rest[1], q)]; held = false; hands = [470, 300]; k = 1 - ease(q); cap = 'Pull your foot back: cushion it'; }
+  else { b = rest; held = false; hands = [470, 300]; cap = 'Stopped dead!'; }
+  const kick = [474, GROUND - 56], stand = { l: [418, GROUND - 4], r: [442, GROUND - 4] };
+  sideFigure({ hip: [430, GROUND - 158], la: stand.l, ra: [lerp(stand.r[0], kick[0], k), lerp(stand.r[1], kick[1], k)], rfa: lerp(0, -14, k), hiR: k > .2, hands: held || u < 1.0 ? hands : null, arm: .3 });
+  ball(b[0], b[1], 20, 0, false);
+  if (held) { ctx.fillStyle = '#8a5a3e'; ctx.beginPath(); ctx.arc(b[0] + 18, b[1] + 4, 8, 0, 7); ctx.fill(); }
+  title('Toss & Cushion'); counter('stops', n + (u > 1.9 ? 1 : 0)); caption(cap);
+} };
+// Corner Call: dribble to the cone number on the phone
+{
+  const corners = { 1: [300, 140], 2: [660, 140], 3: [660, 420], 4: [300, 420] }, seq = [2, 4, 1], mid = [480, 280];
+  SCENES['corner-call'] = { name: 'Corner Call', dur: 9, draw(t) {
+    pitch(); ctx.strokeStyle = 'rgba(255,255,255,.45)'; ctx.setLineDash([10, 8]); ctx.lineWidth = 3; ctx.strokeRect(300, 140, 360, 280); ctx.setLineDash([]);
+    Object.entries(corners).forEach(([n, [x, y]]) => { cone(x, y, 1.3); ctx.fillStyle = '#fff'; ctx.font = `800 22px ${FONT}`; ctx.textAlign = 'center'; ctx.fillText(n, x + (x < 480 ? -30 : 30), y + 6); });
+    const i = Math.min(2, Math.floor(t / 3)), u = (t % 3) / 3, c = corners[seq[i]];
+    const go = u < .5 ? ease(u / .5) : 1 - ease((u - .5) / .5), x = lerp(mid[0], c[0] + (c[0] < 480 ? 30 : -30), go), y = lerp(mid[1], c[1] + (c[1] < 280 ? 30 : -30), go);
+    const dir = Math.atan2((c[1] - mid[1]) * (u < .5 ? 1 : -1), (c[0] - mid[0]) * (u < .5 ? 1 : -1));
+    playerTop(x, y, dir, t * 14); ball(x + Math.cos(dir) * 38, y + Math.sin(dir) * 38, 14, t * 8);
+    ctx.fillStyle = '#10241A'; roundRect(820, 300, 80, 130, 10); ctx.fill(); ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.stroke();
+    ctx.fillStyle = C.bib; ctx.fillRect(828, 312, 64, 100); ctx.fillStyle = C.ink; ctx.font = `800 64px ${FONT}`; ctx.textBaseline = 'middle'; ctx.fillText(seq[i], 860, 364); ctx.textBaseline = 'alphabetic';
+    title('Corner Call'); caption(u < .5 ? `The phone says ${seq[i]}: dribble to cone ${seq[i]}` : 'Touch it, then back to the middle');
+  } };
+}
+// Weak Foot Dribble: tight box, left foot only
+{
+  const P = path([[480, 250], [540, 230], [560, 290], [500, 330], [430, 300], [440, 240], [480, 250]], true);
+  SCENES['weak-dribble'] = { name: 'Weak Foot Dribble', dur: 8, draw(t) {
+    pitch(); ctx.strokeStyle = 'rgba(255,255,255,.6)'; ctx.setLineDash([10, 8]); ctx.lineWidth = 3; ctx.strokeRect(360, 170, 240, 230); ctx.setLineDash([]);
+    [[360, 170], [600, 170], [360, 400], [600, 400]].forEach(([x, y]) => cone(x, y));
+    const d = dribble(P, t, 70, { touch: .35, leftColor: C.left });
+    title('Weak Foot Dribble', 'LEFT FOOT ONLY'); counter('touches', d.touches); caption(t < 4 ? 'Only your weak foot touches the ball' : 'Inside and outside of the weak foot');
+  } };
+}
+// Weak Foot Juggles
+SCENES['weak-juggle'] = { name: 'Weak Foot Juggles', dur: 9, draw(t) {
+  pitch(); groundLine();
+  const P = .9, j = juggleState(t, P, { only: 'l', peak: 130 });
+  sideFigure(j.fig); ball(...j.ball, 20, t * 4, false);
+  title('Weak Foot Juggles', 'LEFT FOOT ONLY'); counter('in a row', j.n + (t % P > P * .9 ? 1 : 0));
+  caption(t < 4.5 ? 'Weak foot only: toes up, soft ankle' : 'Keep it low until it feels easy');
+} };
 
 /* ---------- Render API ---------- */
 window.SCENE_LIST = Object.entries(SCENES).map(([id, s]) => ({ id, name: s.name, dur: Math.round(s.dur * 100) / 100 }));
