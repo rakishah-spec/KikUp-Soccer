@@ -230,6 +230,44 @@ main .wrap{padding-block:24px 56px;display:grid;gap:28px}
 .car-dots button.on{background:#FF8533;width:22px;border-radius:5px}
 .car-hint{position:absolute;bottom:36px;right:10px;background:rgba(0,0,0,.55);color:#fff;font-size:12px;font-weight:700;padding:4px 10px;border-radius:99px;pointer-events:none}
 
+/* Getting started (first visit) */
+.onb{position:fixed;inset:0;z-index:40;overflow:auto;color:#F4F8F2;background:repeating-linear-gradient(90deg,#1D6A3A 0 64px,#227740 64px 128px)}
+.onb::before{content:"";position:fixed;left:50%;top:50%;width:min(140vw,900px);aspect-ratio:1;border:3px solid rgba(255,255,255,.12);border-radius:50%;transform:translate(-50%,-50%);pointer-events:none}
+.onb-in{position:relative;max-width:560px;min-height:100%;margin:0 auto;display:flex;flex-direction:column;padding:calc(12px + env(safe-area-inset-top,0px)) max(20px,env(safe-area-inset-right,0px)) calc(24px + env(safe-area-inset-bottom,0px)) max(20px,env(safe-area-inset-left,0px))}
+.onb-top{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:44px}
+.onb-back,.onb-skip{background:rgba(0,0,0,.25);border:1px solid rgba(255,255,255,.25);color:#fff;border-radius:999px;padding:8px 14px;font-weight:700}
+.onb-back,.onb-skip{min-width:72px;height:44px}
+.onb-back{padding:0;font-size:20px}
+.onb-back[hidden],.onb-skip[hidden]{display:block!important;visibility:hidden}
+.onb h1:focus,.onb h2:focus{outline:none}
+.onb-dots{display:flex;gap:6px}
+.onb-dots i{width:8px;height:8px;border-radius:99px;background:rgba(255,255,255,.35);transition:width .2s}
+.onb-dots i.on{width:24px;background:#FF8533}
+.onb-body{flex:1;display:flex;flex-direction:column;justify-content:center;gap:20px;padding-block:20px}
+.onb h1{font-family:var(--display);font-size:clamp(64px,20vw,112px);font-weight:800;text-transform:uppercase;line-height:.9;margin:0}
+.onb h1 span{color:#FF8533}
+.onb h2{font-family:var(--display);font-size:clamp(34px,9vw,46px);font-weight:800;text-transform:uppercase;line-height:1;margin:0}
+.onb p.lead{font-size:18px;margin:0;color:#e3eee6;max-width:40ch}
+.onb-list{display:grid;gap:12px;margin:0;padding:0;list-style:none}
+.onb-list li{display:flex;gap:14px;align-items:center;background:rgba(0,0,0,.25);border-radius:14px;padding:12px 14px}
+.onb-list svg{width:38px;height:38px;flex:none;color:#FF8533}
+.onb-list b{display:block;font-size:17px}
+.onb-list span{font-size:14px;color:#cfe0d4}
+.onb-choices{display:grid;gap:10px}
+.onb-choice{text-align:left;display:flex;justify-content:space-between;align-items:center;gap:12px;background:rgba(0,0,0,.28);border:2px solid rgba(255,255,255,.2);border-radius:14px;padding:14px 16px;color:#fff}
+.onb-choice strong{font-family:var(--display);font-size:26px;text-transform:uppercase;line-height:1}
+.onb-choice small{display:block;font-size:14px;color:#cfe0d4;margin-top:2px}
+.onb-choice[aria-pressed="true"]{background:#FF8533;border-color:#FF8533;color:#1A0B00}
+.onb-choice[aria-pressed="true"] small{color:#3a1d05}
+.onb-choice .chk{width:26px;height:26px;border-radius:50%;border:2px solid currentColor;flex:none;display:grid;place-items:center;font-weight:800}
+.onb input[type=text]{font:inherit;font-size:22px;padding:14px 16px;border-radius:14px;border:2px solid rgba(255,255,255,.35);background:rgba(0,0,0,.25);color:#fff;width:100%}
+.onb input[type=text]::placeholder{color:rgba(255,255,255,.55)}
+.onb input[type=text]:focus{outline:none;border-color:#FF8533}
+.onb .btn-primary{width:100%;font-size:24px;padding:16px}
+.onb .btn-primary:disabled{opacity:.45}
+.onb-note{font-size:14px;color:#cfe0d4;text-align:center;margin:0}
+.link-btn{background:none;border:0;padding:0;color:var(--muted);font-weight:600;text-decoration:underline;justify-self:start;font-size:14px}
+
 /* Live camera counter */
 .cam-tip{position:absolute;left:8px;right:8px;bottom:8px;display:flex;gap:10px;align-items:center;background:rgba(14,38,24,.88);border:2px solid var(--bib);border-radius:12px;padding:10px 12px;color:#fff;text-align:left}
 .cam-tip svg{width:44px;height:44px;flex:none;color:var(--bib)}
@@ -265,11 +303,17 @@ main .wrap{padding-block:24px 56px;display:grid;gap:28px}
 <body>
 
 
+<div class="onb" id="onb" role="dialog" aria-modal="true" aria-labelledby="onbTitle" hidden>
+  <div class="onb-in">
+    <div class="onb-top"><button class="onb-back" id="onbBack" aria-label="Back">←</button><div class="onb-dots" id="onbDots"></div><button class="onb-skip" id="onbSkip">Skip</button></div>
+    <div class="onb-body" id="onbBody"></div>
+  </div>
+</div>
 <header class="hdr">
   <div class="wrap">
     <div class="brand">
       <h1>Kik<span>Up</span></h1>
-      <p>Soccer training on your own. Level up.</p>
+      <p id="hello">Soccer training on your own. Level up.</p>
     </div>
     <div class="hdr-stats">
       <span class="pill" id="pillLevel"></span>
@@ -293,6 +337,7 @@ main .wrap{padding-block:24px 56px;display:grid;gap:28px}
         <div class="bar"><i id="progBar" style="width:0"></i></div>
       </div>
       <div id="levelUp"></div>
+      <button class="link-btn" id="reOnb">Getting started guide</button>
     </section>
 
     <section style="display:grid;gap:14px">
@@ -519,6 +564,7 @@ function renderHome(){
   $('#tierSeg').innerHTML=TIERS.map((t,i)=>`<button class="opt" data-tier="${i}" aria-pressed="${state.tier===i}"><strong>${t.name}</strong><small>${t.blurb}</small></button>`).join('');
   const lvl=`${AGES[state.age].name} · ${TIERS[state.tier].name}`;
   $('#pillLevel').textContent=lvl;
+  $('#hello').textContent=state.name?`Hi ${state.name}! Ready to train?`:'Soccer training on your own. Level up.';
   const total=Object.values(state.stars).reduce((s,n)=>s+n,0);
   $('#pillStars').textContent=total; $('#pillStreak').textContent=liveStreak();
   const av=available(), mv=MOVES.filter(m=>m.from<=levelIdx()).map(moveAsDrill), all=[...av,...mv];
@@ -723,7 +769,7 @@ function openFeedback(d,info){
   $('#fbPick').onchange=e=>handle(e.target.files);
 }
 const esc=t=>String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-const headline=s=>['','Good work. Keep at it.','So close!','Goal crushed!'][s];
+const headline=s=>{const n=state.name?`, ${state.name}`:'';return ['',`Good work${n}. Keep at it.`,`So close${n}!`,`Goal crushed${n}!`][s];};
 
 /* Phone tilt: a phone lying flat or tilted down can't see the ball. Shown where the browser reports tilt (most Android phones). */
 let tiltOff=null;
@@ -989,7 +1035,65 @@ function runGap(d,p){
   }
 }
 
+/* ---------- Getting started (first visit) ---------- */
+const ONB_ICON={
+  drills:'<svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M8 32 20 8l12 24Z"/><path d="M13 23h14"/></svg>',
+  camera:'<svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="3"><rect x="5" y="11" width="30" height="21" rx="4"/><circle cx="20" cy="21.5" r="6"/><path d="M14 11l2-4h8l2 4"/></svg>',
+  coach:'<svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="3" stroke-linejoin="round"><path d="M6 8h28v18H18l-8 7v-7H6Z"/><path d="M12 15h16M12 20h10" stroke-linecap="round"/></svg>',
+  star:'<svg viewBox="0 0 40 40" fill="currentColor"><path d="m20 4 4.9 10 11 1.6-8 7.8 1.9 11L20 29.2 10.2 34.4l1.9-11-8-7.8 11-1.6Z"/></svg>',
+  phone:'<svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="3"><rect x="13" y="3" width="14" height="25" rx="3"/><path d="M8 36h24M20 28v8" stroke-linecap="round"/></svg>',
+  steps:'<svg viewBox="0 0 40 40" fill="currentColor"><ellipse cx="12" cy="28" rx="4" ry="6"/><ellipse cx="26" cy="12" rx="4" ry="6"/></svg>',
+  ball:'<svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="3"><circle cx="20" cy="20" r="14"/><path d="m20 13 6 4-2 7h-8l-2-7Z" fill="currentColor"/></svg>'};
+let onbStep=0;const onbDraft={};
+function openOnb(){onbStep=0;Object.assign(onbDraft,{name:state.name||'',age:state.onboarded?state.age:null,tier:state.onboarded?state.tier:null});$('#onb').hidden=false;document.body.style.overflow='hidden';renderOnb();}
+function closeOnb(){$('#onb').hidden=true;document.body.style.overflow='';}
+function finishOnb(){state.name=onbDraft.name.trim().slice(0,20);if(onbDraft.age!=null)state.age=onbDraft.age;if(onbDraft.tier!=null)state.tier=onbDraft.tier;
+  state.onboarded=true;state.skill='all';state.tab='drills';save();closeOnb();renderHome();window.scrollTo(0,0);}
+function renderOnb(){
+  const steps=5,b=$('#onbBody'),nm=onbDraft.name.trim();
+  $('#onbDots').innerHTML=Array.from({length:steps},(_,i)=>`<i class="${i===onbStep?'on':''}"></i>`).join('');
+  $('#onbBack').hidden=onbStep===0;$('#onbSkip').hidden=onbStep===steps-1;
+  const choice=(key,i,title,sub)=>`<button class="onb-choice" data-k="${key}" data-v="${i}" aria-pressed="${onbDraft[key]===i}"><span><strong>${title}</strong><small>${sub}</small></span><span class="chk">${onbDraft[key]===i?'✓':''}</span></button>`;
+  if(onbStep===0)b.innerHTML=`<h1 id="onbTitle">Kik<span>Up</span></h1>
+    <p class="lead">Train like a pro, on your own. Grab a ball and a phone and you're ready.</p>
+    <ul class="onb-list">
+      <li>${ONB_ICON.drills}<div><b>Drills for your level</b><span>Matched to your age and how long you've played</span></div></li>
+      <li>${ONB_ICON.camera}<div><b>Your camera counts your reps</b><span>No tapping. Just play.</span></div></li>
+      <li>${ONB_ICON.coach}<div><b>Coach tips after every drill</b><span>What went well and what to fix next</span></div></li>
+      <li>${ONB_ICON.star}<div><b>Earn stars and level up</b><span>New skill moves unlock as you go</span></div></li>
+    </ul>
+    <button class="btn-primary" id="onbNext">Get started</button>`;
+  if(onbStep===1)b.innerHTML=`<h2 id="onbTitle">What's your name?</h2>
+    <p class="lead">So we can cheer you on. Your first name is plenty.</p>
+    <input type="text" id="onbName" placeholder="Your name" autocomplete="given-name" maxlength="20" value="${esc(onbDraft.name)}">
+    <button class="btn-primary" id="onbNext">${nm?'Next':'Skip for now'}</button>`;
+  if(onbStep===2)b.innerHTML=`<h2 id="onbTitle">${nm?`How old are you, ${esc(nm)}?`:'How old are you?'}</h2>
+    <div class="onb-choices">${AGES.map((a,i)=>choice('age',i,a.name,a.range)).join('')}</div>
+    <button class="btn-primary" id="onbNext"${onbDraft.age==null?' disabled':''}>Next</button>`;
+  if(onbStep===3)b.innerHTML=`<h2 id="onbTitle">How good are you?</h2>
+    <p class="lead">Be honest. You can move up any time, and the app tells you when you're ready.</p>
+    <div class="onb-choices">${TIERS.map((t,i)=>choice('tier',i,t.name,t.blurb)).join('')}</div>
+    <button class="btn-primary" id="onbNext"${onbDraft.tier==null?' disabled':''}>Next</button>`;
+  if(onbStep===4)b.innerHTML=`<h2 id="onbTitle">Set up your camera</h2>
+    <p class="lead">Do this before each drill so the camera can count for you.</p>
+    <ul class="onb-list">
+      <li>${ONB_ICON.phone}<div><b>Stand your phone up straight</b><span>Prop it against a shoe, bag or water bottle at about knee height</span></div></li>
+      <li>${ONB_ICON.steps}<div><b>Step back 3–4 big steps</b><span>Your feet and the ball need to be in the picture. Your whole body is fine too.</span></div></li>
+      <li>${ONB_ICON.ball}<div><b>Wait for the green lights</b><span>When the camera sees the ball, the drill starts by itself</span></div></li>
+    </ul>
+    <button class="btn-primary" id="onbNext">${nm?`Let's go, ${esc(nm)}!`:"Start training"}</button>
+    <p class="onb-note">Tap Allow when your phone asks to use the camera. Video never leaves your phone.</p>`;
+  const nx=$('#onbNext');nx.onclick=()=>{if(onbStep===steps-1)finishOnb();else{onbStep++;renderOnb();}};
+  const inp=$('#onbName');if(inp){inp.oninput=()=>{onbDraft.name=inp.value;nx.textContent=inp.value.trim()?'Next':'Skip for now';};inp.onkeydown=e=>{if(e.key==='Enter')nx.click();};}
+  b.querySelectorAll('.onb-choice').forEach(c=>c.onclick=()=>{onbDraft[c.dataset.k]=+c.dataset.v;renderOnb();});
+  const f=b.querySelector('h1,h2');if(f){f.tabIndex=-1;f.focus({preventScroll:true});}
+}
+$('#onbBack').onclick=()=>{if(onbStep>0){onbStep--;renderOnb();}};
+$('#onbSkip').onclick=()=>{onbStep=4;renderOnb();};
+$('#reOnb').onclick=openOnb;
+
 renderHome();
+if(!state.onboarded)openOnb();
 </script>
 
 </body>
