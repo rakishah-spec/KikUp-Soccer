@@ -12,6 +12,8 @@ plus a live camera rep counter.
 - `js/feedback.js` — turns what the camera measured into coaching tips after each drill (no AI, no network).
 - `videos/` — a demo video for every drill and skill move (swipe right on a card to watch).
 - `tools/video-studio.html`, `tools/make-videos.js` — the animations behind those videos, and the script that renders them.
+- `js/social.js`, `js/firebase-config.js`, `firestore.rules` — Friends: accounts, friend codes, friend streaks, leaderboard and challenges (Firebase). Setup steps: `FRIENDS-SETUP.md`.
+- `vendor/firebase/` — Firebase 12.3.0 web library (Apache 2.0).
 - `tests/` — simulated-movement tests: `node tests/reps.test.mjs` and `node tests/feedback.test.mjs`.
 
 ## Run it locally

@@ -372,6 +372,69 @@ main .wrap{padding-block:24px 56px;display:grid;gap:28px}
 .pos-hero.midfielder{background:linear-gradient(135deg,#1D8A6A,#0F5C46)}
 .pos-hero.forward{background:linear-gradient(135deg,#C93636,#8E1F1F)}
 
+/* Friends */
+.fr-hero{background:linear-gradient(135deg,#7A3FD1,#4B1F9E);color:#fff;border:0}
+.fr-hero h3{font-size:30px}
+.fr-hero p,.fr-hero li{color:#f0e9ff}
+.fr-hero ul{margin:0;padding-left:20px;display:grid;gap:6px}
+.fr-btns{display:flex;gap:10px;flex-wrap:wrap}
+.fr-btns .btn-ghost{color:#fff;border-color:rgba(255,255,255,.6)}
+.fr-me{display:grid;gap:12px}
+.fr-me .row{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.fr-name{font-family:var(--display);font-size:30px;font-weight:800;text-transform:uppercase;line-height:1}
+.code-box{display:flex;align-items:center;gap:10px;background:var(--surface-2);border-radius:10px;padding:8px 12px;font-weight:700}
+.code-box{flex-wrap:wrap}
+.code-box code{font-family:var(--display);font-size:24px;letter-spacing:.08em;white-space:nowrap}
+.code-box button,.mini{background:var(--ink);color:var(--bg);border:0;border-radius:8px;padding:6px 12px;font-weight:700;font-size:14px}
+.mini.ghost{background:transparent;color:var(--ink);border:1.5px solid var(--rule)}
+.mini.warn{background:transparent;color:var(--bad);border:1.5px solid var(--bad)}
+.who{display:flex;gap:8px;flex-wrap:wrap}
+.who button{border:2px solid var(--rule);background:var(--surface);border-radius:999px;padding:6px 14px;font-weight:700}
+.who button[aria-pressed="true"]{border-color:var(--bib);background:var(--bib);color:var(--bib-ink)}
+.add-row{display:flex;gap:8px;flex-wrap:wrap}
+.add-row input{flex:1;min-width:0;font:inherit;font-size:20px;letter-spacing:.06em;text-transform:uppercase;padding:10px 12px;border-radius:10px;border:2px solid var(--rule);background:var(--surface);color:var(--ink)}
+.add-row input:focus{outline:none;border-color:var(--bib)}
+.fr-msg{margin:0;font-weight:600;font-size:14px}.fr-msg.bad{color:var(--bad)}.fr-msg.good{color:var(--good)}
+.fr-list{list-style:none;margin:0;padding:0;display:grid}
+.fr-list li{display:grid;grid-template-columns:auto 1fr auto;gap:2px 12px;align-items:center;padding:12px 0;border-top:1px solid var(--rule)}
+.fr-list li:first-child{border-top:0}
+.flame{grid-row:span 2;width:52px;height:56px;position:relative;display:grid;place-items:center}
+.flame svg{position:absolute;inset:0;width:100%;height:100%}
+.flame b{position:relative;font-family:var(--display);font-size:22px;font-weight:800;color:#1A0B00;margin-top:10px;font-variant-numeric:tabular-nums}
+.flame.off svg path{fill:var(--surface-2)}
+.flame.off b{color:var(--muted)}
+.fr-list .nm{font-weight:800;font-size:17px}
+.fr-list .st{font-size:13px;color:var(--muted)}
+.fr-list .st.go{color:var(--good);font-weight:700}.fr-list .st.risk{color:var(--bib);font-weight:700}
+.fr-list .acts{grid-row:span 2;display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.lb{list-style:none;margin:0;padding:0;display:grid;gap:6px;counter-reset:r}
+.lb li{display:grid;grid-template-columns:32px 1fr auto;align-items:center;gap:10px;padding:8px 12px;border-radius:10px;background:var(--surface-2);font-weight:700}
+.lb li.me{background:var(--bib);color:var(--bib-ink)}
+.lb .rk{font-family:var(--display);font-size:22px}
+.lb .pts{font-variant-numeric:tabular-nums}
+.auth-f{display:grid;gap:12px}
+.auth-f label{display:grid;gap:6px;font-weight:700;font-size:15px}
+.onb .auth-f input[type=text],.onb .auth-f input[type=password],.onb .auth-f input[type=email]{font:inherit;font-size:20px;padding:12px 14px;border-radius:12px;border:2px solid rgba(255,255,255,.35);background:rgba(0,0,0,.25);color:#fff;width:100%}
+.onb .auth-f input:focus{outline:none;border-color:#FF8533}
+.auth-f .chk{display:flex;gap:10px;align-items:flex-start;font-weight:500;font-size:14px;line-height:1.4}
+.auth-f .chk input{width:22px;height:22px;flex:none;margin-top:1px;accent-color:#FF8533}
+.auth-err{color:#FFB4A8;font-weight:700;margin:0;min-height:1.2em}
+.auth-link{background:none;border:0;color:#fff;text-decoration:underline;font-weight:600;padding:4px;justify-self:center}
+.nick{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px}
+.nick button{background:rgba(0,0,0,.28);border:2px solid rgba(255,255,255,.25);color:#fff;border-radius:12px;padding:10px;font-weight:700}
+.nick button[aria-pressed="true"]{background:#FF8533;border-color:#FF8533;color:#1A0B00}
+.seg2{display:grid;grid-template-columns:1fr 1fr;gap:6px;background:rgba(0,0,0,.25);border-radius:12px;padding:4px}
+.seg2 button{border:0;background:transparent;color:#fff;font-weight:700;padding:10px;border-radius:9px}
+.seg2 button[aria-pressed="true"]{background:#FF8533;color:#1A0B00}
+.ch-drills{display:grid;gap:6px;max-height:40vh;overflow:auto}
+.ch-drills button{text-align:left;display:flex;justify-content:space-between;gap:10px;background:var(--surface-2);border:2px solid transparent;border-radius:10px;padding:10px 12px;color:var(--ink);font-weight:700}
+.ch-drills button[aria-pressed="true"]{border-color:var(--bib)}
+.ch-drills small{color:var(--muted);font-weight:600}
+.chips2{display:flex;flex-wrap:wrap;gap:6px}
+.chips2 button{border:1.5px solid var(--rule);background:var(--surface);border-radius:999px;padding:6px 12px;font-weight:700;font-size:14px;color:var(--ink)}
+.chips2 button[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(20px + env(safe-area-inset-bottom,0px));z-index:60;background:var(--ink);color:var(--bg);padding:12px 18px;border-radius:12px;font-weight:700;max-width:min(92vw,420px);box-shadow:0 8px 24px rgba(0,0,0,.3)}
+
 /* Live camera counter */
 .cam-tip{position:absolute;left:8px;right:8px;bottom:8px;display:flex;gap:10px;align-items:center;background:rgba(14,38,24,.88);border:2px solid var(--bib);border-radius:12px;padding:10px 12px;color:#fff;text-align:left}
 .cam-tip svg{width:44px;height:44px;flex:none;color:var(--bib)}
@@ -425,11 +488,20 @@ main .wrap{padding-block:24px 56px;display:grid;gap:28px}
     <a href="#midfielder" data-nav="midfielder"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 3v18M3 12h18" stroke="currentColor" stroke-width="1.6"/></svg>Midfielder</a>
     <a href="#forward" data-nav="forward"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20 20 4M12 4h8v8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Forward</a>
     <span class="drawer-h">You</span>
+    <a href="#friends" data-nav="friends"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.5" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="17" cy="9" r="2.6" fill="none" stroke="currentColor" stroke-width="2"/><path d="M2.5 20c.6-3.6 3.3-5.5 6.5-5.5s5.9 1.9 6.5 5.5M15 14.6c2.8-.3 5 1.3 5.6 4.4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>Friends</a>
     <a href="#progress" data-nav="progress"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>My progress</a>
     <button id="menuGuide"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 11v6M12 7.5v.5" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>Getting started guide</button>
   </nav>
 </div>
 <div class="tip" id="tip" role="tooltip" hidden></div>
+<div class="onb" id="authOv" role="dialog" aria-modal="true" aria-labelledby="authTitle" hidden>
+  <div class="onb-in">
+    <div class="onb-top"><button class="onb-back" id="authBack" aria-label="Back">←</button><span></span><button class="onb-skip" id="authClose">Close</button></div>
+    <div class="onb-body" id="authBody"></div>
+  </div>
+</div>
+<div class="sheet-wrap" id="chSheet" hidden><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="chTitle" id="chInner"></div></div>
+<div class="toast" id="toast" role="status" hidden></div>
 <header class="hdr">
   <div class="wrap">
     <div class="brand">
@@ -533,6 +605,10 @@ main .wrap{padding-block:24px 56px;display:grid;gap:28px}
       <div class="panel-head"><h3 id="posAll" class="sec-h"></h3><span class="muted small" id="posLevel"></span></div>
       <div class="grid" id="posGrid"></div>
     </section>
+  </div>
+  <div class="wrap" id="friendsView" hidden>
+    <div class="pg-head"><div><h2>Friends</h2><p class="muted">Train together, keep streaks going, and challenge each other.</p></div><a class="btn-ghost pg-back" href="#train">Back to home</a></div>
+    <div id="frBody" style="display:grid;gap:16px"></div>
   </div>
   <div class="wrap" id="progressView" hidden>
     <div class="pg-head"><div><h2 id="pgTitle">My progress</h2><p class="muted" id="pgSub"></p></div><a class="btn-ghost pg-back" href="#train">Back to training</a></div>
@@ -1640,7 +1716,9 @@ $('#reOnb').onclick=openOnb;
 /* ---------- Training log (for the progress page) ---------- */
 function logSession(d,stars,line){
   const today=dayStr(new Date());(state.days||={})[today]=(state.days[today]||0)+1;
-  (state.history||=[]).unshift({t:Date.now(),id:d.id,name:view(d).name,skill:d.skill==='moves'?'moves':view(d).skill,stars,line:line||'',age:state.age,tier:state.tier});
+  const m=/^(\d+)(?![\d:])/.exec(line||''),count=m?+m[1]:null;
+  (state.history||=[]).unshift({t:Date.now(),id:d.id,name:view(d).name,skill:d.skill==='moves'?'moves':view(d).skill,stars,count,line:line||'',age:state.age,tier:state.tier});
+  if(ME)socialAfterDrill(d,stars,count);
   state.history=state.history.slice(0,200);
   const keys=Object.keys(state.days);if(keys.length>400){keys.sort((a,b)=>new Date(a)-new Date(b)).slice(0,keys.length-400).forEach(x=>delete state.days[x]);}
 }
@@ -1652,10 +1730,10 @@ $('#menuBtn').onclick=openMenu;$('#drawerX').onclick=closeMenu;
 $('#drawer').addEventListener('click',e=>{if(e.target.id==='drawer'||e.target.closest('a'))closeMenu();});
 $('#menuGuide').onclick=()=>{closeMenu();openOnb();};
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('#drawer').hidden)closeMenu();});
-function route(){const pg={'#progress':'progress','#training':'training','#endurance':'endurance','#goalkeeper':'goalkeeper','#defender':'defender','#midfielder':'midfielder','#forward':'forward'}[location.hash]||'train';
-  $('#homeView').hidden=pg!=='train';$('#progressView').hidden=pg!=='progress';$('#trainingView').hidden=pg!=='training';$('#enduranceView').hidden=pg!=='endurance';$('#goalkeeperView').hidden=pg!=='goalkeeper';$('#positionView').hidden=!POSITIONS[pg];
+function route(){const pg={'#progress':'progress','#training':'training','#endurance':'endurance','#goalkeeper':'goalkeeper','#defender':'defender','#midfielder':'midfielder','#forward':'forward','#friends':'friends'}[location.hash]||'train';
+  $('#homeView').hidden=pg!=='train';$('#progressView').hidden=pg!=='progress';$('#trainingView').hidden=pg!=='training';$('#enduranceView').hidden=pg!=='endurance';$('#goalkeeperView').hidden=pg!=='goalkeeper';$('#positionView').hidden=!POSITIONS[pg];$('#friendsView').hidden=pg!=='friends';
   document.querySelectorAll('.drawer [data-nav]').forEach(a=>a.toggleAttribute('aria-current',a.dataset.nav===pg)&&a.setAttribute('aria-current','page'));
-  if(pg==='progress')renderProgress();if(pg==='training')renderTraining();if(pg==='endurance')renderEndurance();if(pg==='goalkeeper')renderGoalkeeper();if(POSITIONS[pg])renderPosition(pg);if(pg==='train')renderHome();window.scrollTo(0,0);}
+  if(pg==='progress')renderProgress();if(pg==='training')renderTraining();if(pg==='endurance')renderEndurance();if(pg==='goalkeeper')renderGoalkeeper();if(POSITIONS[pg])renderPosition(pg);if(pg==='friends'){renderFriends();if(SOC&&SOC.configured()&&ME)SOC.getFriendships(ME).then(l=>{FR=l;renderFriendsIfOpen();}).catch(()=>{});}if(pg==='train')renderHome();window.scrollTo(0,0);}
 window.addEventListener('hashchange',route);
 
 /* ---------- Training page: passing, shooting, dribbling ---------- */
@@ -1751,6 +1829,193 @@ function renderPosition(id){
   $('#posSess').innerHTML=pick.map((d,i)=>`<li><button data-open="${d.id}"><span class="n">${i+1}</span><span class="role">${roles[i]}</span><span class="meta">${planMinutes(d,d.plan(...oldAT()))} min<br>${starsHtml(state.stars[k(d)]||0)}</span><b>${view(d).name}</b></button></li>`).join('');
   $('#posGrid').innerHTML=list.map(drillCard).join('');
 }
+
+/* ---------- Friends: accounts, friend streaks, leaderboard, challenges ---------- */
+let SOC=null,ACC=null,ME=null,FR=[],CH={incoming:[],sent:[]},frOff=null,chOff=null,authStep='start',authData={};
+const PID_KEY='kikup:pid';
+const lsGet=k=>{try{return localStorage.getItem(k)}catch(e){return null}},lsSet=(k,v)=>{try{v==null?localStorage.removeItem(k):localStorage.setItem(k,v)}catch(e){}};
+async function social(){if(!SOC)SOC=await import('./js/social.js');return SOC;}
+function toast(msg,ms=3500){const t=$('#toast');t.textContent=msg;t.hidden=false;clearTimeout(toast._t);toast._t=setTimeout(()=>t.hidden=true,ms);}
+const FLAME='<svg viewBox="0 0 52 56" aria-hidden="true"><path d="M26 2c3 9 14 15 14 30a14 14 0 0 1-28 0c0-8 4-13 8-17 0 6 3 9 6 10-3-8-2-16 0-23Z" fill="#FF8533"/></svg>';
+const fmtCode=c=>c?`KIK-${c}`:'';
+
+// Start-up: restore a signed-in account (only loads Firebase when KikUp has been set up for friends)
+(async()=>{try{const s=await social();if(!s.configured())return;const u=await s.init();if(u)await afterLogin();}catch(e){}})();
+
+async function afterLogin(newPid){
+  ACC=await SOC.account();
+  if(!ACC.profiles.length){ME=null;if(ACC.kind==='parent'){openAuth('addkid');}renderFriendsIfOpen();return;}
+  const want=newPid||lsGet(PID_KEY);await usePlayer((ACC.profiles.find(p=>p.id===want)||ACC.profiles[0]).id);
+}
+// Switch to one of this account's players. This device's training record follows the player.
+async function usePlayer(pid){
+  const prev=lsGet(PID_KEY),next=ACC.profiles.find(p=>p.id===pid);if(!next)return;
+  if(ME&&ME.id!==pid)await SOC.savePrivate(ME.id,state).catch(()=>{});
+  const cloud=await SOC.loadPrivate(pid).catch(()=>null);
+  let merged;
+  if(!prev||prev===pid)merged=SOC.merge(state,cloud);                       // same player (or first sign-in here): combine
+  else merged=Object.assign({},state,{stars:{},best:{},days:{},history:[],streak:0,bestStreak:0,lastDay:null},cloud||{});   // a different player on this device
+  Object.assign(state,merged,{age:next.age??state.age,tier:next.tier??state.tier,name:next.name,onboarded:true});
+  ME=next;lsSet(PID_KEY,pid);save();
+  SOC.savePrivate(pid,state).catch(()=>{});
+  if(frOff)frOff();if(chOff)chOff();
+  frOff=SOC.friendships(ME,l=>{FR=l;renderFriendsIfOpen();});
+  chOff=SOC.challenges(ME,c=>{const before=new Set(CH.incoming.map(x=>x.id));CH=c;
+    const fresh=c.incoming.filter(x=>x.status==='open'&&!before.has(x.id));if(before.size&&fresh.length)toast(`${fresh[0].fromName} challenged you: ${fresh[0].msg}`);renderFriendsIfOpen();});
+  renderHome();renderFriendsIfOpen();
+}
+async function socialAfterDrill(d,stars,count){
+  try{const r=await SOC.recordSession(ME,state,{drillId:d.id,stars,count});await SOC.savePrivate(ME.id,state);
+    if(r.done.length){const c=r.done[0];toast(`Challenge beaten! You beat ${c.fromName}'s ${c.target} ${c.unit}.`,5000);}}catch(e){}
+}
+function renderFriendsIfOpen(){if(!$('#friendsView').hidden)renderFriends();}
+
+let frAddMsg=null;   // kept across live redraws
+function renderFriends(){
+  const b=$('#frBody'),typing=document.activeElement&&document.activeElement.id==='frCode',typed=$('#frCode')?$('#frCode').value:'';
+  renderFriendsInner(b);
+  const inp=$('#frCode');if(inp){inp.value=typed;if(typing){inp.focus();}}
+  const m=$('#addMsg');if(m&&frAddMsg){m.className='fr-msg '+frAddMsg[0];m.textContent=frAddMsg[1];}
+}
+function renderFriendsInner(b){
+  if(!SOC||!SOC.configured()){b.innerHTML=`<section class="panel fr-hero"><h3>Friends are almost ready</h3><p>Friend streaks, a friends leaderboard and challenges need a one-time setup by a parent (see FRIENDS-SETUP.md in the KikUp project). Everything else in KikUp works without it.</p></section>`;
+    social().then(s=>{if(s.configured())renderFriends();});return;}
+  if(!SOC.user()){b.innerHTML=`<section class="panel fr-hero"><h3>Train with friends</h3>
+      <ul><li>Keep a friend streak going: you both train on the same day</li><li>See your friends' stars and streaks</li><li>A weekly leaderboard, just for you and your friends</li><li>Challenge a friend to beat your score</li></ul>
+      <p class="small">Friends add each other with a friend code, shared in person. There's no chat and no searching for strangers.</p>
+      <div class="fr-btns"><button class="btn-primary" data-auth="start">Create account</button><button class="btn-ghost" data-auth="login">Log in</button></div></section>`;return;}
+  if(!ME){b.innerHTML=`<section class="panel"><p>Add a player to get started.</p><button class="btn-primary" data-auth="addkid">Add a player</button></section>${accountPanel()}`;return;}
+  const accepted=FR.filter(f=>f.status==='accepted'),incoming=FR.filter(f=>f.incoming),waiting=FR.filter(f=>f.status==='pending'&&!f.incoming);
+  const who=ACC.kind==='parent'?`<div class="who" aria-label="Who's playing">${ACC.profiles.map(p=>`<button data-player="${p.id}" aria-pressed="${p.id===ME.id}">${esc(p.name)}</button>`).join('')}<button data-auth="addkid">+ Add a player</button></div>`:'';
+  const streakTxt=f=>f.meToday&&f.themToday?['go','You both trained today!']:f.atRisk&&!f.meToday?['risk',`Train today to keep your streak with ${esc(f.otherName)}`]:f.themToday?['risk',`${esc(f.otherName)} trained today. Your turn!`]:f.meToday?['',`Waiting for ${esc(f.otherName)} to train today`]:['','Both train today to start a streak'];
+  const lb=[{name:ME.name,me:true,pts:ME.weekKey===SOC.weekKey()?ME.weekStars||0:0},...accepted.map(f=>({name:f.otherName,pts:f.friend.weekStars}))].sort((x,y)=>y.pts-x.pts);
+  const drillName=id=>{const d=DRILLS.find(x=>x.id===id);return d?view(d).name:id;};
+  b.innerHTML=`
+  <section class="panel fr-me"><div class="row"><div><span class="tag">Playing as</span><div class="fr-name">${esc(ME.name)}</div></div>
+      <div class="code-box"><span class="small muted">Your friend code</span><code id="myCode">${fmtCode(ME.friendCode)}</code><button id="copyCode">Copy</button></div></div>${who}
+    <p class="small muted">Share your friend code in person or through a parent. Friends only see your name, stars and streaks.</p></section>
+  <section class="panel"><div class="panel-head"><h3>Add a friend</h3></div>
+    <form class="add-row" id="addForm"><input id="frCode" placeholder="KIK-ABC123" autocomplete="off" aria-label="Friend code" maxlength="12"><button class="btn-primary" style="font-size:18px;padding:10px 18px">Add</button></form><p class="fr-msg" id="addMsg"></p></section>
+  ${incoming.length||waiting.length?`<section class="panel"><div class="panel-head"><h3>Friend requests</h3></div><ul class="fr-list">
+    ${incoming.map(f=>`<li><span class="flame off">${FLAME}<b>?</b></span><span class="nm">${esc(f.otherName)}</span><span class="acts"><button class="mini" data-acc="${f.id}">Accept</button><button class="mini ghost" data-dec="${f.id}">Decline</button></span><span class="st">wants to be friends</span></li>`).join('')}
+    ${waiting.map(f=>`<li><span class="flame off">${FLAME}<b>…</b></span><span class="nm">${esc(f.otherName)}</span><span class="acts"><button class="mini ghost" data-dec="${f.id}">Cancel</button></span><span class="st">Waiting for them to accept</span></li>`).join('')}</ul></section>`:''}
+  <section class="panel"><div class="panel-head"><h3>Friend streaks</h3><span class="muted small">Days in a row you both trained</span></div>
+    ${accepted.length?`<ul class="fr-list">${accepted.sort((x,y)=>y.streakNow-x.streakNow).map(f=>{const [cls,txt]=streakTxt(f);return `<li><span class="flame${f.streakNow?'':' off'}">${FLAME}<b>${f.streakNow}</b></span><span class="nm">${esc(f.otherName)}</span><span class="acts"><button class="mini" data-chal="${f.id}">Challenge</button><button class="mini ghost" data-rm="${f.id}" aria-label="Remove ${esc(f.otherName)}">✕</button></span><span class="st ${cls}">${txt} · ${f.friend.stars} stars · own streak ${f.friend.streak}</span></li>`;}).join('')}</ul>`
+      :`<p class="empty-note">Add a friend with their friend code to start a friend streak.</p>`}</section>
+  ${accepted.length?`<section class="panel"><div class="panel-head"><h3>This week's leaderboard</h3><span class="muted small">Stars earned since Monday</span></div><ol class="lb">${lb.map((r,i)=>`<li class="${r.me?'me':''}"><span class="rk">${i+1}</span><span>${esc(r.name)}${r.me?' (you)':''}</span><span class="pts">${r.pts} ★</span></li>`).join('')}</ol></section>`:''}
+  <section class="panel"><div class="panel-head"><h3>Challenges</h3></div>
+    ${CH.incoming.length||CH.sent.length?`<ul class="fr-list">
+      ${CH.incoming.sort((x,y)=>y.createdAt-x.createdAt).map(c=>`<li><span class="flame${c.status==='done'?'':' off'}">${FLAME}<b>${c.status==='done'?'✓':'!'}</b></span><span class="nm">${esc(c.fromName)}: “${esc(c.msg)}”</span><span class="acts">${c.status==='open'?`<button class="mini" data-go="${c.drillId}">Go</button>`:''}<button class="mini ghost" data-dis="${c.id}" aria-label="Dismiss">✕</button></span><span class="st${c.status==='done'?' go':''}">${c.status==='done'?`You beat it with ${c.result}!`:`Beat ${c.target} ${esc(c.unit)} in ${esc(drillName(c.drillId))}${c.best?` · your best so far ${c.best}`:''}`}</span></li>`).join('')}
+      ${CH.sent.sort((x,y)=>y.createdAt-x.createdAt).map(c=>`<li><span class="flame off">${FLAME}<b>→</b></span><span class="nm">To ${esc(c.toName||'friend')}</span><span class="acts"><button class="mini ghost" data-dis="${c.id}" aria-label="Remove">✕</button></span><span class="st${c.status==='done'?' go':''}">${c.status==='done'?`They beat your ${c.target} with ${c.result}!`:`${c.target} ${esc(c.unit)} in ${esc(drillName(c.drillId))} · not beaten yet`}</span></li>`).join('')}</ul>`
+      :`<p class="empty-note">${accepted.length?'Tap Challenge next to a friend to dare them to beat your score.':'Challenges show up here once you have friends.'}</p>`}</section>
+  ${accountPanel()}`;
+}
+function accountPanel(){return `<section class="panel"><div class="panel-head"><h3>Account</h3><span class="muted small">${ACC&&ACC.kind==='parent'?'Parent account':'Player account'}</span></div>
+  <div class="fr-btns"><button class="mini ghost" id="logOutBtn">Log out</button><button class="mini warn" id="delBtn">Delete account</button></div><p class="fr-msg" id="delMsg"></p></section>`;}
+
+document.addEventListener('click',async e=>{
+  const t=e.target;
+  const au=t.closest('[data-auth]');if(au){openAuth(au.dataset.auth);return;}
+  if(t.id==='copyCode'){const c=$('#myCode').textContent;try{await navigator.clipboard.writeText(c);toast('Friend code copied');}catch(err){const r=document.createRange();r.selectNodeContents($('#myCode'));getSelection().removeAllRanges();getSelection().addRange(r);}return;}
+  const pl=t.closest('[data-player]');if(pl){await usePlayer(pl.dataset.player);toast(`Now playing as ${ME.name}`);return;}
+  const ac=t.closest('[data-acc]');if(ac){const f=FR.find(x=>x.id===ac.dataset.acc);try{await SOC.accept(ME,f);toast(`You and ${f.otherName} are friends!`);}catch(err){toast(SOC.friendlyError(err));}return;}
+  const dc=t.closest('[data-dec]')||t.closest('[data-rm]');if(dc){const id=dc.dataset.dec||dc.dataset.rm,f=FR.find(x=>x.id===id);
+    if(dc.dataset.rm&&dc.dataset.sure!=='1'){dc.dataset.sure='1';dc.textContent='Remove?';setTimeout(()=>{if(dc.isConnected){dc.dataset.sure='';dc.textContent='✕';}},3000);return;}
+    await SOC.removeFriend(f).catch(err=>toast(SOC.friendlyError(err)));return;}
+  const ch=t.closest('[data-chal]');if(ch){openChallenge(FR.find(x=>x.id===ch.dataset.chal));return;}
+  const go=t.closest('[data-go]');if(go){const d=DRILLS.find(x=>x.id===go.dataset.go);if(d)openSheet(d);else toast('That drill isn\'t available at your level.');return;}
+  const ds=t.closest('[data-dis]');if(ds){await SOC.dismissChallenge({id:ds.dataset.dis}).catch(()=>{});return;}
+  if(t.id==='logOutBtn'){if(ME)await SOC.savePrivate(ME.id,state).catch(()=>{});if(frOff)frOff();if(chOff)chOff();await SOC.logOut();ME=null;ACC=null;FR=[];CH={incoming:[],sent:[]};lsSet(PID_KEY,null);renderFriends();toast('Logged out');return;}
+  if(t.id==='delBtn'){if(t.dataset.sure!=='1'){t.dataset.sure='1';t.textContent='Tap again to delete everything';$('#delMsg').className='fr-msg bad';$('#delMsg').textContent='This deletes the account, every player on it, and all friends and challenges. It can\'t be undone.';return;}
+    try{if(frOff)frOff();if(chOff)chOff();await SOC.deleteAccount();ME=null;ACC=null;FR=[];lsSet(PID_KEY,null);renderFriends();toast('Account deleted');}catch(err){$('#delMsg').textContent=SOC.friendlyError(err);}return;}
+});
+document.addEventListener('submit',async e=>{
+  if(e.target.id==='addForm'){e.preventDefault();const code=$('#frCode').value,show=(c,t)=>{frAddMsg=[c,t];const m=$('#addMsg');if(m){m.className='fr-msg '+c;m.textContent=t;}};show('','Looking up that code…');
+    try{const o=await SOC.sendRequest(ME,code);$('#frCode').value='';show('good',`Friend request sent to ${o.name}. They need to accept it.`);}catch(err){show('bad',SOC.friendlyError(err));}
+    setTimeout(()=>{frAddMsg=null;},8000);}
+});
+
+// ---- challenge composer: pick a drill and a preset message ----
+function openChallenge(f){
+  const mine=state.history||[],old=oldAT()[0];
+  const drills=DRILLS.filter(d=>d.mode==='count'&&d.ages.includes(old));
+  const best=id=>mine.filter(h=>h.id===id&&h.count!=null).reduce((a,h)=>Math.max(a,h.count),0);
+  const sorted=drills.sort((a,b)=>best(b.id)-best(a.id));let pick=sorted[0],msg=SOC.MESSAGES[0];
+  const render=()=>{const p=pick.plan(...oldAT()),tgt=best(pick.id)||p.target;
+    $('#chInner').innerHTML=`<div class="sheet-in" style="padding-top:20px"><div><span class="tag">Challenge</span><h2 id="chTitle">${esc(f.otherName)}</h2></div>
+      <div><h3>Pick a drill</h3><div class="ch-drills">${sorted.map(d=>`<button data-cd="${d.id}" aria-pressed="${d===pick}"><span>${view(d).name}</span><small>${best(d.id)?`your best: ${best(d.id)}`:'no score yet'}</small></button>`).join('')}</div></div>
+      <div><h3>Message</h3><div class="chips2">${SOC.MESSAGES.map(m=>`<button data-cm="${esc(m)}" aria-pressed="${m===msg}">${esc(m)}</button>`).join('')}</div></div>
+      <div class="goalbox"><span class="lbl">They have to beat</span><span class="big">${tgt} ${p.unit}</span><span class="small">${best(pick.id)?'Your best score in this drill':'The goal for your level (do the drill yourself to set your own score)'}</span></div>
+      <button class="btn-primary" id="chSend">Send challenge</button><button class="btn-ghost" id="chCancel">Cancel</button></div>`;
+    $('#chSend').onclick=async()=>{try{await SOC.sendChallenge(ME,f,{drillId:pick.id,drillName:view(pick).name,target:tgt,unit:p.unit,msg});$('#chSheet').hidden=true;toast(`Challenge sent to ${f.otherName}`);}catch(err){toast(SOC.friendlyError(err));}};
+    $('#chCancel').onclick=()=>$('#chSheet').hidden=true;
+    document.querySelectorAll('[data-cd]').forEach(x=>x.onclick=()=>{pick=DRILLS.find(d=>d.id===x.dataset.cd);render();});
+    document.querySelectorAll('[data-cm]').forEach(x=>x.onclick=()=>{msg=x.dataset.cm;render();});};
+  render();$('#chSheet').hidden=false;
+}
+$('#chSheet').addEventListener('click',e=>{if(e.target.id==='chSheet')$('#chSheet').hidden=true;});
+
+// ---- sign up / log in ----
+function openAuth(step){authStep=step;authData={};$('#authOv').hidden=false;document.body.style.overflow='hidden';renderAuth();}
+function closeAuth(){$('#authOv').hidden=true;document.body.style.overflow='';renderFriendsIfOpen();}
+$('#authClose').onclick=closeAuth;
+$('#authBack').onclick=()=>{const back={teen:'start',kid:'start',parent:'start',login:'start',addkid:null}[authStep];if(back){authStep=back;renderAuth();}else closeAuth();};
+function renderAuth(){
+  const b=$('#authBody');$('#authBack').hidden=authStep==='start'||authStep==='done';
+  const ageBtns=sel=>`<div class="onb-choices">${AGES.map((a,i)=>`<button class="onb-choice" data-kage="${i}" aria-pressed="${sel===i}"><span><strong>${a.name}</strong><small>${a.range}</small></span><span class="chk">${sel===i?'✓':''}</span></button>`).join('')}</div>`;
+  if(authStep==='start')b.innerHTML=`<h2 id="authTitle">Join KikUp friends</h2><p class="lead">First, how old are you?</p>
+    <div class="onb-choices"><button class="onb-choice" data-step="teen"><span><strong>I'm 13 or older</strong><small>Make your own username and password</small></span></button>
+    <button class="onb-choice" data-step="kid"><span><strong>I'm under 13</strong><small>A parent sets up your account</small></span></button>
+    <button class="onb-choice" data-step="parent"><span><strong>I'm a parent</strong><small>Create an account for your child</small></span></button></div>
+    <button class="auth-link" data-step="login">Already have an account? Log in</button>`;
+  if(authStep==='kid')b.innerHTML=`<h2 id="authTitle">Ask a parent</h2><p class="lead">Players under 13 need a parent or guardian to create their account. It only takes a minute.</p>
+    <button class="btn-primary" data-step="parent">I'm the parent</button>`;
+  if(authStep==='teen')b.innerHTML=`<h2 id="authTitle">Create your account</h2>
+    <form class="auth-f" id="teenForm"><label>Username<input type="text" id="aUser" autocomplete="username" autocapitalize="none" maxlength="15" placeholder="e.g. striker_sam"></label>
+    <p class="onb-note" style="text-align:left">This is what friends see. Don't use your real full name.</p>
+    <label>Password<input type="password" id="aPass" autocomplete="new-password" placeholder="At least 8 characters"></label>
+    <label class="chk"><input type="checkbox" id="a13"> I'm 13 or older</label>
+    <p class="auth-err" id="aErr"></p><button class="btn-primary">Create account</button></form>
+    <p class="onb-note">Write your password down somewhere safe. Usernames can't get a reset email, so a parent may need to help if you forget it.</p>`;
+  if(authStep==='parent')b.innerHTML=`<h2 id="authTitle">Parent account</h2>
+    <form class="auth-f" id="parentForm"><label>Your email<input type="email" id="aEmail" autocomplete="email"></label>
+    <label>Password<input type="password" id="aPass" autocomplete="new-password" placeholder="At least 8 characters"></label>
+    <label class="chk"><input type="checkbox" id="aConsent"> I'm the parent or guardian. I agree to KikUp storing my child's nickname and training stats so friends we approve can see their stars and streaks. There's no chat, and no photos or video are shared. I can delete the account at any time.</label>
+    <p class="auth-err" id="aErr"></p><button class="btn-primary">Create parent account</button></form>`;
+  if(authStep==='addkid'){authData.age??=Math.min(state.age,1);authData.ideas??=null;
+    social().then(s=>{if(!authData.ideas){authData.ideas=s.nicknameIdeas(6);authData.name=authData.ideas[0];renderAuth();}});
+    b.innerHTML=`<h2 id="authTitle">Add your child</h2><p class="lead">Pick their age group and a fun nickname. Nicknames are generated, so no real names are shared.</p>${ageBtns(authData.age)}
+      <div class="nick">${(authData.ideas||[]).map(n=>`<button data-nick="${esc(n)}" aria-pressed="${n===authData.name}">${esc(n)}</button>`).join('')}</div>
+      <button class="auth-link" id="moreNames">Show more names</button><p class="auth-err" id="aErr"></p><button class="btn-primary" id="addKidBtn"${authData.name?'':' disabled'}>Add player</button>`;}
+  if(authStep==='login')b.innerHTML=`<h2 id="authTitle">Log in</h2>
+    <div class="seg2"><button data-lt="teen" aria-pressed="${authData.lt!=='parent'}">Player (username)</button><button data-lt="parent" aria-pressed="${authData.lt==='parent'}">Parent (email)</button></div>
+    <form class="auth-f" id="loginForm"><label>${authData.lt==='parent'?'Email':'Username'}<input type="${authData.lt==='parent'?'email':'text'}" id="aId" autocomplete="username" autocapitalize="none"></label>
+    <label>Password<input type="password" id="aPass" autocomplete="current-password"></label><p class="auth-err" id="aErr"></p><button class="btn-primary">Log in</button></form>
+    ${authData.lt==='parent'?'<button class="auth-link" id="forgot">Forgot password?</button>':''}`;
+  if(authStep==='done')b.innerHTML=`<h2 id="authTitle">You're all set${ME?`, ${esc(ME.name)}`:''}!</h2><p class="lead">Share your friend code so friends can add you:</p>
+    <div class="code-box" style="background:rgba(0,0,0,.25);justify-content:center"><code>${ME?fmtCode(ME.friendCode):''}</code></div>
+    <button class="btn-primary" id="authDone">Go to Friends</button>`;
+  const f=b.querySelector('h2');if(f){f.tabIndex=-1;f.focus({preventScroll:true});}
+}
+$('#authBody').addEventListener('click',async e=>{
+  const t=e.target,st=t.closest('[data-step]');if(st){authStep=st.dataset.step;renderAuth();return;}
+  const lt=t.closest('[data-lt]');if(lt){authData.lt=lt.dataset.lt;renderAuth();return;}
+  const ka=t.closest('[data-kage]');if(ka){authData.age=+ka.dataset.kage;renderAuth();return;}
+  const nk=t.closest('[data-nick]');if(nk){authData.name=nk.dataset.nick;renderAuth();return;}
+  if(t.id==='moreNames'){authData.ideas=SOC.nicknameIdeas(6);authData.name=authData.ideas[0];renderAuth();return;}
+  if(t.id==='addKidBtn'){t.disabled=true;try{const p=await SOC.addChild({name:authData.name,age:authData.age,tier:0});await afterLogin(p.id);authStep='done';renderAuth();}catch(err){$('#aErr').textContent=SOC.friendlyError(err);t.disabled=false;}return;}
+  if(t.id==='forgot'){const em=$('#aId').value;if(!em){$('#aErr').textContent='Type your email first.';return;}try{await SOC.resetParentPassword(em);$('#aErr').textContent='Check your email for a reset link.';}catch(err){$('#aErr').textContent=SOC.friendlyError(err);}return;}
+  if(t.id==='authDone'){closeAuth();location.hash='#friends';renderFriends();return;}
+});
+$('#authBody').addEventListener('submit',async e=>{
+  e.preventDefault();const err=$('#aErr'),btn=e.target.querySelector('.btn-primary');err.textContent='';btn.disabled=true;
+  try{await social();await SOC.init();
+    if(e.target.id==='teenForm'){if(!$('#a13').checked)throw new Error('You need to be 13 or older to make your own account. Ask a parent to set one up.');
+      const p=await SOC.signUpTeen({username:$('#aUser').value,password:$('#aPass').value,age:2,tier:state.tier});await afterLogin(p.id);authStep='done';renderAuth();}
+    if(e.target.id==='parentForm'){await SOC.signUpParent({email:$('#aEmail').value,password:$('#aPass').value,consent:$('#aConsent').checked});authStep='addkid';authData={};renderAuth();}
+    if(e.target.id==='loginForm'){await SOC.logIn($('#aId').value,$('#aPass').value);await afterLogin();if(ME){closeAuth();location.hash='#friends';toast(`Welcome back, ${ME.name}!`);}}
+  }catch(x){err.textContent=SOC?SOC.friendlyError(x):String(x.message||x);}finally{if(btn.isConnected)btn.disabled=false;}
+});
 
 /* ---------- Progress page ---------- */
 const DOW=['M','T','W','T','F','S','S'];

@@ -1,0 +1,86 @@
+rules_version = '2';
+
+// KikUp security rules.
+// - An account (a teen, or a parent) can read and change only its own profiles.
+// - Friends never read each other's profiles. What friends share (stars, streaks,
+//   this week's stars) is copied into the friendship document, which only the two
+//   friends' accounts can read.
+// - There is no chat and no free text between players: names are a teen's username
+//   or a kid's generated nickname, and challenge messages are picked from a preset list.
+service cloud.firestore {
+  match /databases/{db}/documents {
+
+    function signedIn() { return request.auth != null; }
+    function me() { return request.auth.uid; }
+    function profile(pid) { return get(/databases/$(db)/documents/profiles/$(pid)).data; }
+    function pairId(a, b) { return a < b ? a + '_' + b : b + '_' + a; }
+    function friends(a, b) {
+      let f = /databases/$(db)/documents/friendships/$(pairId(a, b));
+      return exists(f) && get(f).data.status == 'accepted';
+    }
+    function unchanged(fields) { return !request.resource.data.diff(resource.data).affectedKeys().hasAny(fields); }
+
+    // Account type (teen or parent) and the profiles it manages.
+    match /users/{uid} {
+      allow read, write: if signedIn() && me() == uid;
+    }
+
+    // A player: a teen (one per account) or a parent's child.
+    match /profiles/{pid} {
+      allow read: if signedIn() && resource.data.owner == me();
+      allow create: if signedIn() && request.resource.data.owner == me()
+                    && request.resource.data.name is string && request.resource.data.name.size() <= 24;
+      // The friend code is set once, right after the profile is created, and never changes.
+      allow update: if signedIn() && resource.data.owner == me() && unchanged(['owner'])
+                    && (!('friendCode' in resource.data) || request.resource.data.friendCode == resource.data.friendCode);
+      allow delete: if signedIn() && resource.data.owner == me();
+
+      // Detailed training record, synced between the account's devices.
+      match /private/{doc} {
+        allow read, write: if signedIn() && profile(pid).owner == me();
+      }
+    }
+
+    // Friend codes: share one with a friend in person. Looking a code up shows only the
+    // player's display name, so the other player can see who they're adding.
+    match /codes/{code} {
+      allow get: if signedIn();
+      allow list: if false;
+      allow create: if signedIn() && request.resource.data.owner == me() && profile(request.resource.data.pid).owner == me();
+      allow delete: if signedIn() && resource.data.owner == me();
+    }
+
+    // A friendship between two players. Id = the two profile ids, sorted, joined by "_".
+    match /friendships/{fid} {
+      allow read: if signedIn() && me() in resource.data.owners;
+      allow create: if signedIn()
+        && request.resource.data.status == 'pending'
+        && request.resource.data.requestedByOwner == me()
+        && request.resource.data.members.size() == 2
+        && fid == pairId(request.resource.data.members[0], request.resource.data.members[1])
+        && profile(request.resource.data.requestedBy).owner == me()
+        && request.resource.data.requestedBy in request.resource.data.members
+        && me() in request.resource.data.owners
+        && request.resource.data.names[request.resource.data.requestedBy] == profile(request.resource.data.requestedBy).name;   // can't pretend to be someone else
+      // Members and owners never change. Only the player who was asked can accept.
+      allow update: if signedIn() && me() in resource.data.owners
+        && unchanged(['members', 'owners', 'requestedBy', 'requestedByOwner'])
+        && (request.resource.data.status == resource.data.status
+            || (resource.data.status == 'pending' && request.resource.data.status == 'accepted' && me() != resource.data.requestedByOwner));
+      allow delete: if signedIn() && me() in resource.data.owners;
+    }
+
+    // Challenges between friends ("Beat my 25 juggles!"), using preset messages only.
+    match /challenges/{cid} {
+      allow read: if signedIn() && (resource.data.fromOwner == me() || resource.data.toOwner == me());
+      allow create: if signedIn() && request.resource.data.fromOwner == me()
+        && profile(request.resource.data.from).owner == me()
+        && friends(request.resource.data.from, request.resource.data.to)
+        && request.resource.data.status == 'open'
+        && request.resource.data.msg in ["Beat my score!", "Bet you can't beat this!", "Let's both do this today!", "Your turn!"];
+      allow update: if signedIn() && (resource.data.fromOwner == me() || resource.data.toOwner == me())
+        && unchanged(['from', 'to', 'fromOwner', 'toOwner', 'drillId', 'target', 'msg']);
+      allow delete: if signedIn() && (resource.data.fromOwner == me() || resource.data.toOwner == me());
+    }
+  }
+}
