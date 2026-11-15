@@ -361,6 +361,7 @@ main .wrap{padding-block:24px 56px;display:grid;gap:28px}
 .gk-hero .keys li{background:rgba(255,255,255,.16);color:#fff}
 .gk-hero .keys li::before{background:#FFC633}
 
+.drawer-small{font-size:14px!important;font-weight:600!important;color:var(--muted)!important;padding:10px 12px!important}
 .drawer-h{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);padding:12px 12px 2px}
 .drawer{overflow-y:auto}
 .pos-hero{color:#fff;border:0}
@@ -497,6 +498,7 @@ main .wrap{padding-block:24px 56px;display:grid;gap:28px}
     <a href="#friends" data-nav="friends"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.5" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="17" cy="9" r="2.6" fill="none" stroke="currentColor" stroke-width="2"/><path d="M2.5 20c.6-3.6 3.3-5.5 6.5-5.5s5.9 1.9 6.5 5.5M15 14.6c2.8-.3 5 1.3 5.6 4.4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>Friends</a>
     <a href="#progress" data-nav="progress"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>My progress</a>
     <button id="menuGuide"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 11v6M12 7.5v.5" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>Getting started guide</button>
+    <a href="privacy.html" class="drawer-small">Privacy policy</a>
   </nav>
 </div>
 <div class="tip" id="tip" role="tooltip" hidden></div>
@@ -1736,7 +1738,7 @@ $('#menuBtn').onclick=openMenu;$('#drawerX').onclick=closeMenu;
 $('#drawer').addEventListener('click',e=>{if(e.target.id==='drawer'||e.target.closest('a'))closeMenu();});
 $('#menuGuide').onclick=()=>{closeMenu();openOnb();};
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('#drawer').hidden)closeMenu();});
-function route(){const pg={'#progress':'progress','#training':'training','#endurance':'endurance','#goalkeeper':'goalkeeper','#defender':'defender','#midfielder':'midfielder','#forward':'forward','#friends':'friends'}[location.hash]||'train';
+function route(){if(!$('#sheet').hidden)closeSheet();const pg={'#progress':'progress','#training':'training','#endurance':'endurance','#goalkeeper':'goalkeeper','#defender':'defender','#midfielder':'midfielder','#forward':'forward','#friends':'friends'}[location.hash]||'train';
   $('#homeView').hidden=pg!=='train';$('#progressView').hidden=pg!=='progress';$('#trainingView').hidden=pg!=='training';$('#enduranceView').hidden=pg!=='endurance';$('#goalkeeperView').hidden=pg!=='goalkeeper';$('#positionView').hidden=!POSITIONS[pg];$('#friendsView').hidden=pg!=='friends';
   document.querySelectorAll('.drawer [data-nav]').forEach(a=>a.toggleAttribute('aria-current',a.dataset.nav===pg)&&a.setAttribute('aria-current','page'));
   if(pg==='progress')renderProgress();if(pg==='training')renderTraining();if(pg==='endurance')renderEndurance();if(pg==='goalkeeper')renderGoalkeeper();if(POSITIONS[pg])renderPosition(pg);if(pg==='friends'){renderFriends();if(SOC&&SOC.configured()&&ME)SOC.getFriendships(ME).then(l=>{FR=l;renderFriendsIfOpen();}).catch(()=>{});}if(pg==='train')renderHome();window.scrollTo(0,0);}
@@ -1987,7 +1989,7 @@ function renderAuth(){
   if(authStep==='parent')b.innerHTML=`<h2 id="authTitle">Parent account</h2>
     <form class="auth-f" id="parentForm"><label>Your email<input type="email" id="aEmail" autocomplete="email"></label>
     <label>Password<input type="password" id="aPass" autocomplete="new-password" placeholder="At least 8 characters"></label>
-    <label class="chk"><input type="checkbox" id="aConsent"> I'm the parent or guardian. I agree to KikUp storing my child's nickname and training stats so friends we approve can see their stars and streaks. There's no chat, and no photos or video are shared. I can delete the account at any time.</label>
+    <label class="chk"><input type="checkbox" id="aConsent"> I'm the parent or guardian. I agree to KikUp storing my child's nickname and training stats so friends we approve can see their stars and streaks. There's no chat, and no photos or video are shared. I can delete the account at any time. <a href="privacy.html" target="_blank" style="color:#fff">Privacy policy</a></label>
     <p class="auth-err" id="aErr"></p><button class="btn-primary">Create parent account</button></form>
     <div class="or">or</div><button class="g-btn" data-google="parent" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#4285F4" d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.5h6.5a5.6 5.6 0 0 1-2.4 3.7v3h3.9c2.3-2.1 3.5-5.2 3.5-8.9Z"/><path fill="#34A853" d="M12 24c3.2 0 6-1.1 8-2.9l-3.9-3c-1.1.7-2.5 1.2-4.1 1.2-3.1 0-5.8-2.1-6.7-5H1.3v3.1A12 12 0 0 0 12 24Z"/><path fill="#FBBC05" d="M5.3 14.3a7.2 7.2 0 0 1 0-4.6V6.6H1.3a12 12 0 0 0 0 10.8l4-3.1Z"/><path fill="#EA4335" d="M12 4.8c1.8 0 3.3.6 4.6 1.8l3.4-3.4A12 12 0 0 0 1.3 6.6l4 3.1c.9-2.9 3.6-4.9 6.7-4.9Z"/></svg>Continue with Google</button>`;
   if(authStep==='addkid'){authData.age??=Math.min(state.age,1);authData.ideas??=null;
@@ -2008,7 +2010,7 @@ function renderAuth(){
     <form class="auth-f" id="gTeenForm"><label>Username<input type="text" id="aUser" autocapitalize="none" maxlength="15" placeholder="e.g. striker_sam"></label>
     <label class="chk"><input type="checkbox" id="a13"${authData.is13?' checked':''}> I'm 13 or older</label><p class="auth-err" id="aErr"></p><button class="btn-primary">Finish</button></form>`;
   if(authStep==='gparent')b.innerHTML=`<h2 id="authTitle">Parent consent</h2>
-    <form class="auth-f" id="gParentForm"><label class="chk"><input type="checkbox" id="aConsent"${authData.consent?' checked':''}> I'm the parent or guardian. I agree to KikUp storing my child's nickname and training stats so friends we approve can see their stars and streaks. There's no chat, and no photos or video are shared. I can delete the account at any time.</label>
+    <form class="auth-f" id="gParentForm"><label class="chk"><input type="checkbox" id="aConsent"${authData.consent?' checked':''}> I'm the parent or guardian. I agree to KikUp storing my child's nickname and training stats so friends we approve can see their stars and streaks. There's no chat, and no photos or video are shared. I can delete the account at any time. <a href="privacy.html" target="_blank" style="color:#fff">Privacy policy</a></label>
     <p class="auth-err" id="aErr"></p><button class="btn-primary">Continue</button></form>`;
   if(authStep==='done')b.innerHTML=`<h2 id="authTitle">You're all set${ME?`, ${esc(ME.name)}`:''}!</h2><p class="lead">Share your friend code so friends can add you:</p>
     <div class="code-box" style="background:rgba(0,0,0,.25);justify-content:center"><code>${ME?fmtCode(ME.friendCode):''}</code></div>
@@ -2091,6 +2093,8 @@ function renderProgress(){
 renderHome();
 route();
 if(!state.onboarded)openOnb();
+// Offline support (also needed to install KikUp as an app)
+if('serviceWorker' in navigator&&location.protocol==='https:')navigator.serviceWorker.register('./sw.js').catch(()=>{});
 </script>
 
 </body>

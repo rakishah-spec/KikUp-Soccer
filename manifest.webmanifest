@@ -1,2 +1,77 @@
-{"name":"KikUp Soccer","short_name":"KikUp","start_url":".","display":"standalone","background_color":"#EDF2EC","theme_color":"#1D6A3A",
- "icons":[{"src":"icon-192.png","sizes":"192x192","type":"image/png"},{"src":"icon-512.png","sizes":"512x512","type":"image/png"},{"src":"icon.svg","sizes":"any","type":"image/svg+xml"}]}
+{
+ "id": "./",
+ "name": "KikUp Soccer",
+ "short_name": "KikUp",
+ "description": "Soccer training for kids and teens: drills and skill moves for your age and level, a camera that counts your reps, coach tips, and friend streaks.",
+ "start_url": "./",
+ "scope": "./",
+ "display": "standalone",
+ "orientation": "portrait",
+ "background_color": "#EDF2EC",
+ "theme_color": "#1D6A3A",
+ "lang": "en",
+ "dir": "ltr",
+ "categories": [
+  "sports",
+  "health",
+  "fitness",
+  "education",
+  "kids"
+ ],
+ "icons": [
+  {
+   "src": "icon-192.png",
+   "sizes": "192x192",
+   "type": "image/png",
+   "purpose": "any"
+  },
+  {
+   "src": "icon-512.png",
+   "sizes": "512x512",
+   "type": "image/png",
+   "purpose": "any"
+  },
+  {
+   "src": "icon-maskable-512.png",
+   "sizes": "512x512",
+   "type": "image/png",
+   "purpose": "maskable"
+  },
+  {
+   "src": "icon.svg",
+   "sizes": "any",
+   "type": "image/svg+xml",
+   "purpose": "any"
+  }
+ ],
+ "screenshots": [
+  {
+   "src": "screenshots/home.png",
+   "sizes": "1080x1920",
+   "type": "image/png",
+   "form_factor": "narrow",
+   "label": "Drills for your age and level"
+  },
+  {
+   "src": "screenshots/training.png",
+   "sizes": "1080x1920",
+   "type": "image/png",
+   "form_factor": "narrow",
+   "label": "Passing, shooting and dribbling"
+  },
+  {
+   "src": "screenshots/drill.png",
+   "sizes": "1080x1920",
+   "type": "image/png",
+   "form_factor": "narrow",
+   "label": "Every drill has a goal, steps and a video"
+  },
+  {
+   "src": "screenshots/progress.png",
+   "sizes": "1080x1920",
+   "type": "image/png",
+   "form_factor": "narrow",
+   "label": "Stars, streaks and progress"
+  }
+ ]
+}
