@@ -361,6 +361,17 @@ main .wrap{padding-block:24px 56px;display:grid;gap:28px}
 .gk-hero .keys li{background:rgba(255,255,255,.16);color:#fff}
 .gk-hero .keys li::before{background:#FFC633}
 
+.drawer-h{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);padding:12px 12px 2px}
+.drawer{overflow-y:auto}
+.pos-hero{color:#fff;border:0}
+.pos-hero h3{font-size:28px}
+.pos-hero p{color:rgba(255,255,255,.9)}
+.pos-hero .keys li{background:rgba(255,255,255,.16);color:#fff}
+.pos-hero .keys li::before{background:#FFC633}
+.pos-hero.defender{background:linear-gradient(135deg,#3B4A5C,#1E2A38)}
+.pos-hero.midfielder{background:linear-gradient(135deg,#1D8A6A,#0F5C46)}
+.pos-hero.forward{background:linear-gradient(135deg,#C93636,#8E1F1F)}
+
 /* Live camera counter */
 .cam-tip{position:absolute;left:8px;right:8px;bottom:8px;display:flex;gap:10px;align-items:center;background:rgba(14,38,24,.88);border:2px solid var(--bib);border-radius:12px;padding:10px 12px;color:#fff;text-align:left}
 .cam-tip svg{width:44px;height:44px;flex:none;color:var(--bib)}
@@ -408,7 +419,12 @@ main .wrap{padding-block:24px 56px;display:grid;gap:28px}
     <a href="#train" data-nav="train"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11 12 4l9 7v9h-6v-6H9v6H3Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>Home</a>
     <a href="#training" data-nav="training"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path d="m12 7 4 3-1.5 4.5h-5L8 10Z" fill="currentColor"/></svg>General Training</a>
     <a href="#endurance" data-nav="endurance"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M5 12h4l1.5-3 3 6 1.5-3h4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>Endurance</a>
+    <span class="drawer-h">Positions</span>
     <a href="#goalkeeper" data-nav="goalkeeper"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 21v-6l-2.5-3.5a1.6 1.6 0 0 1 2.6-1.8L8 11V5a1.5 1.5 0 0 1 3 0v4-6a1.5 1.5 0 0 1 3 0v6-4a1.5 1.5 0 0 1 3 0v4.5-2a1.5 1.5 0 0 1 3 0V15c0 3-2 6-5 6Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>Goalkeeper</a>
+    <a href="#defender" data-nav="defender"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 4 6v6c0 4.5 3.4 8.2 8 9 4.6-.8 8-4.5 8-9V6Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>Defender</a>
+    <a href="#midfielder" data-nav="midfielder"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 3v18M3 12h18" stroke="currentColor" stroke-width="1.6"/></svg>Midfielder</a>
+    <a href="#forward" data-nav="forward"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20 20 4M12 4h8v8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Forward</a>
+    <span class="drawer-h">You</span>
     <a href="#progress" data-nav="progress"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>My progress</a>
     <button id="menuGuide"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 11v6M12 7.5v.5" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>Getting started guide</button>
   </nav>
@@ -502,6 +518,22 @@ main .wrap{padding-block:24px 56px;display:grid;gap:28px}
       <div class="grid" id="gkGrid"></div>
     </section>
   </div>
+  <div class="wrap" id="positionView" hidden>
+    <div class="pg-head"><div><h2 id="posTitle"></h2><p class="muted" id="posSub"></p></div><a class="btn-ghost pg-back" href="#train">Back to home</a></div>
+    <section class="panel pos-hero" id="posHero" aria-labelledby="posRole">
+      <div class="panel-head"><h3 id="posRole">The job</h3></div>
+      <p id="posText"></p>
+      <ul class="keys" id="posKeys"></ul>
+    </section>
+    <section class="panel" aria-labelledby="posSessH">
+      <div class="panel-head"><h3 id="posSessH">Today's session</h3><span class="muted small" id="posSessMeta"></span></div>
+      <ol class="sess" id="posSess"></ol>
+    </section>
+    <section style="display:grid;gap:14px" aria-labelledby="posAll">
+      <div class="panel-head"><h3 id="posAll" class="sec-h"></h3><span class="muted small" id="posLevel"></span></div>
+      <div class="grid" id="posGrid"></div>
+    </section>
+  </div>
   <div class="wrap" id="progressView" hidden>
     <div class="pg-head"><div><h2 id="pgTitle">My progress</h2><p class="muted" id="pgSub"></p></div><a class="btn-ghost pg-back" href="#train">Back to training</a></div>
     <section class="tiles" aria-label="Totals">
@@ -548,8 +580,8 @@ const TIERS=[
   {name:'Beginner',blurb:'New, or still learning control'},
   {name:'Developing',blurb:'Plays on a team, has the basics'},
   {name:'Advanced',blurb:'Confident, wants a challenge'}];
-const TRAINING_SKILLS=['passing','shooting','dribbling','endurance','goalkeeping'];   // shown on their own pages, not on Home
-const SKILLS={gamesense:'Game Sense',scanning:'Scanning',touch:'First Touch',passing:'Passing',shooting:'Shooting',dribbling:'Dribbling',mastery:'Ball Mastery',weakfoot:'Weak Foot',fitness:'Fitness',endurance:'Endurance',goalkeeping:'Goalkeeping'};
+const TRAINING_SKILLS=['passing','shooting','dribbling','endurance','goalkeeping','defending','midfield','attacking'];   // shown on their own pages, not on Home
+const SKILLS={gamesense:'Game Sense',scanning:'Scanning',touch:'First Touch',passing:'Passing',shooting:'Shooting',dribbling:'Dribbling',mastery:'Ball Mastery',weakfoot:'Weak Foot',fitness:'Fitness',endurance:'Endurance',goalkeeping:'Goalkeeping',defending:'Defending',midfield:'Midfield',attacking:'Attacking'};
 const T=(tbl,a,t)=>tbl[a][t];
 const by=(arr,a)=>arr[a];
 
@@ -829,6 +861,95 @@ const DRILLS=[
  diagram:{box:[76,8,48,26],player:[100,90],path:'M100,88 L100,20',dur:1.6},
  plan(a,t){const n=T([null,[6,8,10],[8,10,12],[10,12,15]],a,t),d=T([null,[8,10,12],[12,15,18],[15,20,25]],a,t);
   return {seconds:120,target:n,unit:'throws & kicks',summary:`${n} throws & kicks in 2 min`,detail:[`Aim for a zone ${d} big steps away`,['Rolls and underarm throws','Rolls, overarm throws','Overarm throws and kicks from your hands'][t]]};}}
+,
+{id:'shadow-attacker',name:'Shadow the Attacker',skill:'defending',mode:'scan',interactive:true,ages:[0,1,2,3],minutes:2,
+ setup:['Prop the phone up in front of you: it\'s the attacker.','Get in your defending stance: side-on, knees bent, on your toes.','When a call flashes, move: STEP UP toward the phone, DROP back, or shuffle LEFT or RIGHT. Then get set again.'],
+ tips:['Side-on, never square: it lets you turn and run either way.','Small, quick steps. Never cross your feet.','Stay low, with your weight on the balls of your feet.'],
+ kid:{name:'Stay in Front',steps:['Stand facing the phone, knees bent.','When an arrow shows, step that way to stay in front!'],tip:'Little steps, stay low.'},
+ diagram:{player:[100,58],phone:[92,4],path:'M100,70 L70,70 L100,70 L100,86 L130,70',dur:3},
+ plan(a,t){const dur=T([[45,60,60],[60,60,90],[60,90,90],[90,90,120]],a,t),gap=[[3,5],[2.5,4],[1.8,3]][t],kid=a===0;
+  return {dur,show:900,gap,mode:'cues',cues:kid?[['←','LEFT'],['→','RIGHT']]:[['↑','STEP UP'],['↓','DROP'],['←','LEFT'],['→','RIGHT']],summary:`${dur}s · a new call every ${gap[0]}–${gap[1]}s`,detail:[kid?'Step left or right to stay in front':'Step up, drop, or shuffle, and get set again']};}},
+{id:'jockey-recover',name:'Jockey & Recover',skill:'defending',mode:'workout',ages:[0,1,2,3],minutes:6,
+ setup:['Put a cone behind you about 10 big steps away: that\'s your goal.','JOCKEY: shuffle backward slowly in your stance, like you\'re holding up an attacker.','RECOVER: turn and sprint back to your cone, then step out and jockey again.'],
+ tips:['When you jockey, stay side-on and patient. Don\'t dive in.','On RECOVER, turn and sprint: never backpedal when you\'re beaten.','Get goal-side first, then turn to face the play.'],
+ kid:{name:'Run Back Home',steps:['Put a cone (or shoe) behind you: that\'s home.','When the phone says RUN HOME, run back to it fast!'],tip:'Run fast, then walk back out.'},
+ diagram:{cones:[[100,100]],player:[100,30],path:'M100,40 L96,56 L104,70 L100,96',dur:2.4},
+ plan(a,t){const r=T([[4,5,6],[6,8,10],[8,10,12],[10,12,14]],a,t),j=[12,10,8][t],kid=a===0,ph=[];
+  for(let i=0;i<r;i++){ph.push({label:kid?'WALK OUT':'JOCKEY',hard:false,sec:j+(i%3)*2,say:kid?'Walk out':'Jockey'});ph.push({label:kid?'RUN HOME':'RECOVER',hard:true,sec:5,say:kid?'Run home!':'Recover!'});}
+  return {kind:'timed',phases:ph,summary:`${r} recoveries · about ${Math.round(ph.reduce((x,y)=>x+y.sec,0)/60)} min`,detail:[kid?'Walk out, then run home when the phone says':'Jockey, then sprint back goal-side on RECOVER']};}},
+{id:'clearance',name:'Clearance Volleys',skill:'defending',mode:'count',auto:'kicks',ages:[0,1,2,3],minutes:2,
+ setup:['Stand in open space facing away from anything breakable.','Toss the ball up in front of you.','Volley it high and far with your laces before it bounces. If in doubt, kick it out!'],
+ tips:['Lock your ankle and point your toes down.','Lean back slightly to get height on the clearance.','Height and distance first: a clearance just has to get the ball out of danger.'],
+ kid:{name:'Big Kick',steps:['Roll the ball a little in front of you.','Kick it as far as you can!'],tip:'Kick with your laces, the top of your shoe.'},
+ diagram:{player:[100,92],path:'M100,80 L100,64 L160,10',dur:1.6},
+ plan(a,t){const n=T([[5,8,10],[6,8,10],[8,10,12],[10,12,15]],a,t);
+  return {seconds:120,target:n,unit:'clearances',summary:`${n} clearances in 2 min`,detail:[a===0?'Roll it and kick it far':['Let it bounce once first','Volley it before it bounces','Volley with both feet'][t]]};}},
+{id:'def-headers',name:'Defensive Headers',skill:'defending',mode:'count',ages:[3],minutes:2,
+ setup:['Use a soft, light ball. 10 headers is plenty for one session.','Toss the ball up in front of you.','Head it high and far with your forehead, eyes open, mouth closed.'],
+ tips:['Use your forehead, never the top of your head.','Keep your eyes open and your neck strong.','Attack the ball: move your whole body into it.'],
+ diagram:{player:[100,92],path:'M100,60 L100,46 L150,8',dur:1.6},
+ plan(a,t){const n=[5,8,10][t];
+  return {seconds:120,target:n,unit:'headers',summary:`${n} headers (max 10 per session)`,detail:['Soft ball only. Stop if your head hurts.',['Head it straight up and catch it','Head it high and away','Jump and head it high and away'][t]]};}},
+{id:'switch-play',name:'Switch the Play',skill:'midfield',mode:'count',auto:'kicks',ages:[0,1,2,3],minutes:2,
+ setup:['Make two small cone gates, one far left and one far right of you.','Start with the ball by one gate side. Take a touch across your body.','Pass it through the gate on the other side. Collect it and switch back.'],
+ tips:['Your first touch sets up the switch: push it across, not straight ahead.','Look up before you pass, like you\'re checking the far side of the field.','Hit it firm: a slow switch gets intercepted.'],
+ kid:{name:'Kick Left, Kick Right',steps:['Put a cone on your left and one on your right.','Kick the ball to one, then go get it and kick it to the other!'],tip:'Look where you\'re kicking.'},
+ diagram:{gates:[[12,40,12,60],[188,40,188,60]],player:[100,70],path:'M30,52 L100,74 L180,52',dur:2.2},
+ plan(a,t){const n=T([[4,6,8],[8,10,12],[10,12,15],[12,15,18]],a,t);
+  return {seconds:90,target:n,unit:'switches',summary:`${n} switches in 90s`,detail:[a===0?'Kick it to the other side':['Two touches, then pass','Touch across, then pass','One touch across, pass with either foot'][t]]};}},
+{id:'give-go',name:'Give & Go Run',skill:'midfield',mode:'count',auto:'kicks',ages:[1,2,3],minutes:2,
+ setup:['Put a cone a few steps to your side, facing a wall.','Pass to the wall, then run around the cone.','Meet the rebound in stride and pass again. Alternate which side you run.'],
+ tips:['Go the moment the ball leaves your foot. That\'s what beats a defender.','Pass a little ahead so the rebound arrives as you get there.','Receive moving forward, not standing still.'],
+ diagram:{wall:true,cones:[[136,80]],player:[100,92],path:'M100,90 L100,14 L130,90',dur:2.4},
+ plan(a,t){const n=T([null,[6,8,10],[8,10,12],[10,12,15]],a,t);
+  return {seconds:60,target:n,unit:'give & gos',summary:`${n} give & gos in 60s`,detail:[['Jog around the cone','Sprint around the cone','Sprint, and receive with one touch'][t]]};}},
+{id:'shield-spin',name:'Shield & Spin',skill:'midfield',mode:'scan',interactive:true,ages:[0,1,2,3],minutes:2,
+ setup:['Stand over the ball with the phone in front of you.','The arrow shows where a defender is coming from.','Turn your body so you\'re between the defender and the ball, keeping it with your sole. Arm out for balance.'],
+ tips:['Get low and wide: be hard to push off the ball.','Keep the ball on the foot furthest from the defender.','Small sole touches as you turn: never let it get away.'],
+ kid:{name:'Hide the Ball',steps:['Stand with your foot on the ball.','When an arrow shows, turn so your body hides the ball from that side!'],tip:'Your body is a wall.'},
+ diagram:{ballOnly:[100,62],player:[100,52],phone:[92,4],path:'M92,64 L100,70 L108,64',dur:1.6},
+ plan(a,t){const dur=T([[45,60,60],[60,60,90],[60,90,90],[90,90,120]],a,t),gap=[[3.5,5],[2.5,4],[2,3]][t];
+  return {dur,show:1000,gap,mode:'cues',cues:[['←','DEFENDER LEFT'],['→','DEFENDER RIGHT'],['↓','DEFENDER BEHIND'],['↑','DEFENDER IN FRONT']],summary:`${dur}s · a new defender every ${gap[0]}–${gap[1]}s`,detail:['Turn so your body is between the defender and the ball']};}},
+{id:'tempo-pass',name:'Tempo Passing',skill:'midfield',mode:'count',auto:'kicks',ages:[0,1,2,3],minutes:2,
+ setup:['Stand facing a wall.','The phone beeps a steady beat.','Pass on every beep: control, set, pass. Stay with the rhythm.'],
+ tips:['Your first touch sets your second: no wasted touches.','Stay on your toes between passes.','Midfielders control the tempo of the whole team. Train the rhythm.'],
+ kid:{name:'Pass to the Beat',steps:['Stand facing a wall.','Kick the ball to the wall every time the phone beeps!'],tip:'Listen for the beep.'},
+ diagram:{wall:true,player:[100,96],path:'M100,94 L100,12 L100,94',dur:1.6},
+ plan(a,t){const beat=T([[3000,2700,2400],[2400,2100,1800],[2000,1700,1400],[1700,1400,1100]],a,t),sec=a===0?45:60,n=Math.floor(sec*1000/beat*.85);
+  return {seconds:sec,target:n,unit:'passes',beat,summary:`A pass every ${(beat/1000).toFixed(1)}s · ${n} passes`,detail:['Pass on every beep',a===0?'Kick it to the wall each beep':['Two touches','Two touches, faster beat','One touch when you can'][t]]};}},
+{id:'turn-shoot',name:'Turn & Shoot',skill:'attacking',mode:'count',auto:'kicks',ages:[0,1,2,3],minutes:2,
+ setup:['Stand with your back to the goal (or a wall target) a few steps out.','Toss or tap the ball to yourself, or have it rebound off a second wall.','Take one touch to turn, then shoot. Go again.'],
+ tips:['Check over your shoulder before the ball arrives: know where the goal is.','Turn with your first touch, away from where a defender would be.','Shoot early: defenders close you down fast in the box.'],
+ kid:{name:'Spin & Kick',steps:['Stand with your back to the goal.','Spin around with the ball and kick it at the goal!'],tip:'Look at the goal after you spin.'},
+ diagram:{goal:true,player:[100,64],path:'M100,96 L100,72 L118,66 L132,14',dur:2},
+ plan(a,t){const n=T([[4,6,8],[6,8,10],[8,10,12],[10,12,15]],a,t);
+  return {seconds:90,target:n,unit:'shots',summary:`${n} turns & shots in 90s`,detail:[a===0?'Spin, then kick':['Two touches to turn','Turn with one touch','Turn with one touch, shoot with either foot'][t]]};}},
+{id:'sprint-finish',name:'Sprint & Finish',skill:'attacking',mode:'count',auto:'kicks',ages:[0,1,2,3],minutes:3,
+ setup:['Put a ball about 10 big steps from the goal, and a cone 10 big steps behind it.','Start at the cone. Sprint to the ball and shoot without stopping.','Walk back with a new ball. That walk is your rest.'],
+ tips:['Slow down just a little in the last two steps so you can strike cleanly.','Plant your foot beside the ball, eyes on it as you strike.','Tired legs, cool head: this is what the last minute of a game feels like.'],
+ kid:{name:'Run & Kick',steps:['Put the ball down, then walk a few steps back.','Run to the ball and kick it at the goal!'],tip:'Run fast, kick hard.'},
+ diagram:{goal:true,cones:[[100,100]],player:[100,92],path:'M100,100 L100,58 L80,14',dur:1.8},
+ plan(a,t){const n=T([[4,5,6],[5,6,8],[6,8,10],[8,10,12]],a,t);
+  return {seconds:150,target:n,unit:'finishes',summary:`${n} sprint finishes`,detail:[a===0?'Run, then kick':['Jog in, then shoot','Sprint in, then shoot','Sprint in, finish into a corner'][t]]};}},
+{id:'volley-finish',name:'Volley Finishing',skill:'attacking',mode:'count',auto:'kicks',ages:[2,3],minutes:2,
+ setup:['Stand a few big steps from a goal or wall target.','Toss the ball up in front of you.','Volley it at the goal before it bounces. Keep it under the bar.'],
+ tips:['Get your knee over the ball to keep the volley down.','Strike through the middle of the ball, toes pointed.','Watch the ball onto your foot. Don\'t look up early.'],
+ diagram:{goal:true,player:[100,90],path:'M100,80 L100,66 L110,14',dur:1.6},
+ plan(a,t){const n=T([null,null,[5,8,10],[8,10,12]],a,t);
+  return {seconds:120,target:n,unit:'volleys',summary:`${n} volleys in 2 min`,detail:[['Let it bounce once (half-volley)','Full volley, keep it down','Side volleys from both sides'][t]]};}},
+{id:'pick-spot',name:'Pick Your Spot',skill:'attacking',mode:'scan',interactive:true,ages:[0,1,2,3],minutes:3,
+ setup:['Line up a few balls in front of a goal, with the phone propped up where you can see it.','The phone shows where to shoot: a corner of the goal.','Place your shot right there. A new spot appears every few seconds.'],
+ tips:['Decide, then commit. Don\'t change your mind mid-kick.','Inside of the foot for placement.','Low corners are the hardest for a keeper to reach.'],
+ kid:{name:'Aim Left, Aim Right',steps:['Put the ball in front of the goal.','When the phone shows an arrow, kick it to that side!'],tip:'Look where you want to kick.'},
+ diagram:{goal:true,player:[100,92],phone:[160,70],path:'M100,90 L60,14',dur:1.6},
+ plan(a,t){const dur=T([[60,60,90],[90,90,120],[90,120,120],[120,120,150]],a,t),gap=T([[[8,10],[7,9],[6,8]],[[7,9],[6,8],[5,7]],[[6,8],[5,7],[4,6]],[[5,7],[4,6],[3.5,5]]],a,t),kid=a===0;
+  return {dur,show:0,hold:true,gap,mode:'cues',cues:kid?[['←','LEFT SIDE'],['→','RIGHT SIDE']]:[['↖','TOP LEFT'],['↗','TOP RIGHT'],['↙','BOTTOM LEFT'],['↘','BOTTOM RIGHT']],summary:`${dur}s · a new spot every ${gap[0]}–${gap[1]}s`,detail:[kid?'Kick it to the side the arrow shows':'Place it in the corner on the screen']};}},
+{id:'breakaway',name:'Breakaway',skill:'attacking',mode:'count',auto:'kicks',ages:[1,2,3],minutes:3,
+ setup:['Set two cones as defenders between you and the goal, and a "shoot by" line about 6 big steps out.','Dribble fast at the cones, go around them, and finish before the line.','Walk back and go again.'],
+ tips:['Big touches when there\'s space, small touches near the cones.','Look up at the goal before you shoot.','Finish low and early: don\'t give the keeper time.'],
+ diagram:{goal:true,cones:[[84,74],[116,52]],player:[100,100],path:'M100,104 L70,80 L130,56 L104,36 L84,14',dur:2.6},
+ plan(a,t){const n=T([null,[4,5,6],[5,6,8],[6,8,10]],a,t);
+  return {seconds:150,target:n,unit:'breakaways',summary:`${n} breakaways`,detail:[['Dribble at a jog','Dribble at speed','Full speed, finish into a corner'][t]]};}}
 
 ];
 
@@ -1046,7 +1167,7 @@ function startRun(d){
   setSound(d.mode!=='scan'||state.age===0);
   ({gap:runGap,scan:runScan,count:runCount,intervals:runIntervals,workout:runWorkout})[d.mode](d,p);
 }
-function closeRunner(){endSession();$('#runner').hidden=true;body.innerHTML='';renderHome();if(!$('#trainingView').hidden)renderTraining();if(!$('#enduranceView').hidden)renderEndurance();if(!$('#goalkeeperView').hidden)renderGoalkeeper();if(!$('#progressView').hidden)renderProgress();}
+function closeRunner(){endSession();$('#runner').hidden=true;body.innerHTML='';renderHome();if(!$('#trainingView').hidden)renderTraining();if(!$('#enduranceView').hidden)renderEndurance();if(!$('#goalkeeperView').hidden)renderGoalkeeper();{const h=location.hash.slice(1);if(POSITIONS[h])renderPosition(h);}if(!$('#progressView').hidden)renderProgress();}
 function countdown(cb,see){const el=document.createElement('div');el.className=see?'cd see':'cd';body.appendChild(el);let n=3;
   const step=()=>{if(n===0){el.remove();beep(1320,.25);cb();return;}el.textContent=n;beep(660);n--;later(step,800);};step();}
 
@@ -1242,6 +1363,7 @@ function runCount(d,p){
     if(auto)$('#hint').textContent='The camera counts every rep for you.';
       countdown(()=>{phase='run';$('#go').hidden=false;$('#go').textContent='Finish early';endAt=performance.now()+p.seconds*1000;
       if(cam){lastAuto=0;cam.setCounting(true);$('#camMsg').textContent='Counting…';}
+      if(p.beat){beep(1400,.06);every(()=>{if(phase==='run')beep(1400,.06);},p.beat);}
       every(()=>{const left=(endAt-performance.now())/1000;
         if(left<=3.05&&left>0&&Math.ceil(left)!==S.lastTick){S.lastTick=Math.ceil(left);beep(700,.08);}
         if(left<=0){S.intervals.forEach(clearInterval);S.intervals=[];phase='done';setClock('Time!');beep(1000,.5);
@@ -1331,6 +1453,9 @@ function runScan(d,p){
     const arrows=['←','→','↑'];
     const show=()=>{
       if(p.mode==='traffic'){const go=last!=='go';last=go?'go':'stop';stage.className='cue-stage '+last;cue.textContent=go?'GO':'STOP';beep(go?1100:400,.15);}
+      else if(p.cues){let c;do{c=p.cues[Math.floor(Math.random()*p.cues.length)];}while(c[1]===last&&p.cues.length>1);last=c[1];
+        cue.innerHTML=`${c[0]}<small style="font-size:.26em;display:block;text-align:center">${c[1]}</small>`;cue.style.flexDirection='column';stage.className='cue-stage flash';beep(990,.1);
+        if(!p.hold)later(()=>{stage.className='cue-stage';cue.innerHTML='';},p.show);}
       else if(p.mode==='gk2'||p.mode==='gk4'){const opts=p.mode==='gk2'?[['←','LEFT'],['→','RIGHT']]:[['↖','HIGH LEFT'],['↗','HIGH RIGHT'],['↙','LOW LEFT'],['↘','LOW RIGHT']];
         let c;do{c=opts[Math.floor(Math.random()*opts.length)];}while(c[1]===last&&Math.random()<.7);last=c[1];
         cue.innerHTML=`${c[0]}<small style="font-size:.28em;display:block;text-align:center">${c[1]}</small>`;cue.style.flexDirection='column';stage.className='cue-stage flash';beep(990,.1);
@@ -1347,7 +1472,8 @@ function runScan(d,p){
     };
     if(p.mode==='traffic'){stage.className='cue-stage go';cue.textContent='GO';last='go';later(show,p.gap[0]*1000);}
     else if(p.mode==='colors'||p.mode==='numbers'){cue.textContent='GO!';later(show,1500);}
-    else if(p.mode!=='colors'&&p.mode!=='numbers')later(show,1500);
+    else if(p.cues&&p.hold){cue.textContent='GO!';later(show,1500);}
+    else if(p.mode!=='colors'&&p.mode!=='numbers'&&!(p.cues&&p.hold))later(show,1500);
     every(()=>{const left=(endAt-performance.now())/1000;$('#ct').textContent=fmt(left);
       if(left<=0){endSession();beep(1000,.5);
         body.innerHTML=`<div class="run-center"><h2 style="font-size:40px;text-transform:uppercase">Time!</h2><p>How many cues did you react to correctly?</p>
@@ -1526,10 +1652,10 @@ $('#menuBtn').onclick=openMenu;$('#drawerX').onclick=closeMenu;
 $('#drawer').addEventListener('click',e=>{if(e.target.id==='drawer'||e.target.closest('a'))closeMenu();});
 $('#menuGuide').onclick=()=>{closeMenu();openOnb();};
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('#drawer').hidden)closeMenu();});
-function route(){const pg={'#progress':'progress','#training':'training','#endurance':'endurance','#goalkeeper':'goalkeeper'}[location.hash]||'train';
-  $('#homeView').hidden=pg!=='train';$('#progressView').hidden=pg!=='progress';$('#trainingView').hidden=pg!=='training';$('#enduranceView').hidden=pg!=='endurance';$('#goalkeeperView').hidden=pg!=='goalkeeper';
+function route(){const pg={'#progress':'progress','#training':'training','#endurance':'endurance','#goalkeeper':'goalkeeper','#defender':'defender','#midfielder':'midfielder','#forward':'forward'}[location.hash]||'train';
+  $('#homeView').hidden=pg!=='train';$('#progressView').hidden=pg!=='progress';$('#trainingView').hidden=pg!=='training';$('#enduranceView').hidden=pg!=='endurance';$('#goalkeeperView').hidden=pg!=='goalkeeper';$('#positionView').hidden=!POSITIONS[pg];
   document.querySelectorAll('.drawer [data-nav]').forEach(a=>a.toggleAttribute('aria-current',a.dataset.nav===pg)&&a.setAttribute('aria-current','page'));
-  if(pg==='progress')renderProgress();if(pg==='training')renderTraining();if(pg==='endurance')renderEndurance();if(pg==='goalkeeper')renderGoalkeeper();if(pg==='train')renderHome();window.scrollTo(0,0);}
+  if(pg==='progress')renderProgress();if(pg==='training')renderTraining();if(pg==='endurance')renderEndurance();if(pg==='goalkeeper')renderGoalkeeper();if(POSITIONS[pg])renderPosition(pg);if(pg==='train')renderHome();window.scrollTo(0,0);}
 window.addEventListener('hashchange',route);
 
 /* ---------- Training page: passing, shooting, dribbling ---------- */
@@ -1597,6 +1723,33 @@ function renderGoalkeeper(){
   $('#gkSessMeta').textContent=`${pick.length} drills · about ${pick.reduce((a,d)=>a+planMinutes(d,d.plan(...oldAT())),0)+2} minutes`;
   $('#gkSess').innerHTML=pick.map((d,i)=>`<li><button data-open="${d.id}"><span class="n">${i+1}</span><span class="role">${roles[i]}</span><span class="meta">${planMinutes(d,d.plan(...oldAT()))} min<br>${starsHtml(state.stars[k(d)]||0)}</span><b>${view(d).name}</b></button></li>`).join('');
   $('#gkGrid').innerHTML=list.map(drillCard).join('');
+}
+
+/* ---------- Position pages: defender, midfielder, forward ---------- */
+const POSITIONS={
+  defender:{name:'Defender',ids:['shadow-attacker','jockey-recover','clearance','def-headers'],session:['shadow-attacker','jockey-recover','clearance'],
+    text:'Defenders stop goals before the keeper has to. Great defenders are patient, stay on their feet, and read the attacker.',
+    keys:['Stay goal-side: between the attacker and your goal','Side-on stance, so you can turn and run either way','Be patient: jockey, don\'t dive in','When in doubt, clear it high and wide','Talk to your keeper and your teammates'],
+    kid:['Stay in front of the player with the ball','Little steps, knees bent','Kick it away from your goal']},
+  midfielder:{name:'Midfielder',ids:['tempo-pass','switch-play','give-go','shield-spin'],session:['tempo-pass','switch-play','shield-spin'],
+    text:'Midfielders connect defense to attack. They see the whole field, keep the ball moving, and are never afraid to receive it under pressure.',
+    keys:['Check your shoulders before you receive','Open your body so you can play forward','Pass and move: never stand still after a pass','Switch the play when one side gets crowded','Protect the ball under pressure: body between'],
+    kid:['Look around before you get the ball','Pass, then run','Keep the ball away from the other team']},
+  forward:{name:'Forward',ids:['turn-shoot','sprint-finish','pick-spot','volley-finish','breakaway'],session:['sprint-finish','turn-shoot','pick-spot'],
+    text:'Forwards score and create goals. They make runs behind the defense, shoot early, and stay calm in front of goal.',
+    keys:['Know where the goal is before the ball arrives','Shoot early: defenders close you down fast','Placement beats power','Keep moving: make runs into space','Follow your shot in for the rebound'],
+    kid:['Look at the goal','Kick it to the side of the goal','Keep trying, every shot counts']}};
+function renderPosition(id){
+  const P=POSITIONS[id],kid=state.age===0,old=oldAT()[0],list=P.ids.map(x=>DRILLS.find(d=>d.id===x)).filter(d=>d&&d.ages.includes(old));
+  $('#posTitle').textContent=P.name;$('#posSub').textContent=state.name?`Train like a ${P.name.toLowerCase()}, ${state.name}.`:`Train like a ${P.name.toLowerCase()}.`;
+  $('#posHero').className='panel pos-hero '+id;$('#posRole').textContent=`The ${P.name.toLowerCase()}'s job`;
+  $('#posText').textContent=kid?`Here's how to be a great ${P.name.toLowerCase()}:`:P.text;
+  $('#posKeys').innerHTML=(kid?P.kid:P.keys).map(x=>`<li>${x}</li>`).join('');
+  $('#posAll').textContent=`All ${P.name.toLowerCase()} drills`;$('#posLevel').textContent=`${AGES[state.age].name} · ${TIERS[state.tier].name}`;
+  const pick=P.session.map(x=>list.find(d=>d.id===x)).filter(Boolean),roles=['Warm-up','Main drill','Challenge'];
+  $('#posSessMeta').textContent=`${pick.length} drills · about ${pick.reduce((a,d)=>a+planMinutes(d,d.plan(...oldAT())),0)+2} minutes`;
+  $('#posSess').innerHTML=pick.map((d,i)=>`<li><button data-open="${d.id}"><span class="n">${i+1}</span><span class="role">${roles[i]}</span><span class="meta">${planMinutes(d,d.plan(...oldAT()))} min<br>${starsHtml(state.stars[k(d)]||0)}</span><b>${view(d).name}</b></button></li>`).join('');
+  $('#posGrid').innerHTML=list.map(drillCard).join('');
 }
 
 /* ---------- Progress page ---------- */

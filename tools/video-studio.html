@@ -840,6 +840,162 @@ SCENES['distribution'] = { name: 'Distribution', dur: 8, draw(t) {
   title('Distribution'); counter('throws', i + (u > .3 ? 1 : 0)); caption(u < .3 ? 'Step toward your target' : u < .7 ? 'Overarm: straight arm over the top' : 'Into the zone!');
 } };
 
+
+/* ---------- Positions: defender, midfielder, forward ---------- */
+function phoneCue(x, y, glyph, label, on = true) {
+  ctx.fillStyle = '#10241A'; roundRect(x - 50, y - 75, 100, 150, 12); ctx.fill(); ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.stroke();
+  ctx.fillStyle = on ? C.bib : '#0c1a12'; ctx.fillRect(x - 40, y - 63, 80, 126);
+  if (on) { ctx.fillStyle = C.ink; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.font = `800 52px ${FONT}`; ctx.fillText(glyph, x, y - 12); ctx.font = `800 ${label.length > 10 ? 9 : 12}px ${FONT}`; label.split(' ').length > 1 && label.length > 10 ? label.split(' ').forEach((w, j, arr) => ctx.fillText(w, x, y + 34 + j * 12 - (arr.length - 1) * 2)) : ctx.fillText(label, x, y + 40); ctx.textBaseline = 'alphabetic'; }
+}
+function marker(x, y, label = 'DEFENDER') { ctx.fillStyle = 'rgba(0,0,0,.25)'; ctx.beginPath(); ctx.ellipse(x + 4, y + 6, 26, 16, 0, 0, 7); ctx.fill();
+  ctx.fillStyle = C.red; ctx.beginPath(); ctx.arc(x, y, 22, 0, 7); ctx.fill(); ctx.fillStyle = '#fff'; ctx.font = `800 11px ${FONT}`; ctx.textAlign = 'center'; ctx.fillText(label, x, y + 40); }
+// Shadow the Attacker
+SCENES['shadow-attacker'] = { name: 'Shadow the Attacker', dur: 9, draw(t) {
+  pitch(); const seq = [['↑', 'STEP UP', 0, -60], ['←', 'LEFT', -130, 0], ['↓', 'DROP', 0, 70], ['→', 'RIGHT', 130, 0]];
+  const i = Math.floor(t / 2.25) % 4, u = (t % 2.25) / 2.25, c = seq[i], prev = seq[(i + 3) % 4];
+  const base = (q) => [480 + q[2], 340 + q[3]], from = base(prev), to = base(c), k = u < .2 ? 0 : ease(Math.min(1, (u - .2) / .4));
+  phoneCue(480, 120, c[0], c[1], u < .45);
+  playerTop(lerp(from[0], to[0], k), lerp(from[1], to[1], k), -Math.PI / 2 + .5, u > .2 && u < .6 ? t * 18 : 0, { stride: .6, color: '#3B4A5C' });
+  title('Shadow the Attacker'); caption(u < .2 ? 'Side-on stance, on your toes' : `${c[1] === 'STEP UP' ? 'Step up' : c[1] === 'DROP' ? 'Drop back' : 'Shuffle ' + c[1].toLowerCase()}, then get set`);
+} };
+// Jockey & Recover
+SCENES['jockey-recover'] = { name: 'Jockey & Recover', dur: 8, draw(t) {
+  pitch(); cone(480, 440, 1.4); ctx.fillStyle = 'rgba(255,255,255,.75)'; ctx.font = `700 14px ${FONT}`; ctx.textAlign = 'center'; ctx.fillText('YOUR GOAL', 480, 470 - 8);
+  const u = (t % 8) / 8, jock = u < .55, y = jock ? lerp(160, 260, u / .55) : u < .75 ? lerp(260, 410, ease((u - .55) / .2)) : lerp(410, 160, (u - .75) / .25);
+  if (jock) marker(480, y - 90, 'ATTACKER');
+  playerTop(480 + (jock ? 10 * Math.sin(t * 6) : 0), y, jock ? -Math.PI / 2 + .5 : u < .75 ? Math.PI / 2 : -Math.PI / 2, t * (jock ? 10 : 22), { stride: jock ? .5 : 1.6, color: '#3B4A5C' });
+  ctx.font = `800 60px ${FONT}`; ctx.textAlign = 'center'; ctx.fillStyle = jock ? '#fff' : C.bib; ctx.fillText(jock ? 'JOCKEY' : u < .75 ? 'RECOVER!' : 'STEP OUT', 760, 160);
+  title('Jockey & Recover'); caption(jock ? 'Shuffle back, side-on and patient' : u < .75 ? 'Turn and sprint back goal-side' : 'Step out and jockey again');
+} };
+// Clearance Volleys (side view)
+SCENES['clearance'] = { name: 'Clearance Volleys', dur: 8, draw(t) {
+  pitch(); groundLine();
+  const P = 4, u = (t % P) / P, n = Math.floor(t / P), stand = { l: [418, GROUND - 4], r: [442, GROUND - 4] };
+  let b, hands = null, k = 0, cap;
+  if (u < .25) { const q = u / .25; b = [490, lerp(270, 200, Math.sin(q * Math.PI / 2))]; hands = [lerp(486, 500, q), lerp(272, 220, q)]; cap = 'Toss it up in front'; }
+  else if (u < .42) { const q = (u - .25) / .17; b = [495, lerp(200, GROUND - 120, q * q)]; k = ease(q); cap = 'Laces, toes down'; }
+  else { const q = Math.min(1, (u - .42) / .4); b = flight([495, GROUND - 120], [980, -40], q, 120); k = 1 - ease(Math.min(1, (u - .42) / .2)); cap = 'High and far: get it out of danger'; }
+  sideFigure({ hip: [430, GROUND - 158], la: stand.l, ra: [lerp(stand.r[0], 488, k), lerp(stand.r[1], GROUND - 110, k)], rfa: lerp(0, -30, k), hiR: k > .2, hands, arm: .5 });
+  ball(b[0], b[1], 20, u * 9, false);
+  title('Clearance Volleys'); counter('clearances', n + (u > .42 ? 1 : 0)); caption(cap);
+} };
+// Defensive Headers (side view, Teens only)
+SCENES['def-headers'] = { name: 'Defensive Headers', dur: 8, draw(t) {
+  pitch(); groundLine();
+  const P = 4, u = (t % P) / P, n = Math.floor(t / P), head = [446, GROUND - 312];
+  let b, hands = null, cap;
+  if (u < .35) { const q = u / .35; b = [lerp(486, 470, q), lerp(270, 70, 1 - (1 - q) * (1 - q))]; hands = [lerp(486, 480, q), lerp(272, 200, q)]; cap = 'Toss it up, soft ball only'; }
+  else if (u < .55) { const q = (u - .35) / .2; b = [470, lerp(70, head[1] - 22, q * q)]; cap = 'Forehead, eyes open, neck strong'; }
+  else { const q = Math.min(1, (u - .55) / .35); b = flight([470, head[1] - 22], [960, 0], q, 140); cap = 'Head it high and away'; }
+  sideFigure({ hip: [430, GROUND - 158], la: [418, GROUND - 4], ra: [446, GROUND - 4], hands, arm: .4 });
+  ball(b[0], b[1], 20, 0, false);
+  title('Defensive Headers', 'TEENS · MAX 10'); counter('headers', n + (u > .55 ? 1 : 0)); caption(cap);
+} };
+// Switch the Play
+SCENES['switch-play'] = { name: 'Switch the Play', dur: 8, draw(t) {
+  pitch(); const G = [[110, 280], [850, 280]]; G.forEach(([x, y]) => { cone(x, y - 34, 1.2); cone(x, y + 34, 1.2); dashed([[x, y - 34], [x, y + 34]], 'rgba(255,255,255,.6)'); });
+  const P = 4, i = Math.floor(t / P), u = (t % P) / P, from = G[i % 2], to = G[(i + 1) % 2], me = [480, 340], dir = to[0] > from[0] ? 1 : -1;
+  let bx, by, cap;
+  if (u < .3) { const k = u / .3; bx = lerp(from[0], me[0] - dir * 30, k); by = lerp(from[1], me[1] - 20, k); cap = 'Ball comes in from one side'; }
+  else if (u < .45) { const k = (u - .3) / .15; bx = lerp(me[0] - dir * 30, me[0] + dir * 30, k); by = me[1] - 20; cap = 'First touch across your body'; }
+  else { const k = Math.min(1, (u - .45) / .35); bx = lerp(me[0] + dir * 30, to[0], k); by = lerp(me[1] - 20, to[1], k); cap = 'Switch it to the far side'; }
+  playerTop(me[0], me[1], -Math.PI / 2 + dir * (u > .3 ? .9 : -.6), 0, { color: '#1D8A6A' }); ball(bx, by, 14, t * 8);
+  title('Switch the Play'); counter('switches', i + (u > .45 ? 1 : 0)); caption(cap);
+} };
+// Give & Go Run
+SCENES['give-go'] = { name: 'Give & Go Run', dur: 8, draw(t) {
+  pitch(); wall(); cone(600, 380, 1.3);
+  const P = 4, u = (t % P) / P, n = Math.floor(t / P), start = [440, 400], meet = [660, 330];
+  const run = path([[440, 400], [560, 430], [640, 400], [660, 330]]);
+  let px, py, dir, bx, by, cap;
+  if (u < .15) { px = start[0]; py = start[1]; dir = -Math.PI / 2 + .3; bx = 450; by = 356; cap = 'Pass to the wall'; }
+  else { const k = Math.min(1, (u - .15) / .55), p = run.at(run.len * ease(k)); px = p.x; py = p.y; dir = p.dir; cap = 'Go! Run around the cone';
+    const q = Math.min(1, (u - .15) / .3); if (q < 1) { bx = lerp(450, 560, q); by = lerp(356, 110, q); } else { const q2 = Math.min(1, (u - .45) / .3); bx = lerp(560, meet[0], q2); by = lerp(110, meet[1] - 30, q2); }
+    if (u > .75) cap = 'Meet it in stride'; }
+  playerTop(px, py, dir, u > .15 && u < .75 ? t * 18 : 0, { color: '#1D8A6A' }); ball(bx, by, 14, t * 8);
+  title('Give & Go Run'); counter('give & gos', n + (u > .75 ? 1 : 0)); caption(cap);
+} };
+// Shield & Spin
+SCENES['shield-spin'] = { name: 'Shield & Spin', dur: 9, draw(t) {
+  pitch(); const seq = [['←', 'DEFENDER LEFT', Math.PI], ['↑', 'DEFENDER IN FRONT', -Math.PI / 2], ['→', 'DEFENDER RIGHT', 0]];
+  const i = Math.floor(t / 3) % 3, u = (t % 3) / 3, c = seq[i], me = [480, 320];
+  phoneCue(820, 150, c[0], c[1], u < .5);
+  const da = c[2], mx = me[0] + Math.cos(da) * 150, my = me[1] + Math.sin(da) * 150; marker(mx, my);
+  const face = da + Math.PI, k = ease(Math.min(1, u / .35)), prevFace = seq[(i + 2) % 3][2] + Math.PI;
+  const f = lerp(prevFace, face + (Math.abs(face - prevFace) > Math.PI ? (face > prevFace ? -2 : 2) * Math.PI : 0), k);
+  playerTop(me[0], me[1], f, u < .35 ? t * 10 : 0, { color: '#1D8A6A' });
+  ball(me[0] + Math.cos(f) * 40, me[1] + Math.sin(f) * 40, 14, 0);
+  title('Shield & Spin'); caption(u < .35 ? 'Turn: put your body between them and the ball' : 'Low and wide, ball on your far foot');
+} };
+// Tempo Passing
+SCENES['tempo-pass'] = { name: 'Tempo Passing', dur: 8, draw(t) {
+  pitch(); wall(); const B = 1.6, n = Math.floor(t / B), u = (t % B) / B, px = 480, py = 400;
+  let by; if (u < .4) by = lerp(py - 46, 106, u / .4); else if (u < .8) by = lerp(106, py - 46, (u - .4) / .4); else by = py - 46;
+  if (u < .12) { ctx.strokeStyle = C.star; ctx.lineWidth = 6; ctx.beginPath(); ctx.arc(760, 200, 40 + 80 * u, 0, 7); ctx.stroke(); ctx.fillStyle = C.star; ctx.font = `800 40px ${FONT}`; ctx.textAlign = 'center'; ctx.fillText('BEEP', 760, 214); }
+  playerTop(px, py, -Math.PI / 2, 0, { color: '#1D8A6A' }); ball(px, by, 14, by / 14);
+  title('Tempo Passing'); counter('passes', n + (u > .05 ? 1 : 0)); caption('Pass on every beep: control, set, pass');
+} };
+// Turn & Shoot
+SCENES['turn-shoot'] = { name: 'Turn & Shoot', dur: 8, draw(t) {
+  pitch(); goalTop();
+  const P = 4, i = Math.floor(t / P), u = (t % P) / P, side = i % 2 ? 1 : -1, me = [480, 300], tgt = [480 + side * 148, 48];
+  let dir = Math.PI / 2, bx, by, cap;
+  if (u < .3) { const k = u / .3; bx = 480; by = lerp(470, me[1] + 40, k); cap = 'Back to goal, check your shoulder'; }
+  else if (u < .5) { const k = ease((u - .3) / .2); dir = Math.PI / 2 - side * Math.PI * k; bx = me[0] + Math.cos(dir) * 40; by = me[1] + Math.sin(dir) * 40; cap = 'Turn with your first touch'; }
+  else { dir = -Math.PI / 2 + side * .3; const k = Math.min(1, (u - .5) / .25); [bx, by] = flight([me[0] + side * 12, me[1] - 40], tgt, k); cap = 'Shoot early!'; }
+  playerTop(me[0], me[1], dir, 0, { color: '#C93636' }); ball(bx, by, 14, t * 8);
+  title('Turn & Shoot'); counter('shots', i + (u > .5 ? 1 : 0)); caption(cap);
+} };
+// Sprint & Finish
+SCENES['sprint-finish'] = { name: 'Sprint & Finish', dur: 8, draw(t) {
+  pitch(); goalTop(); cone(480, 440, 1.3);
+  const P = 4, i = Math.floor(t / P), u = (t % P) / P, side = i % 2 ? 1 : -1, ballAt = [480, 260], tgt = [480 + side * 148, 48];
+  let px = 480, py = 430, bx = ballAt[0], by = ballAt[1], cap;
+  if (u < .45) { py = lerp(430, ballAt[1] + 40, ease(u / .45)); cap = 'Sprint to the ball'; }
+  else if (u < .75) { py = ballAt[1] + 40; const k = (u - .45) / .3; [bx, by] = flight(ballAt, tgt, k); cap = 'Shoot without stopping'; }
+  else { py = ballAt[1] + 40; [bx, by] = tgt; cap = 'Walk back, that\'s your rest'; }
+  playerTop(px, py, -Math.PI / 2, u < .45 ? t * 22 : 0, { stride: 1.5, color: '#C93636' }); ball(bx, by, 14, t * 8);
+  title('Sprint & Finish'); counter('finishes', i + (u > .45 ? 1 : 0)); caption(cap);
+} };
+// Volley Finishing (side view, goal on the right)
+SCENES['volley-finish'] = { name: 'Volley Finishing', dur: 8, draw(t) {
+  pitch(); groundLine(); ctx.strokeStyle = '#fff'; ctx.lineWidth = 7; ctx.beginPath(); ctx.moveTo(840, GROUND + 4); ctx.lineTo(840, GROUND - 170); ctx.lineTo(920, GROUND - 170); ctx.stroke();
+  ctx.strokeStyle = 'rgba(255,255,255,.3)'; ctx.lineWidth = 1; for (let y = GROUND - 160; y < GROUND; y += 16) { ctx.beginPath(); ctx.moveTo(840, y); ctx.lineTo(920, y + 8); ctx.stroke(); }
+  const P = 4, u = (t % P) / P, n = Math.floor(t / P), stand = { l: [418, GROUND - 4], r: [442, GROUND - 4] };
+  let b, hands = null, k = 0, cap;
+  if (u < .25) { const q = u / .25; b = [490, lerp(270, 180, Math.sin(q * Math.PI / 2))]; hands = [lerp(486, 500, q), lerp(272, 210, q)]; cap = 'Toss it up'; }
+  else if (u < .42) { const q = (u - .25) / .17; b = [495, lerp(180, GROUND - 96, q * q)]; k = ease(q); cap = 'Knee over the ball'; }
+  else { const q = Math.min(1, (u - .42) / .25); b = [lerp(495, 870, q), lerp(GROUND - 96, GROUND - 80, q)]; k = 1 - ease(Math.min(1, (u - .42) / .2)); cap = 'Keep it down, under the bar'; }
+  sideFigure({ hip: [430, GROUND - 158], la: stand.l, ra: [lerp(stand.r[0], 486, k), lerp(stand.r[1], GROUND - 92, k)], rfa: lerp(0, -8, k), hiR: k > .2, hands, arm: .5 });
+  ball(b[0], b[1], 20, u * 9, false);
+  title('Volley Finishing'); counter('volleys', n + (u > .42 ? 1 : 0)); caption(cap);
+} };
+// Pick Your Spot (goal seen from the front)
+SCENES['pick-spot'] = { name: 'Pick Your Spot', dur: 9, draw(t) {
+  pitch(); const gx = 250, gy = 70, gw = 460, gh = 200;
+  ctx.fillStyle = 'rgba(255,255,255,.1)'; ctx.fillRect(gx, gy, gw, gh); ctx.strokeStyle = 'rgba(255,255,255,.25)'; ctx.lineWidth = 1;
+  for (let x = gx; x <= gx + gw; x += 20) { ctx.beginPath(); ctx.moveTo(x, gy); ctx.lineTo(x, gy + gh); ctx.stroke(); } for (let y = gy; y <= gy + gh; y += 20) { ctx.beginPath(); ctx.moveTo(gx, y); ctx.lineTo(gx + gw, y); ctx.stroke(); }
+  ctx.strokeStyle = '#fff'; ctx.lineWidth = 8; ctx.beginPath(); ctx.moveTo(gx, gy + gh); ctx.lineTo(gx, gy); ctx.lineTo(gx + gw, gy); ctx.lineTo(gx + gw, gy + gh); ctx.stroke();
+  const seq = [['↖', 'TOP LEFT', gx + 60, gy + 50], ['↘', 'BOTTOM RIGHT', gx + gw - 60, gy + gh - 40], ['↙', 'BOTTOM LEFT', gx + 60, gy + gh - 40]];
+  const i = Math.floor(t / 3) % 3, u = (t % 3) / 3, c = seq[i];
+  ctx.strokeStyle = C.bib; ctx.lineWidth = 4; ctx.strokeRect(c[2] - 50, c[3] - 40, 100, 80);
+  phoneCue(860, 360, c[0], c[1]);
+  const k = u < .35 ? 0 : Math.min(1, (u - .35) / .3), bx = lerp(480, c[2], k), by = lerp(460, c[3], k);
+  ball(bx, by, lerp(26, 12, k), t * 8, false);
+  title('Pick Your Spot'); caption(u < .35 ? `The phone says ${c[1].toLowerCase()}` : 'Place it right there');
+} };
+// Breakaway
+{
+  const R = path([[480, 460], [520, 380], [400, 320], [420, 280], [580, 220], [560, 180], [500, 150]]);
+  SCENES['breakaway'] = { name: 'Breakaway', dur: 7, draw(t) {
+    pitch(); goalTop(); cone(450, 330, 1.3); cone(540, 240, 1.3); ctx.strokeStyle = 'rgba(255,255,255,.6)'; ctx.setLineDash([8, 8]); ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(300, 175); ctx.lineTo(660, 175); ctx.stroke(); ctx.setLineDash([]);
+    const u = Math.min(1, t / 4.2), p = R.at(R.len * u);
+    if (t < 4.2) { playerTop(p.x, p.y, p.dir, t * 20, { stride: 1.3, color: '#C93636' }); ball(p.x + Math.cos(p.dir) * 36, p.y + Math.sin(p.dir) * 36, 14, t * 10); }
+    else { playerTop(p.x, p.y, -Math.PI / 2, 0, { color: '#C93636' }); const k = Math.min(1, (t - 4.2) / .6); const [bx, by] = flight([p.x, p.y - 36], [348, 48], k); ball(bx, by, 14, t * 8); }
+    title('Breakaway'); caption(t < 2.2 ? 'Big touches into space' : t < 4.2 ? 'Small touches around the defenders' : 'Finish low and early, before the line');
+  } };
+}
+
 /* ---------- Render API ---------- */
 window.SCENE_LIST = Object.entries(SCENES).map(([id, s]) => ({ id, name: s.name, dur: Math.round(s.dur * 100) / 100 }));
 window.renderFrame = (id, t) => { ctx.save(); ctx.clearRect(0, 0, W, H); SCENES[id].draw(t); ctx.restore(); return cv.toDataURL('image/jpeg', .9); };

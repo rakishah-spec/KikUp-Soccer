@@ -74,6 +74,23 @@ The file name must match exactly (lowercase, with the dashes).
 | Ball Handling (Little Kickers: Ball Around Your Waist) | `ball-handling.mp4` |
 | Distribution | `distribution.mp4` |
 
+## Positions
+| Drill | Page | File name |
+|---|---|---|
+| Shadow the Attacker (Little Kickers: Stay in Front) | Defender | `shadow-attacker.mp4` |
+| Jockey & Recover (Little Kickers: Run Back Home) | Defender | `jockey-recover.mp4` |
+| Clearance Volleys (Little Kickers: Big Kick) | Defender | `clearance.mp4` |
+| Defensive Headers (Teens only) | Defender | `def-headers.mp4` |
+| Switch the Play (Little Kickers: Kick Left, Kick Right) | Midfielder | `switch-play.mp4` |
+| Give & Go Run | Midfielder | `give-go.mp4` |
+| Shield & Spin (Little Kickers: Hide the Ball) | Midfielder | `shield-spin.mp4` |
+| Tempo Passing (Little Kickers: Pass to the Beat) | Midfielder | `tempo-pass.mp4` |
+| Turn & Shoot (Little Kickers: Spin & Kick) | Forward | `turn-shoot.mp4` |
+| Sprint & Finish (Little Kickers: Run & Kick) | Forward | `sprint-finish.mp4` |
+| Volley Finishing | Forward | `volley-finish.mp4` |
+| Pick Your Spot (Little Kickers: Aim Left, Aim Right) | Forward | `pick-spot.mp4` |
+| Breakaway | Forward | `breakaway.mp4` |
+
 ## Skill moves
 | Move | File name |
 |---|---|
