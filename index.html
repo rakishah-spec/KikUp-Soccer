@@ -442,6 +442,9 @@ main .wrap{padding-block:24px 56px;display:grid;gap:28px}
 .g-btn svg{width:22px;height:22px}
 .g-btn:disabled{opacity:.6}
 
+.test-box textarea{width:100%;height:120px;font:12px/1.3 ui-monospace,Menlo,monospace;background:rgba(0,0,0,.3);color:#fff;border:1px solid var(--run-line);border-radius:8px;padding:8px}
+.test-box input{font:inherit;font-size:20px;width:120px;padding:8px 10px;border-radius:10px;border:2px solid var(--run-line);background:rgba(0,0,0,.25);color:#fff}
+
 /* Live camera counter */
 .cam-tip{position:absolute;left:8px;right:8px;bottom:8px;display:flex;gap:10px;align-items:center;background:rgba(14,38,24,.88);border:2px solid var(--bib);border-radius:12px;padding:10px 12px;color:#fff;text-align:left}
 .cam-tip svg{width:44px;height:44px;flex:none;color:var(--bib)}
@@ -498,6 +501,7 @@ main .wrap{padding-block:24px 56px;display:grid;gap:28px}
     <a href="#friends" data-nav="friends"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.5" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="17" cy="9" r="2.6" fill="none" stroke="currentColor" stroke-width="2"/><path d="M2.5 20c.6-3.6 3.3-5.5 6.5-5.5s5.9 1.9 6.5 5.5M15 14.6c2.8-.3 5 1.3 5.6 4.4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>Friends</a>
     <a href="#progress" data-nav="progress"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>My progress</a>
     <button id="menuGuide"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 11v6M12 7.5v.5" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>Getting started guide</button>
+    <button class="drawer-small" id="testToggle"></button>
     <a href="privacy.html" class="drawer-small">Privacy policy</a>
   </nav>
 </div>
@@ -795,7 +799,7 @@ const DRILLS=[
  diagram:{cones:[[70,60],[130,60]],path:'M100,60 C100,28 40,28 40,60 C40,92 100,92 100,60 C100,28 160,28 160,60 C160,92 100,92 100,60',dur:3.4},
  plan(a,t){const n=T([[2,3,4],[3,5,6],[5,7,8],[6,8,10]],a,t);
   return {seconds:60,target:n,unit:'figure 8s',summary:`${n} figure 8s in 60s`,detail:[a===0?'Go slow and keep the ball close':['Walk it through','Right foot one way, left foot back','Outside of the foot only'][t]]};}},
-{id:'sole-rolls',name:'Sole Rolls',skill:'mastery',mode:'count',auto:'touches',camHow:'Put the phone 2–3 big steps away, facing you, so your feet and the ball are in the picture.',ages:[0,1,2,3],minutes:1,
+{id:'sole-rolls',name:'Sole Rolls',skill:'mastery',mode:'count',auto:'rolls',camHow:'Put the phone 2–3 big steps away, facing you, so your feet and the ball are in the picture.',ages:[0,1,2,3],minutes:1,
  setup:['Stand with the ball under the sole of one foot.','Roll it across to your other foot, then roll it back with that sole.','Keep going side to side. Count every roll.'],
  tips:['Light touches on top of the ball, don\'t stamp on it.','Stay on your toes and keep your knees bent.','Eyes up once you have the rhythm.'],
  kid:{name:'Ball Rolls',steps:['Put your foot on top of the ball.','Roll it to your other foot, then roll it back!'],tip:'Gentle, like you\'re petting a cat.'},
@@ -1076,8 +1080,8 @@ function movePlan(m){const i=levelIdx(),over=i-m.from;
   const each=Math.min(20,5+over*2),speed=['Go slow and get it right','Jogging speed, toward a cone','Full speed at a cone, then explode away'][state.tier];
   return {seconds:60,target:each*2,unit:'reps',summary:`${each} each foot in 60s`,detail:[speed,over>=3?'Add it to a combo with another move you know':'Count both feet']};}
 /* How the camera counts each skill move: direction change (most moves), a stop, touches, or a flick over the head. */
-const MOVE_AUTO={'sole-stop':'stop','side-taps':'touches','rainbow':'flick'};
-const MOVE_CAM={stop:'Put the phone off to the side, 3–4 big steps away. Roll the ball out, then stop it dead under your foot.',
+const MOVE_AUTO={'sole-stop':'stop','side-taps':'rolls','rainbow':'flick'};
+const MOVE_CAM={rolls:'Put the phone 2–3 big steps away, facing you, so your feet and the ball are clearly in the picture.',stop:'Put the phone off to the side, 3–4 big steps away. Roll the ball out, then stop it dead under your foot.',
   touches:'Put the phone 2–3 big steps away, facing you, so your feet and the ball are in the picture.',
   flick:'Put the phone 4–5 big steps away, off to the side, so the picture shows from your feet to well above your head.',
   cut:'Put the phone 4–5 big steps away, off to the side, so you, the ball and your cone all fit. After each move, stop the ball and walk it back.'};
@@ -1263,8 +1267,17 @@ function showResult(d,stars,headline,lines,fb){
     ${stars>prev&&prev>0?'<p class="pb">New best for this level!</p>':''}
     ${fb?`<div class="fb-out"><h4>${state.age===0?'Great job':'What you did well'}</h4>${fb.good.map(x=>`<p>${esc(x)}</p>`).join('')}<h4>${state.age===0?'Try this next':'Fix next'}</h4>${fb.fix.map(x=>`<p>${esc(x)}</p>`).join('')}<h4>Remember</h4><p>${esc(fb.cue)}</p></div>`:''}
     ${canFeedback(d)?'<button class="btn-primary" id="fbGo">Film it &amp; get coach feedback</button>':''}
+    ${state.testMode&&LAST_REC&&LAST_REC.drill===d.id?`<div class="fb-out test-box"><h4>Counting test</h4><p>The camera counted <b>${LAST_REC.counted}</b>. How many did you really do?</p>
+      <div class="count-row"><input type="number" id="realCount" inputmode="numeric" min="0" placeholder="Real count" aria-label="Real count"><button class="btn-primary" id="copyTest" style="font-size:18px;padding:10px 16px">Copy test data</button></div>
+      <p class="small" id="testMsg">Then paste it into your chat with Claude.</p><textarea id="testText" readonly hidden></textarea></div>`:''}
     <div class="count-row"><button class="btn-ghost" id="again">Go again</button><button class="${canFeedback(d)?'btn-ghost':'btn-primary'}" id="done">Back to drills</button></div></div>`;
   $('#again').onclick=()=>startRun(d); $('#done').onclick=closeRunner;
+  if($('#copyTest'))$('#copyTest').onclick=async()=>{const real=$('#realCount').value;if(real===''){$('#testMsg').textContent='Type the real count first.';return;}
+    const r=LAST_REC,txt=`KIKUP-TEST v1 drill=${r.drill} kind=${r.kind} counted=${r.counted} real=${real} age=${r.age} tier=${r.tier} aspect=${(r.aspect||0).toFixed(2)} frames=${r.rec.length}\n`+
+      `t,bx,by,br,tracked,lfx,lfy,rfx,rfy,lay,ray,tap,count\n`+r.rec.join('\n');
+    const ta=$('#testText');ta.value=txt;
+    try{await navigator.clipboard.writeText(txt);$('#testMsg').textContent='Copied! Paste it into your chat with Claude.';}
+    catch(e){ta.hidden=false;ta.focus();ta.select();$('#testMsg').textContent='Select all of the text below, copy it, and paste it into your chat with Claude.';}};
   if(canFeedback(d))$('#fbGo').onclick=()=>openFeedback(d,lines[0]);
 }
 
@@ -1341,6 +1354,7 @@ function openFeedback(d,info){
   $('#fbRec').onchange=e=>handle(e.target.files);
   $('#fbPick').onchange=e=>handle(e.target.files);
 }
+let LAST_REC=null;   // counting test mode: the last camera drill's measurements
 const esc=t=>String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const headline=s=>{const n=state.name?`, ${state.name}`:'';return ['',`Good work${n}. Keep at it.`,`So close${n}!`,`Goal crushed${n}!`][s];};
 
@@ -1404,7 +1418,7 @@ function runCount(d,p){
       if(!camOK())throw {name:'NoCamera'};
       const mod=await import('./js/camera.js');camMod=mod;
       cam=new mod.LiveCounter({video:$('#camVideo'),canvas:$('#camCanvas'),kind:d.auto,facing,
-        opts:d.weak?{foot:state.weakFoot||'l'}:{},
+        opts:Object.assign(d.weak?{foot:state.weakFoot||'l'}:{},{record:!!state.testMode}),
         onStatus:st=>{const m=$('#camMsg');if(!m)return;if(st.text)m.textContent=st.text;
           if('body' in st){$('#dotBody').classList.toggle('on',st.body);const db=$('#dotBall');if(db&&st.ball!==null)db.classList.toggle('on',st.ball);
             const ok='ready' in st?st.ready:st.body&&st.ball!==false;
@@ -1438,7 +1452,8 @@ function runCount(d,p){
   }
   const finish=()=>{S.intervals.forEach(clearInterval);S.intervals=[];
     let fb=null;
-    if(cam){try{fb=camMod.buildFeedback({kind:d.auto,count,target:p.target,seconds:p.seconds,age:state.age,weakFoot:d.weak?(state.weakFoot||'l'):null,report:cam.report()});}catch(e){fb=null;}
+    if(cam){let rep=null;try{rep=cam.report();fb=camMod.buildFeedback({kind:d.auto,count,target:p.target,seconds:p.seconds,age:state.age,weakFoot:d.weak?(state.weakFoot||'l'):null,report:rep});}catch(e){fb=null;}
+      if(state.testMode&&rep)LAST_REC={drill:d.id,kind:d.auto,counted:count,age:state.age,tier:state.tier,aspect:rep.aspect,rec:rep.rec};
       cam.close();cam=null;S.cam=null;}
     const st=count>=p.target?3:count>=p.target*.7?2:1;
     showResult(d,st,headline(st),[`${count} ${p.unit}. Goal was ${p.target}.`],fb);};
@@ -1737,6 +1752,8 @@ function closeMenu(){$('#drawer').hidden=true;$('#menuBtn').setAttribute('aria-e
 $('#menuBtn').onclick=openMenu;$('#drawerX').onclick=closeMenu;
 $('#drawer').addEventListener('click',e=>{if(e.target.id==='drawer'||e.target.closest('a'))closeMenu();});
 $('#menuGuide').onclick=()=>{closeMenu();openOnb();};
+const testLabel=()=>{$('#testToggle').textContent=state.testMode?'Camera counting test: ON (tap to turn off)':'Help fix camera counting (test mode)';};testLabel();
+$('#testToggle').onclick=()=>{state.testMode=!state.testMode;save();testLabel();closeMenu();toast(state.testMode?'Test mode on: after each camera drill you can copy what the camera measured.':'Test mode off');};
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('#drawer').hidden)closeMenu();});
 function route(){if(!$('#sheet').hidden)closeSheet();const pg={'#progress':'progress','#training':'training','#endurance':'endurance','#goalkeeper':'goalkeeper','#defender':'defender','#midfielder':'midfielder','#forward':'forward','#friends':'friends'}[location.hash]||'train';
   $('#homeView').hidden=pg!=='train';$('#progressView').hidden=pg!=='progress';$('#trainingView').hidden=pg!=='training';$('#enduranceView').hidden=pg!=='endurance';$('#goalkeeperView').hidden=pg!=='goalkeeper';$('#positionView').hidden=!POSITIONS[pg];$('#friendsView').hidden=pg!=='friends';

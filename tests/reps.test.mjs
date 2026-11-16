@@ -1,5 +1,5 @@
 // Simulated-movement tests for the rep counters. Run: node tests/reps.test.mjs
-import { JuggleCounter, TapCounter, TouchCounter, KickCounter, TripCounter, CheckCounter, MoveCounter, StopCounter, FlickCounter, EightCounter, CatchCounter } from '../js/reps.js';
+import { JuggleCounter, TapCounter, TouchCounter, KickCounter, TripCounter, CheckCounter, MoveCounter, StopCounter, FlickCounter, EightCounter, CatchCounter, RollCounter } from '../js/reps.js';
 let seed = 7; const rnd = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
 const noise = (a) => (rnd() - 0.5) * 2 * a;
 const FPS = 15, dt = 1000 / FPS;
@@ -135,6 +135,24 @@ for (const withPose of [true, false]) { const c = new CatchCounter(); let t = 0,
   }
   if (withPose) { for (let i = 1; i <= 6; i++) step(.5, .6 + .3 * i / 6); for (let i = 0; i < 12; i++) step(.5, .9); }   // dropped: lands by the feet
   check(`keeper catches (${withPose ? 'whole body' : 'feet only'})`, n, 10, withPose ? 0 : 1); }
+
+
+// REAL-WORLD TOE TAPS (what failed on a real phone): fast alternating taps, 3 per second. The tapping
+// foot's toe point lands a little IN FRONT of the ball's top, and feet never move far from the ball.
+for (const withPose of [true, false]) { const c = new TapCounter(); let t = 0, n = 0; const B = { x: .5, y: .85, r: .04 };
+  for (let k = 0; k < 30; k++) { const side = k % 2 ? 'r' : 'l';
+    for (let i = 0; i < 5; i++, t += dt) { const up = Math.sin(Math.PI * i / 4);       // foot goes up onto the ball and back down
+      const p = pose({ lf: { x: .45 + noise(.006), y: .91 + noise(.006) }, rf: { x: .55 + noise(.006), y: .91 + noise(.006) } });
+      p[side + 'f'] = { x: (side === 'l' ? .45 : .55) + (B.x + .04 - (side === 'l' ? .45 : .55)) * up + noise(.006), y: .91 - (.91 - (B.y - B.r - .01)) * up + noise(.006) };
+      const tap = withPose ? null : (i === 2 || i === 3 ? 22 + noise(5) : i === 1 || i === 4 ? 14 + noise(4) : 9 + noise(3));   // feet keep moving: no calm frames
+      n = c.update({ t, pose: withPose ? p : null, ball: rnd() < .15 ? null : { x: B.x + noise(.004), y: B.y + noise(.004), r: B.r }, tap }).count; } }
+  check(`real-world toe taps, fast and alternating (${withPose ? 'feet tracked' : 'feet-only'})`, n, 30, 2); }
+
+// REAL-WORLD SOLE ROLLS: ball rolled side to side under the soles, 3 rolls per second, feet always on or by the ball.
+for (const withPose of [true, false]) { const c = new RollCounter(); let t = 0, n = 0;
+  for (let i = 0; i < 30 * 5; i++, t += dt) { const x = .5 + .06 * Math.sin(Math.PI * i / 5);
+    n = c.update({ t, pose: withPose ? pose({ lf: { x: x - .04, y: .86 }, rf: { x: x + .04, y: .86 } }) : null, ball: rnd() < .12 ? null : { x: x + noise(.005), y: .86 + noise(.004), r: .04 } }).count; }
+  check(`real-world sole rolls (${withPose ? 'feet tracked' : 'feet-only'})`, n, 30, 2); }
 
 // Standing still with a noisy ball should count nothing.
 { const cs = [new JuggleCounter(), new TapCounter(), new TouchCounter(), new KickCounter(), new MoveCounter(), new StopCounter(), new FlickCounter()]; let t = 0; const out = cs.map(() => 0);

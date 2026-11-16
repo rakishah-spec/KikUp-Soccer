@@ -105,20 +105,54 @@ class FootContact extends Base {
   }
 }
 
-// TOE TAPS: the sole of a foot comes down onto the top of the ball.
+// TOE TAPS: each foot keeps lifting up onto the top of the ball and back down.
+// Feet tracked: a tap is a foot rising by about half the ball's height above where that foot
+// rests, close to the ball (the toe point can land anywhere on top of it).
+// Feet not tracked: each burst of movement just above the ball is a tap (peaks, not "calm then busy",
+// because during fast taps there are no calm moments).
 export class TapCounter extends FootContact {
-  constructor(o) { super(o); this.motion = false; this.lastMotion = -1e9; }
+  constructor(o) { super(o); this.feet = { l: null, r: null }; this.e = []; this.lastPeak = -1e9; }
   update(o) {
     const S = this.scale(o), b = this.ball(o, 3000);
-    if (b) {
-      const top = { x: b.x, y: b.y - b.r };
-      const inR = Math.max(b.r * 0.9, 0.06 * S);
-      let side = this.contact(o, top, inR, inR * 1.7, 110);
-      if (!o.pose && o.tap != null) {                       // no feet found: a burst of movement right on top of the ball is a tap
-        if (!this.motion && o.tap > 16 && o.t - this.lastMotion > 110) { this.motion = true; this.lastMotion = o.t; side = 'x'; }
-        else if (this.motion && o.tap < 7) this.motion = false;
+    if (!b) return { count: this.count };
+    let side = null;
+    if (o.pose) {
+      for (const sd of ['l', 'r']) {
+        const f = o.pose[sd + 'f'], st = this.feet[sd] ??= { y: f.y, hist: [], up: false, last: -1e9 };
+        st.y = 0.5 * st.y + 0.5 * f.y;                                             // smooth the tracker's jitter
+        st.hist.push({ t: o.t, y: st.y }); while (st.hist.length > 2 && o.t - st.hist[0].t > 1200) st.hist.shift();
+        const ground = Math.max(...st.hist.map((h) => h.y)), lift = ground - st.y, near = Math.abs(f.x - b.x) < 3.5 * b.r;
+        if (!st.up && lift > 1.0 * b.r && near) { st.up = true; if (o.t - st.last > 140) { st.last = o.t; side = side || sd; } }
+        else if (st.up && lift < 0.45 * b.r) st.up = false;
       }
-      if (side) { this.count++; this.events.push({ t: o.t, type: 'rep', side: side === 'x' ? null : side }); }
+    } else if (o.tap != null) {
+      this.e.push({ t: o.t, v: o.tap }); while (this.e.length > 40) this.e.shift();
+      const n = this.e.length;
+      if (n >= 3) {
+        const prev = this.e[n - 2].v, base = [...this.e].map((x) => x.v).sort((a, c) => a - c)[Math.floor(n * 0.3)];   // typical quiet level
+        if (prev > this.e[n - 3].v && prev >= this.e[n - 1].v && prev > Math.max(12, base * 1.35) && o.t - this.lastPeak > 150) { this.lastPeak = o.t; side = 'x'; }
+      }
+    }
+    if (side) { this.count++; this.events.push({ t: o.t, type: 'rep', side: side === 'x' ? null : side }); }
+    return { count: this.count };
+  }
+}
+
+// SOLE ROLLS and SIDE-TO-SIDE TAPS: the ball goes left and right between the feet.
+// Each change of direction (by at least half the ball's width) is one roll or tap.
+export class RollCounter extends Base {
+  constructor() { super(); this.x = null; this.dir = 0; this.ext = null; this.lastRep = -1e9; }
+  update(o) {
+    this.scale(o); const b = o.ball; if (!b) return { count: this.count };
+    this.x = this.x == null ? b.x : 0.5 * this.x + 0.5 * b.x;
+    const k = 0.5 * b.r;
+    if (this.ext == null) { this.ext = this.x; return { count: this.count }; }
+    if (this.dir === 1 && this.x > this.ext) this.ext = this.x;            // furthest point so far this way
+    if (this.dir === -1 && this.x < this.ext) this.ext = this.x;
+    if (this.dir === 0 && Math.abs(this.x - this.ext) > k) { this.dir = this.x > this.ext ? 1 : -1; this.ext = this.x; }
+    else if ((this.dir === 1 && this.ext - this.x > k) || (this.dir === -1 && this.x - this.ext > k)) {
+      this.dir = -this.dir; this.ext = this.x;
+      if (o.t - this.lastRep > 120) { this.lastRep = o.t; this.count++; this.events.push({ t: o.t, type: 'rep' }); }
     }
     return { count: this.count };
   }
@@ -351,5 +385,5 @@ export class FrameStats {
 }
 
 export const COUNTERS = { juggle: JuggleCounter, taps: TapCounter, touches: TouchCounter, kicks: KickCounter, trips: TripCounter, checks: CheckCounter,
-  cut: MoveCounter, stop: StopCounter, flick: FlickCounter, eights: EightCounter, catch: CatchCounter };
-export const NEEDS_BALL = { juggle: true, taps: true, touches: true, kicks: true, trips: true, checks: false, cut: true, stop: true, flick: true, eights: true, catch: true };
+  cut: MoveCounter, stop: StopCounter, flick: FlickCounter, eights: EightCounter, catch: CatchCounter, rolls: RollCounter };
+export const NEEDS_BALL = { juggle: true, taps: true, touches: true, kicks: true, trips: true, checks: false, cut: true, stop: true, flick: true, eights: true, catch: true, rolls: true };

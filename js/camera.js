@@ -43,6 +43,7 @@ const LM = { nose: 0, ls: 11, rs: 12, lh: 23, rh: 24, lk: 25, rk: 26, la: 27, ra
 export class LiveCounter {
   constructor({ video, canvas, kind, opts = {}, facing = 'user', onCount, onStatus }) {
     Object.assign(this, { video, canvas, kind, opts, facing, onCount, onStatus });
+    this.record = !!opts.record; this.rec = [];
     this.ctx = canvas.getContext('2d');
     this.counting = false; this.closed = false; this.lastT = 0; this.frame = 0;
     this.needsBall = NEEDS_BALL[kind];
@@ -70,7 +71,7 @@ export class LiveCounter {
   }
 
   setCounting(on) {
-    if (on) { this.counter = new COUNTERS[this.kind](this.opts); this.stats = new FrameStats(); }
+    if (on) { this.counter = new COUNTERS[this.kind](this.opts); this.stats = new FrameStats(); this.rec = []; this.recT0 = performance.now(); }
     this.counting = on;
   }
 
@@ -107,7 +108,14 @@ export class LiveCounter {
     const usable = pose && (this.kind === 'checks' ? pose.upper : pose.feet) ? pose : null;
     const obs = { t, pose: usable, ball };
     if (this.kind === 'taps' && ball && !usable) obs.tap = this.motionOnBall(v, H, ball);
-    if (this.counting && this.counter) { this.stats.update(obs); this.onCount?.(this.counter.update(obs, W / H)); }
+    if (this.counting && this.counter) {
+      this.stats.update(obs); const res = this.counter.update(obs, W / H); this.onCount?.(res);
+      if (this.record && this.rec.length < 450) {             // counting test mode: what the camera measured, frame by frame (about 30 s)
+        const q = (v) => (v == null ? '' : Math.round(v * 1000)), P = obs.pose;
+        this.rec.push([Math.round(t - this.recT0), q(ball && ball.x), q(ball && ball.y), q(ball && ball.r), ball && ball.tracked ? 1 : '',
+          q(P && P.lf.x), q(P && P.lf.y), q(P && P.rf.x), q(P && P.rf.y), q(P && P.la.y), q(P && P.ra.y), obs.tap == null ? '' : Math.round(obs.tap), res.count].join(','));
+      }
+    }
 
     this.draw(W, H, pose, ball);
     // Ready to count: shoulder checks need the head; everything else just needs the ball (feet-only framing is fine).
@@ -137,7 +145,7 @@ export class LiveCounter {
   }
 
   // Everything the feedback needs from this session.
-  report() { return this.counter ? { events: this.counter.events, frames: this.stats.summary() } : null; }
+  report() { return this.counter ? { events: this.counter.events, frames: this.stats.summary(), rec: this.rec || [], aspect: this.video.videoWidth / (this.video.videoHeight || 1) } : null; }
 
   // ---- Ball finding ----------------------------------------------------------
   // 1) Look in a zoomed-in square around the player (where the ball usually is), so a small
