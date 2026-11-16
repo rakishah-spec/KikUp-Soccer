@@ -996,6 +996,112 @@ SCENES['pick-spot'] = { name: 'Pick Your Spot', dur: 9, draw(t) {
   } };
 }
 
+/* ---------- More passing, shooting and dribbling ---------- */
+function pin(x, y, down) { ctx.save(); ctx.translate(x, y); if (down) ctx.rotate(1.3); ctx.fillStyle = '#fff'; roundRect(-7, -26, 14, 30, 6); ctx.fill(); ctx.fillStyle = C.red; ctx.fillRect(-7, -16, 14, 5); ctx.restore(); }
+function bigText(txt, y = 200) { ctx.fillStyle = C.star; ctx.font = `800 40px ${FONT}`; ctx.textAlign = 'center'; ctx.fillText(txt, 480, y); }
+// Pass Bowling: pass at a group of pins and knock them down
+SCENES['bowling-pass'] = { name: 'Pass Bowling', dur: 9, draw(t) {
+  pitch(); const P = 3, n = Math.floor(t / P), u = (t % P) / P, pins = [[460, 130], [500, 130], [480, 105], [440, 105], [520, 105]], px = 480, py = 430;
+  const k = u < .25 ? 0 : Math.min(1, (u - .25) / .35), by = lerp(py - 44, 140, k), hit = k >= 1;
+  pins.forEach(([x, y], i) => pin(x + (hit ? (i - 2) * 14 * Math.min(1, (u - .6) * 4) : 0), y, hit && (i + n) % 5 !== 0));
+  playerTop(px, py, -Math.PI / 2, u < .25 ? t * 10 : 0); ball(px, hit ? 150 : by, 14, by / 14);
+  if (hit && u < .9) bigText('STRIKE!', 260);
+  title('Pass Bowling'); counter('passes', n + (u > .25 ? 1 : 0)); caption(u < .25 ? 'Aim at the pins, standing foot pointing at them' : 'Inside of the foot, smooth and firm');
+} };
+// Chip Pass: over a cone into a landing zone (side view)
+SCENES['chip-pass'] = { name: 'Chip Pass', dur: 9, draw(t) {
+  pitch(); groundLine(); const P = 3, n = Math.floor(t / P), u = (t % P) / P;
+  ctx.strokeStyle = C.bib; ctx.lineWidth = 4; ctx.strokeRect(700, GROUND - 6, 160, 10);
+  ctx.fillStyle = C.red; ctx.beginPath(); ctx.moveTo(560, GROUND); ctx.lineTo(574, GROUND - 60); ctx.lineTo(588, GROUND); ctx.closePath(); ctx.fill();
+  const start = [330, GROUND - 20], land = [780, GROUND - 20], kick = u > .25 && u < .4 ? ease((u - .25) / .15) : 0;
+  let b = start; if (u > .32) { const q = Math.min(1, (u - .32) / .45); b = flight(start, land, q, 230); }
+  sideFigure({ hip: [290, GROUND - 158], la: [276, GROUND - 4], ra: [lerp(250, 318, kick), lerp(GROUND - 30, GROUND - 14, kick)], lfa: 0, rfa: 30 * kick, hiR: kick > .2, arm: .4 });
+  ball(b[0], b[1], 20, u * 6, false);
+  if (u > .77 && u < .95) bigText('IN THE ZONE!');
+  title('Chip Pass'); counter('chips', n + (u > .3 ? 1 : 0)); caption(u < .32 ? 'Stab under the ball, toes pointed down' : 'Up and over, then it drops in');
+} };
+// Outside-Foot Passes: bend it to the wall with the outside of the foot
+SCENES['outside-pass'] = { name: 'Outside-Foot Passes', dur: 8, draw(t) {
+  pitch(); wall(); const P = 2, n = Math.floor(t / P), u = (t % P) / P, side = n % 2 ? -1 : 1, px = 480, py = 400;
+  const out = [px + side * 30, py - 40], hitW = [480 - side * 40, 106];
+  let b; if (u < .45) { const q = u / .45; b = [lerp(out[0], hitW[0], q) + side * 70 * Math.sin(Math.PI * q), lerp(out[1], hitW[1], q)]; }
+  else if (u < .85) { const q = (u - .45) / .4; b = [lerp(hitW[0], px - side * 30, q), lerp(hitW[1], out[1], q)]; } else b = [lerp(px - side * 30, out[0], (u - .85) / .15), out[1]];
+  if (u < .45) dashed([out, [out[0] + side * 50, 250], hitW]);
+  playerTop(px, py, -Math.PI / 2 - side * .35, 0, side > 0 ? { rightColor: C.left } : { leftColor: C.left });
+  ball(b[0], b[1], 14, t * 8);
+  if (u < .12) { ctx.fillStyle = 'rgba(255,255,255,.85)'; ctx.font = `800 18px ${FONT}`; ctx.textAlign = 'center'; ctx.fillText(side > 0 ? 'RIGHT OUTSIDE' : 'LEFT OUTSIDE', px + side * 110, py + 10); }
+  title('Outside-Foot Passes'); counter('passes', n + (u > .05 ? 1 : 0)); caption(t < 4 ? 'Toes down and in, snap the ankle out' : 'It bends back to the wall');
+} };
+// Dribble & Shoot
+{
+  const D = path([[480, 470], [500, 420], [460, 370], [490, 320]]);
+  SCENES['dribble-shoot'] = { name: 'Dribble & Shoot', dur: 9, draw(t) {
+    pitch(); goalTop(); cone(480, 480, 1.2); cone(520, 310, 1.2);
+    const P = 4.5, n = Math.floor(t / P), u = (t % P) / P, side = n % 2 ? 1 : -1, tgt = [480 + side * 148, 48];
+    let cap;
+    if (u < .55) { const p = D.at(D.len * ease(u / .55)); playerTop(p.x, p.y, p.dir, t * 18, { stride: 1.2 }); ball(p.x + Math.cos(p.dir) * 38, p.y + Math.sin(p.dir) * 38, 14, t * 10); cap = 'Dribble to the shooting cone'; }
+    else { const p = D.at(D.len); playerTop(p.x, p.y, -Math.PI / 2 + side * .2, 0); const k = Math.min(1, (u - .55) / .2), [bx, by] = flight([p.x, p.y - 38], tgt, k); ball(bx, by, 14, t * 8);
+      cap = 'Shoot in stride, don\'t stop it'; if (k >= 1 && u < .9) bigText('GOAL!'); }
+    title('Dribble & Shoot'); counter('shots', n + (u > .6 ? 1 : 0)); caption(cap);
+  } };
+}
+// Curl It: bend the ball around a defender cone into the far corner
+SCENES['curl-shot'] = { name: 'Curl It', dur: 9, draw(t) {
+  pitch(); goalTop(); marker(430, 240, 'WALL');
+  const P = 3, n = Math.floor(t / P), u = (t % P) / P, spot = [520, 400], tgt = [352, 48];
+  let b = [spot[0], spot[1] - 6], cap = 'Approach at an angle';
+  const curve = (q) => [lerp(spot[0], tgt[0], q) - 150 * Math.sin(Math.PI * q) * (1 - q * .4), lerp(spot[1] - 6, tgt[1], q)];
+  if (u >= .3 && u < .6) { b = curve((u - .3) / .3); cap = 'Wrap your foot around the ball'; } else if (u >= .6) { b = tgt; cap = 'It bends around the wall, into the corner'; if (u < .9) bigText('GOAL!', 200); }
+  if (u > .2) { const pts = []; for (let i = 0; i <= 20; i++) pts.push(curve(i / 20)); dashed(pts, 'rgba(255,255,255,.3)'); }
+  playerTop(u < .3 ? lerp(590, 548, ease(u / .3)) : 548, u < .3 ? lerp(470, 432, ease(u / .3)) : 432, -Math.PI / 2 - .6, u < .3 ? t * 14 : 0);
+  ball(b[0], b[1], 14, t * 10);
+  title('Curl It'); counter('curlers', n + (u > .35 ? 1 : 0)); caption(cap);
+} };
+// Rebound Finish: shoot at the wall, hit the rebound first time
+SCENES['rebound-finish'] = { name: 'Rebound Finish', dur: 8, draw(t) {
+  pitch(); wall(); const P = 1.2, n = Math.floor(t / P), u = (t % P) / P, side = n % 2 ? 1 : -1, px = 480 + side * 40, py = 420;
+  const out = [px - side * 10, py - 46], hit = [480 - side * 50, 106];
+  const b = u < .4 ? flight(out, hit, u / .4) : u < .9 ? flight(hit, [480 - side * 30, py - 46], (u - .4) / .5) : [lerp(480 - side * 30, 480 - side * 50, (u - .9) / .1), py - 46];
+  playerTop(lerp(480 - side * 40, px, ease(Math.min(1, u * 3))), py, -Math.PI / 2, t * 12, { stride: .8 }); ball(b[0], b[1], 14, t * 10);
+  title('Rebound Finish'); counter('shots', n + 1); caption(t < 4 ? 'Shoot hard at the wall' : 'Hit the rebound first time');
+} };
+// Zig-Zag Cuts
+{
+  const cs = [[160, 200], [320, 380], [480, 200], [640, 380], [800, 200]];
+  const go = [[80, 290], ...cs.map(([x, y]) => [x, y + (y < 290 ? 30 : -30)]), [880, 290]];
+  const P = path([...go, ...[...go].reverse().slice(1).map(([x, y]) => [x, 580 - y])]);
+  SCENES['zigzag-cuts'] = { name: 'Zig-Zag Cuts', dur: P.len / 210, draw(t) {
+    pitch(); cs.forEach(([x, y]) => cone(x, y, 1.2));
+    const d = dribble(P, t, 210, { touch: .35, stride: 1.3 });
+    const near = cs.some(([x, y]) => Math.hypot(d.p.x - x, d.p.y - (y < 290 ? y + 30 : y - 30)) < 40);
+    title('Zig-Zag Cuts'); counter('trips', d.s > P.len - 60 ? 1 : 0); caption(near ? 'Slow down into the cut…' : '…then burst to the next cone');
+  } };
+}
+// Stop & Go
+{
+  const P = path([[120, 420], [300, 300], [420, 260], [560, 330], [700, 250], [840, 160]]);
+  const stops = [.33, .66];
+  SCENES['stop-go'] = { name: 'Stop & Go', dur: 9, draw(t) {
+    pitch(); const T0 = 9, u = t / T0;
+    let s = 0, frozen = false, n = 0;
+    for (const sp of stops) { if (u > sp + .08) { s += .08; n++; } else if (u > sp) { s += u - sp; frozen = true; n++; } }
+    const k = (u - s) / (1 - .16), p = P.at(P.len * clamp(k, 0, 1));
+    playerTop(p.x, p.y, p.dir, frozen ? 0 : t * 18, { stride: 1.3 });
+    const bx = p.x + Math.cos(p.dir) * (frozen ? 26 : 40), by = p.y + Math.sin(p.dir) * (frozen ? 26 : 40); ball(bx, by, 14, frozen ? 0 : t * 10);
+    if (frozen) { ctx.fillStyle = C.red; ctx.font = `800 54px ${FONT}`; ctx.textAlign = 'center'; ctx.fillText('STOP!', 480, 140); }
+    title('Stop & Go'); counter('stops', n); caption(frozen ? 'Sole on top: ball dead still' : n ? 'Burst away in a new direction' : 'Dribble fast');
+  } };
+}
+// Inside-Outside (side-on view from the front: ball goes left-right under the body)
+SCENES['inside-outside'] = { name: 'Inside-Outside', dur: 8, draw(t) {
+  pitch(); const P = .5, n = Math.floor(t / P), u = (t % P) / P, foot = t < 4 ? 1 : -1, y = 380 - t * 18;
+  const bxs = [480 + foot * 10, 480 + foot * 40], from = bxs[n % 2], to = bxs[(n + 1) % 2], bx = lerp(from, to, ease(u));
+  playerTop(480, y + 46, -Math.PI / 2, t * 6, { stride: .3, ...(foot > 0 ? { rightColor: C.left } : { leftColor: C.left }) });
+  ball(bx, y, 14, bx / 10);
+  ctx.fillStyle = 'rgba(255,255,255,.85)'; ctx.font = `800 18px ${FONT}`; ctx.textAlign = 'center'; ctx.fillText(n % 2 ? 'OUTSIDE' : 'INSIDE', 480 + foot * 120, y + 6);
+  title('Inside-Outside', foot > 0 ? 'RIGHT FOOT' : 'LEFT FOOT'); counter('touches', n); caption(t < 4 ? 'Inside, then outside, same foot' : 'Switch feet halfway');
+} };
+
 /* ---------- Render API ---------- */
 window.SCENE_LIST = Object.entries(SCENES).map(([id, s]) => ({ id, name: s.name, dur: Math.round(s.dur * 100) / 100 }));
 window.renderFrame = (id, t) => { ctx.save(); ctx.clearRect(0, 0, W, H); SCENES[id].draw(t); ctx.restore(); return cv.toDataURL('image/jpeg', .9); };

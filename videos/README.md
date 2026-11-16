@@ -52,6 +52,15 @@ The file name must match exactly (lowercase, with the dashes).
 | Corner Call (Little Kickers: Color Corners) | `corner-call.mp4` |
 | Weak Foot Dribble | `weak-dribble.mp4` |
 | Weak Foot Juggles | `weak-juggle.mp4` |
+| Pass Bowling (Little Kickers: Bowling Kicks) | `bowling-pass.mp4` |
+| Chip Pass | `chip-pass.mp4` |
+| Outside-Foot Passes | `outside-pass.mp4` |
+| Dribble & Shoot (Little Kickers: Dribble and Kick) | `dribble-shoot.mp4` |
+| Curl It | `curl-shot.mp4` |
+| Rebound Finish | `rebound-finish.mp4` |
+| Zig-Zag Cuts | `zigzag-cuts.mp4` |
+| Stop & Go (Little Kickers: Freeze!) | `stop-go.mp4` |
+| Inside-Outside (Little Kickers: Tap Tap) | `inside-outside.mp4` |
 
 ## Endurance workouts
 | Workout | File name |
