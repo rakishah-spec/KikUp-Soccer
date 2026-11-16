@@ -1,0 +1,38 @@
+# Builds the KikUp iPhone app in the cloud (no Mac needed) and uploads it to App Store Connect / TestFlight.
+# One-time setup in Codemagic is described in IOS-SETUP.md. Start a build from the Codemagic dashboard.
+workflows:
+  ios-app-store:
+    name: KikUp iPhone app (App Store)
+    max_build_duration: 60
+    instance_type: mac_mini_m2
+    integrations:
+      app_store_connect: KikUp App Store key        # the name you give the API key in Codemagic
+    environment:
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: com.kikupsoccer.app
+      vars:
+        XCODE_PROJECT: ios/App/App.xcodeproj
+        XCODE_SCHEME: App
+      node: 22
+      xcode: latest
+    scripts:
+      - name: Install
+        script: npm ci
+      - name: Bundle KikUp into the iPhone project
+        script: npm run ios:sync
+      - name: Use the App Store signing files
+        script: xcode-project use-profiles
+      - name: Build the app
+        script: |
+          xcode-project build-ipa \
+            --project "$XCODE_PROJECT" \
+            --scheme "$XCODE_SCHEME" \
+            --archive-xcargs "CURRENT_PROJECT_VERSION=$((BUILD_NUMBER + 1))"
+    artifacts:
+      - build/ios/ipa/*.ipa
+      - /tmp/xcodebuild_logs/*.log
+    publishing:
+      app_store_connect:
+        auth: integration
+        submit_to_testflight: true

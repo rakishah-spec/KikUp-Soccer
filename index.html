@@ -1839,6 +1839,7 @@ function renderPosition(id){
 }
 
 /* ---------- Friends: accounts, friend streaks, leaderboard, challenges ---------- */
+const IN_APP=!!(window.Capacitor&&window.Capacitor.isNativePlatform&&window.Capacitor.isNativePlatform());   // running as the iPhone app
 let SOC=null,ACC=null,ME=null,FR=[],CH={incoming:[],sent:[]},frOff=null,chOff=null,authStep='start',authData={};
 const PID_KEY='kikup:pid';
 const lsGet=k=>{try{return localStorage.getItem(k)}catch(e){return null}},lsSet=(k,v)=>{try{v==null?localStorage.removeItem(k):localStorage.setItem(k,v)}catch(e){}};
@@ -2015,6 +2016,7 @@ function renderAuth(){
   if(authStep==='done')b.innerHTML=`<h2 id="authTitle">You're all set${ME?`, ${esc(ME.name)}`:''}!</h2><p class="lead">Share your friend code so friends can add you:</p>
     <div class="code-box" style="background:rgba(0,0,0,.25);justify-content:center"><code>${ME?fmtCode(ME.friendCode):''}</code></div>
     <button class="btn-primary" id="authDone">Go to Friends</button>`;
+  if(IN_APP)b.querySelectorAll('.g-btn,.or').forEach(x=>x.remove());   // Google sign-in isn't available inside the iPhone app
   const f=b.querySelector('h2');if(f){f.tabIndex=-1;f.focus({preventScroll:true});}
 }
 $('#authBody').addEventListener('click',async e=>{

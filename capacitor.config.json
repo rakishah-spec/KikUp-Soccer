@@ -1,0 +1,10 @@
+{
+  "appId": "com.kikupsoccer.app",
+  "appName": "KikUp Soccer",
+  "webDir": "www",
+  "ios": {
+    "contentInset": "never",
+    "backgroundColor": "#1D6A3A",
+    "limitsNavigationsToAppBoundDomains": false
+  }
+}

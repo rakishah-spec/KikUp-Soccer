@@ -14,6 +14,7 @@ plus a live camera rep counter.
 - `tools/video-studio.html`, `tools/make-videos.js` — the animations behind those videos, and the script that renders them.
 - `js/social.js`, `js/firebase-config.js`, `firestore.rules` — Friends: accounts, friend codes, friend streaks, leaderboard and challenges (Firebase). Setup steps: `FRIENDS-SETUP.md`.
 - `vendor/firebase/` — Firebase 12.3.0 web library (Apache 2.0).
+- `ios/`, `capacitor.config.json`, `package.json`, `scripts/build-web.mjs`, `codemagic.yaml` — the iPhone app (Capacitor), built in the cloud by Codemagic. Setup: `IOS-SETUP.md`.
 - `tests/` — simulated-movement tests: `node tests/reps.test.mjs` and `node tests/feedback.test.mjs`.
 
 ## Run it locally
