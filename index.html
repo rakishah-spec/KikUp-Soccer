@@ -965,7 +965,7 @@ const DRILLS=[
  plan(a,t){const r=T([[4,5,6],[6,8,10],[8,10,12],[10,12,14]],a,t),j=[12,10,8][t],kid=a===0,ph=[];
   for(let i=0;i<r;i++){ph.push({label:kid?'WALK OUT':'JOCKEY',hard:false,sec:j+(i%3)*2,say:kid?'Walk out':'Jockey'});ph.push({label:kid?'RUN HOME':'RECOVER',hard:true,sec:5,say:kid?'Run home!':'Recover!'});}
   return {kind:'timed',phases:ph,summary:`${r} recoveries · about ${Math.round(ph.reduce((x,y)=>x+y.sec,0)/60)} min`,detail:[kid?'Walk out, then run home when the phone says':'Jockey, then sprint back goal-side on RECOVER']};}},
-{id:'clearance',name:'Clearance Volleys',skill:'defending',mode:'count',auto:'kicks',ages:[0,1,2,3],minutes:2,
+{id:'clearance',name:'Clearance Volleys',skill:'defending',mode:'count',auto:'kicks',kickOpts:{sideways:true},ages:[0,1,2,3],minutes:2,
  setup:['Stand in open space facing away from anything breakable.','Toss the ball up in front of you.','Volley it high and far with your laces before it bounces. If in doubt, kick it out!'],
  tips:['Lock your ankle and point your toes down.','Lean back slightly to get height on the clearance.','Height and distance first: a clearance just has to get the ball out of danger.'],
  kid:{name:'Big Kick',steps:['Roll the ball a little in front of you.','Kick it as far as you can!'],tip:'Kick with your laces, the top of your shoe.'},
@@ -1019,7 +1019,7 @@ const DRILLS=[
  diagram:{goal:true,cones:[[100,100]],player:[100,92],path:'M100,100 L100,58 L80,14',dur:1.8},
  plan(a,t){const n=T([[4,5,6],[5,6,8],[6,8,10],[8,10,12]],a,t);
   return {seconds:150,target:n,unit:'finishes',summary:`${n} sprint finishes`,detail:[a===0?'Run, then kick':['Jog in, then shoot','Sprint in, then shoot','Sprint in, finish into a corner'][t]]};}},
-{id:'volley-finish',name:'Volley Finishing',skill:'attacking',mode:'count',auto:'kicks',ages:[2,3],minutes:2,
+{id:'volley-finish',name:'Volley Finishing',skill:'attacking',mode:'count',auto:'kicks',kickOpts:{sideways:true},ages:[2,3],minutes:2,
  setup:['Stand a few big steps from a goal or wall target.','Toss the ball up in front of you.','Volley it at the goal before it bounces. Keep it under the bar.'],
  tips:['Get your knee over the ball to keep the volley down.','Strike through the middle of the ball, toes pointed.','Watch the ball onto your foot. Don\'t look up early.'],
  diagram:{goal:true,player:[100,90],path:'M100,80 L100,66 L110,14',dur:1.6},
@@ -1418,7 +1418,7 @@ function runCount(d,p){
       if(!camOK())throw {name:'NoCamera'};
       const mod=await import('./js/camera.js');camMod=mod;
       cam=new mod.LiveCounter({video:$('#camVideo'),canvas:$('#camCanvas'),kind:d.auto,facing,
-        opts:Object.assign(d.weak?{foot:state.weakFoot||'l'}:{},{record:!!state.testMode}),
+        opts:Object.assign(d.weak?{foot:state.weakFoot||'l'}:{},d.kickOpts||{},{record:!!state.testMode}),
         onStatus:st=>{const m=$('#camMsg');if(!m)return;if(st.text)m.textContent=st.text;
           if('body' in st){$('#dotBody').classList.toggle('on',st.body);const db=$('#dotBall');if(db&&st.ball!==null)db.classList.toggle('on',st.ball);
             const ok='ready' in st?st.ready:st.body&&st.ball!==false;

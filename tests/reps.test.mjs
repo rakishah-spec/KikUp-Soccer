@@ -88,6 +88,7 @@ check('weak foot only counts left foot (5 right-foot kicks ignored)', passes('l'
     for (let i = 0; i < 6; i++, t += dt) n = c.update({ t, pose: null, ball: rnd() < .1 ? null : { x: from + (to - from) * (i / 5) + noise(.004), y: .8, r: .05 } }).count; }
   check('feet-only: tight box touches', n, 30, 4); }
 { const c = new KickCounter(); let t = 0, n = 0;
+  for (let i = 0; i < 12; i++) { t += dt; c.update({ t, pose: null, ball: { x: .55 + noise(.003), y: .8, r: .05 } }); }   // starts with the ball at the feet
   for (let k = 0; k < 15; k++) { const fr = [];
     for (let i = 1; i <= 6; i++) fr.push(.55 + .4 * (i / 6));    // kicked to the wall
     for (let i = 1; i <= 10; i++) fr.push(.95 - .4 * (i / 10));  // rebounds and rolls back
@@ -153,6 +154,37 @@ for (const withPose of [true, false]) { const c = new RollCounter(); let t = 0, 
   for (let i = 0; i < 30 * 5; i++, t += dt) { const x = .5 + .06 * Math.sin(Math.PI * i / 5);
     n = c.update({ t, pose: withPose ? pose({ lf: { x: x - .04, y: .86 }, rf: { x: x + .04, y: .86 } }) : null, ball: rnd() < .12 ? null : { x: x + noise(.005), y: .86 + noise(.004), r: .04 } }).count; }
   check(`real-world sole rolls (${withPose ? 'feet tracked' : 'feet-only'})`, n, 30, 2); }
+
+
+// REAL-WORLD WALL PASSES (counted ~50 for 36 on a phone): the ball comes back FAST, straight to the foot,
+// gets controlled (or not), then is passed back. Only the pass away from the player should count.
+for (const [label, oneTouch, jitter, withPose] of [['two-touch', false, 0, true], ['one-touch', true, 0, true], ['two-touch, jumpy ball detection', false, 1, true], ['two-touch, jumpy, feet-only', false, 1, false], ['one-touch, jumpy, feet-only', true, 1, false]]) { const c = new KickCounter({ foot: withPose ? 'l' : null }); let t = 0, n = 0;
+  const foot = { x: .45, y: .86 }, wallY = .25;
+  const step = (y, x = foot.x + .01, fx = Math.min(x - .01, foot.x + .07)) => { t += dt;
+    const j = jitter && rnd() < .25 ? noise(.05) : 0, nz = jitter ? .012 : .004;          // real detections wobble and sometimes jump
+    n = c.update({ t, pose: withPose ? pose({ lf: { x: fx + noise(.006), y: foot.y + noise(.006) }, rf: { x: .58 + noise(.006), y: .9 } }) : null,
+      ball: rnd() < .1 ? null : { x: x + noise(nz) + j, y: y + noise(nz) + j * .6, r: .035 * (1 + (jitter ? noise(.25) : 0)) } }).count; };
+  for (let i = 0; i < 12; i++) step(foot.y - .04);                              // the drill starts with the ball at the feet
+  for (let k = 0; k < 20; k++) {
+    for (let i = 1; i <= 5; i++) step(wallY + (foot.y - .04 - wallY) * i / 5);      // rebound arrives fast at the foot
+    if (!oneTouch) { for (let i = 0; i < 2; i++) step(foot.y - .04);                // controlled
+      for (let i = 1; i <= 2; i++) step(foot.y - .04, foot.x + .01 + .035 * i);    // set-up touch: a quick nudge to the side
+      for (let i = 0; i < 2; i++) step(foot.y - .04, foot.x + .08); }
+    for (let i = 1; i <= 5; i++) step(foot.y - .04 - (foot.y - .04 - wallY) * i / 5, oneTouch ? foot.x + .01 : foot.x + .08 - .07 * i / 5); // passed back to the wall
+    for (let i = 0; i < 2; i++) step(wallY);                                       // at the wall
+  }
+  check(`real-world weak-foot wall passes, ${label}`, n, 20, 1); }
+
+
+// VOLLEYS / CLEARANCES: ball held, tossed straight up, then volleyed away forward. Only the volley counts.
+{ const c = new KickCounter({ sideways: true }); let t = 0, n = 0; const step = (x, y) => { t += dt; n = c.update({ t, pose: pose(), ball: { x: x + noise(.004), y: y + noise(.004), r: .035 } }).count; };
+  for (let k = 0; k < 10; k++) {
+    for (let i = 0; i < 6; i++) step(.52, .6);                                 // held in the hands
+    for (let i = 1; i <= 5; i++) step(.52, .6 - .3 * Math.sin(Math.PI / 2 * i / 5));   // tossed straight up
+    for (let i = 1; i <= 5; i++) step(.53, .3 + .52 * (i / 5) * (i / 5));      // drops to the foot
+    for (let i = 1; i <= 6; i++) step(.53 + .12 * i, .82 - .1 * i);           // volleyed up and away
+    for (let i = 0; i < 8; i++) step(1.5, .5); }                              // gone; fetches it
+  check('volleys: the toss up doesn\'t count, the volley does', n, 10, 1); }
 
 // Standing still with a noisy ball should count nothing.
 { const cs = [new JuggleCounter(), new TapCounter(), new TouchCounter(), new KickCounter(), new MoveCounter(), new StopCounter(), new FlickCounter()]; let t = 0; const out = cs.map(() => 0);

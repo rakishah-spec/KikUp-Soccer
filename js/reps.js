@@ -184,53 +184,58 @@ export class TouchCounter extends FootContact {
   }
 }
 
-// PASSES / KICKS: a touch followed within 0.45s by the ball moving away fast.
-// With opts.foot = 'l' or 'r', only kicks with that foot count (weak foot drill).
+// PASSES / KICKS / SHOTS / THROWS.
+// A pass counts when the ball (1) was settled at the player's feet, or turned around right at them
+// (one-touch), then (2) travels a real distance away (about 4-5 ball widths), moving away the whole time.
+// It can't count again until the ball has come back and settled. Ball positions are median-filtered
+// first, so a single jumpy detection can't look like a kick, and a short set-up touch isn't a pass.
+// With opts.foot = 'l' or 'r', only passes by that foot count (weak foot drill).
 export class KickCounter extends Base {
-  constructor(opts = {}) {
-    super(); this.foot = opts.foot || null; this.touch = new TouchCounter(); this.pending = null; this.hist = [];
-    this.touch.onTouch = (side, t) => { this.pending = { side, t, from: this.lastBall }; };
-  }
+  constructor(opts = {}) { super(); this.foot = opts.foot || null; this.sideways = !!opts.sideways; this.raw = []; this.hist = []; this.armed = false; this.anchor = null; this.home = null; this.lastKick = -1e9; this.near = []; }
   update(o) {
-    const S = this.scale(o); this.touch.update(o);
-    const b = o.ball;
-    let burst = false;
-    if (b) {                                              // a pass is the ball bursting off after slowing or reversing (works with or without the body)
-      (this.bh ??= []).push({ t: o.t, x: b.x, y: b.y }); while (this.bh.length > 2 && o.t - this.bh[0].t > 600) this.bh.shift();
-      const near = (ms) => this.bh.reduce((a, p) => Math.abs(p.t - (o.t - ms)) < Math.abs(a.t - (o.t - ms)) ? p : a, this.bh[0]);
-      const a0 = near(450), a1 = near(150);
-      if (a1.t - a0.t > 100 && o.t - a1.t > 60) {
-        const v0 = { x: (a1.x - a0.x) / ((a1.t - a0.t) / 1000), y: (a1.y - a0.y) / ((a1.t - a0.t) / 1000) }, v1 = { x: (b.x - a1.x) / ((o.t - a1.t) / 1000), y: (b.y - a1.y) / ((o.t - a1.t) / 1000) };
-        // s0 from the distance actually travelled, so a bounce (out and back) doesn't look like a slow, controlled ball
-        let path = 0, prev = null; for (const p of this.bh) { if (p.t < a0.t || p.t > a1.t) continue; if (prev) path += Math.hypot(p.x - prev.x, p.y - prev.y); prev = p; }
-        const s0 = path / ((a1.t - a0.t) / 1000), s1 = Math.hypot(v1.x, v1.y), rev = Math.hypot(v0.x, v0.y) > 0.3 * S && (v0.x * v1.x + v0.y * v1.y) < 0;
-        if (s0 < 0.5 * S) this.home = this.home ? { x: .9 * this.home.x + .1 * a1.x, y: .9 * this.home.y + .1 * a1.y } : { x: a1.x, y: a1.y };   // where the ball gets controlled = the player's end
-        const atHome = this.home && Math.hypot(a1.x - this.home.x, a1.y - this.home.y) < 6 * b.r;
-        if (s1 > 1.2 * S && (s0 < 0.5 * S || (rev && atHome)) && o.t - (this.lastKick || -1e9) > 400) burst = true;
+    const S = this.scale(o), b = o.ball;
+    if (!b) return { count: this.count };
+    // median of the last 3 detections: removes single-frame jumps
+    this.raw.push(b); if (this.raw.length > 3) this.raw.shift();
+    const med = (k) => [...this.raw].map((p) => p[k]).sort((a, c) => a - c)[Math.floor(this.raw.length / 2)];
+    const p = { t: o.t, x: med('x'), y: med('y') }, r = Math.max(med('r'), 0.01);
+    this.hist.push(p); while (this.hist.length > 2 && o.t - this.hist[0].t > 600) this.hist.shift();
+    // which foot is closest to the ball right now (for the weak-foot check)
+    if (o.pose) { const dl = dist(o.pose.lf, p), dr = dist(o.pose.rf, p); this.near.push({ t: o.t, side: dl < dr ? 'l' : 'r', d: Math.min(dl, dr) }); while (this.near.length > 1 && o.t - this.near[0].t > 500) this.near.shift(); }
+    const recent = this.hist.filter((h) => o.t - h.t <= 260);
+    let path = 0; for (let k = 1; k < recent.length; k++) path += Math.hypot(recent[k].x - recent[k - 1].x, recent[k].y - recent[k - 1].y);
+    const span = recent.length > 1 ? (recent[recent.length - 1].t - recent[0].t) / 1000 : 0, speed = span > 0 ? path / span : 0;
+    const settled = recent.length >= 3 && span >= 0.15 && speed < 1.0 * S;   // a real moment of (near) stillness, not just the first frame
+    // at the feet: judged on the raw detections, since smoothing can hide the instant the ball bounces off a foot
+    const atFeet = o.pose && this.raw.some((q) => Math.min(dist(o.pose.lf, q), dist(o.pose.rf, q)) < 3.5 * r);
+    // (1) get ready: the ball is settled, or at the player's feet, or at their usual spot (feet not tracked).
+    //     While it's there, keep the starting point up to date: the pass is measured from where it leaves.
+    const atHome = this.home && Math.hypot(p.x - this.home.x, p.y - this.home.y) < 4 * r;
+    // Once the ball is on its way out, the starting point stays put (so passing the other foot doesn't move it).
+    const refNow = o.pose ? (this.armed && this.armSide ? o.pose[this.armSide + 'f'] : (dist(o.pose.lf, p) < dist(o.pose.rf, p) ? o.pose.lf : o.pose.rf)) : this.home, prevH = this.hist[this.hist.length - 2];
+    const coming = !refNow || !prevH || Math.hypot(p.x - refNow.x, p.y - refNow.y) <= Math.hypot(prevH.x - refNow.x, prevH.y - refNow.y) + 0.2 * r;
+    // A ball resting far from a tracked player (by the wall, in the net, in their hands) isn't ready to be passed.
+    const nearPlayer = !o.pose || Math.min(dist(o.pose.lf, p), dist(o.pose.rf, p)) < 6 * r;
+    if ((settled && nearPlayer) || ((atFeet || atHome) && (coming || !this.armed))) {
+      this.armed = true; this.anchor = { x: p.x, y: p.y };
+      if (o.pose) this.armSide = dist(o.pose.lf, p) < dist(o.pose.rf, p) ? 'l' : 'r';   // the foot it's at = the foot that passes
+      if (settled) this.home = this.home ? { x: .8 * this.home.x + .2 * p.x, y: .8 * this.home.y + .2 * p.y } : { x: p.x, y: p.y };
+    }
+    // (2) fire: far from where it was settled, and still moving away
+    if (this.armed && this.anchor && this.hist.length >= 3 && o.t - this.lastKick > 400) {
+      const d = (h) => Math.hypot(h.x - this.anchor.x, h.y - this.anchor.y), n = this.hist.length;
+      const away = n >= 3 && d(this.hist[n - 1]) > d(this.hist[n - 2]) && d(this.hist[n - 2]) > d(this.hist[n - 3]);
+      // ...and moving away from the player: their feet, or where they usually control the ball (a rebound coming back never counts)
+      const ref = o.pose ? (dist(o.pose.lf, p) < dist(o.pose.rf, p) ? o.pose.lf : o.pose.rf) : this.home;
+      const fromPlayer = !ref || (Math.hypot(p.x - ref.x, p.y - ref.y) > Math.hypot(this.hist[n - 2].x - ref.x, this.hist[n - 2].y - ref.y) && Math.hypot(p.x - ref.x, p.y - ref.y) > 3 * r);
+      const forward = !this.sideways || Math.abs(p.x - this.anchor.x) > 3 * r;   // volleys: tossing it straight up isn't the kick
+      if (d(p) > 4.5 * r && away && fromPlayer && forward) {
+        this.armed = false; this.lastKick = o.t;
+        const side = o.pose ? (this.armSide || null) : null;
+        if (!this.foot || side == null || side === this.foot) { this.count++; this.events.push({ t: o.t, type: 'rep', side }); }
+        else this.events.push({ t: o.t, type: 'other-foot', side });
       }
-      if (!o.pose) { if (burst) { this.lastKick = o.t; this.count++; this.events.push({ t: o.t, type: 'rep', side: null }); } return { count: this.count }; }
     }
-    if (b) {
-      this.hist.push({ t: o.t, x: b.x, y: b.y }); if (this.hist.length > 3) this.hist.shift();
-      this.lastBall = b;
-      if (this.pending && this.hist.length >= 2) {
-        const a = this.hist[0], z = this.hist[this.hist.length - 1], dt = (z.t - a.t) / 1000;
-        const speed = dt > 0 ? Math.hypot(z.x - a.x, z.y - a.y) / dt : 0;
-        if (speed > 1.2 * S) {
-          let side = this.pending.side;
-          if (side === 'x' && o.pose) side = dist(o.pose.lf, this.pending.from || b) < dist(o.pose.rf, this.pending.from || b) ? 'l' : 'r';
-          if (o.t - (this.lastKick || -1e9) > 400) {
-            if (!this.foot || side === this.foot || side == null) { this.count++; this.events.push({ t: o.t, type: 'rep', side }); this.lastKick = o.t; }
-            else this.events.push({ t: o.t, type: 'other-foot', side });   // strong foot in the weak-foot drill: noted, not counted
-          }
-          this.pending = null; burst = false;
-        }
-      }
-    }
-    if (burst && !this.foot && o.t - (this.lastKick || -1e9) > 900) {   // no touch was seen (the ball rolled onto the foot): count the burst
-      this.lastKick = o.t; this.count++; this.events.push({ t: o.t, type: 'rep', side: null });
-    }
-    if (this.pending && o.t - this.pending.t > 450) this.pending = null;
     return { count: this.count };
   }
 }
