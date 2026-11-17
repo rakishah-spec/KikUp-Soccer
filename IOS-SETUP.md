@@ -47,8 +47,17 @@ a few minutes later.
 ## 6. Test on an iPhone, then submit
 1. Install **TestFlight** from the App Store, and add yourself as an internal tester in App Store Connect → TestFlight.
 2. Try a camera drill, Friends sign-in, and the videos.
-3. Fill in the App Store listing (description, screenshots, privacy policy URL:
-   https://rakishah-spec.github.io/KikUp-Soccer/privacy.html, age rating), pick the build, and **Submit for Review**.
+3. Also try streak reminders: Settings → Notifications → turn on, allow notifications, set a time a few minutes ahead.
+4. Fill in the App Store listing and **Submit for Review**:
+   - Privacy policy URL: https://rakishah-spec.github.io/KikUp-Soccer/privacy.html
+   - Support URL: https://rakishah-spec.github.io/KikUp-Soccer/#support
+   - Category: **Sports** (or Health & Fitness). Don't choose the **Kids** category: it has extra rules
+     (no outside links, like the support form) that KikUp doesn't follow.
+   - Age rating: answer "None" to everything; KikUp has no chat, ads or web browsing.
+   - App Privacy: data is only collected for Friends accounts. It's linked to the user and not used for tracking:
+     contact info (email, for parent accounts), user ID, and "other user content" (stats, friends). See privacy.html.
+   - Screenshots: 6.9-inch iPhone size (1290 × 2796). Ask Claude to make them.
+   - Pick the build, then **Submit for Review**.
 
 ## Updating the app later
 Changes to the website go live right away. The iPhone app gets them when you start a new Codemagic build
