@@ -705,6 +705,8 @@ main .wrap{padding-block:24px 56px;display:grid;gap:28px}
       <div class="set-list">
         <div class="set-row"><div><strong>Streak reminders</strong><span class="muted">A reminder each day you haven't trained yet, so you don't lose your streak.</span></div>
           <button class="switch" role="switch" id="setRemind" aria-label="Streak reminders"></button></div>
+        <div class="set-row"><div><strong>Friend streak reminders</strong><span class="muted">Also remind you when a streak with a friend will end if you don't train. Needs a Friends account.</span></div>
+          <button class="switch" role="switch" id="setFriendRemind" aria-label="Friend streak reminders"></button></div>
         <div class="set-row"><div><strong>Reminder time</strong><span class="muted">When to remind you. No reminder on days you've already trained.</span></div>
           <input type="time" class="set-time" id="setRemindAt" aria-label="Reminder time"></div>
         <p class="muted set-note" id="setRemindNote" hidden>Streak reminders work in the KikUp iPhone app. Websites can't send reminders when they're closed.</p>
@@ -2085,7 +2087,7 @@ async function usePlayer(pid){
   ME=next;lsSet(PID_KEY,pid);save();
   SOC.savePrivate(pid,state).catch(()=>{});
   if(frOff)frOff();if(chOff)chOff();
-  frOff=SOC.friendships(ME,l=>{FR=l;renderFriendsIfOpen();});
+  frOff=SOC.friendships(ME,l=>{FR=l;renderFriendsIfOpen();try{scheduleReminders();}catch(e){}});
   chOff=SOC.challenges(ME,c=>{const before=new Set(CH.incoming.map(x=>x.id));CH=c;
     const fresh=c.incoming.filter(x=>x.status==='open'&&!before.has(x.id));if(before.size&&fresh.length)toast(`${fresh[0].fromName} challenged you: ${fresh[0].msg}`);renderFriendsIfOpen();});
   renderHome();renderFriendsIfOpen();
@@ -2324,13 +2326,22 @@ async function scheduleReminders(){
   try{await LN.cancel({notifications:REM_IDS.map(id=>({id}))});}catch(e){}
   if(!state.remindOn)return;
   const [h,m]=remTime().split(':').map(Number),now=new Date(),trained=state.lastDay===dayStr(now),streak=liveStreak(),kid=state.age===0,list=[];
+  const friendsOn=state.friendRemind!==false&&!!ME&&Array.isArray(FR),yd=new Date(now);yd.setDate(now.getDate()-1);const yStr=dayStr(yd);
   for(let i=0;i<7;i++){const at=new Date(now);at.setDate(now.getDate()+i);at.setHours(h,m,0,0);
     if(at<=now||(i===0&&trained))continue;
     // the streak they'd be protecting that day, if they don't train again before it
     const s=i===0?streak:i===1&&trained?state.streak||0:0;
-    const body=s>0?(kid?`Don't lose your ${s}-day streak! Do one drill today.`:`Your ${s}-day streak ends tonight. One drill keeps it going.`)
-      :(kid?'Time to play! Do a drill and start a streak.':'Time to train! One drill a day builds your streak.');
-    list.push({id:REM_IDS[i],title:s>0?`🔥 ${s}-day streak`:'KikUp',body,schedule:{at,allowWhileIdle:true}});}
+    // friend streaks that end that day unless you train: today, ones you both kept going yesterday;
+    // tomorrow (if you trained today), ones you've both already done today
+    const fr=friendsOn?FR.filter(f=>f.status==='accepted'&&f.streakNow>0&&(i===0?f.streakDay===yStr:i===1&&trained?f.streakDay===dayStr(now):false)).sort((a,b)=>b.streakNow-a.streakNow):[];
+    let title,body;
+    if(fr.length){const f=fr[0],more=fr.length>1?` and ${fr.length-1} more friend streak${fr.length>2?'s':''}`:'';
+      title=`🤝 ${f.streakNow}-day streak with ${f.otherName}`;
+      body=s>0?`Your ${s}-day streak and your streak with ${f.otherName}${more} end tonight. One drill keeps them going.`
+        :`Your streak with ${f.otherName}${more} ends tonight. Train today to keep it going.`;}
+    else if(s>0){title=`🔥 ${s}-day streak`;body=kid?`Don't lose your ${s}-day streak! Do one drill today.`:`Your ${s}-day streak ends tonight. One drill keeps it going.`;}
+    else{title='KikUp';body=kid?'Time to play! Do a drill and start a streak.':'Time to train! One drill a day builds your streak.';}
+    list.push({id:REM_IDS[i],title,body,schedule:{at,allowWhileIdle:true}});}
   if(list.length)try{await LN.schedule({notifications:list});}catch(e){}
 }
 async function setReminders(on){const LN=ln();
@@ -2344,6 +2355,8 @@ function renderReminderSettings(){
   const LN=ln(),sw=$('#setRemind'),tm=$('#setRemindAt'),on=!!(LN&&state.remindOn);
   sw.setAttribute('aria-checked',String(on));sw.disabled=!LN;$('#setRemindNote').hidden=!!LN;
   tm.value=remTime();tm.disabled=!on;
+  const fs=$('#setFriendRemind');fs.setAttribute('aria-checked',String(on&&state.friendRemind!==false));fs.disabled=!on;
+  fs.onclick=()=>{state.friendRemind=state.friendRemind===false;save();renderReminderSettings();scheduleReminders();};
   sw.onclick=()=>setReminders(!state.remindOn);
   tm.onchange=()=>{if(!/^\d\d:\d\d$/.test(tm.value))return;state.remindAt=tm.value;save();scheduleReminders();toast(`Reminders moved to ${fmtTime(tm.value)}.`);};
 }
