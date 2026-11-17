@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#1D6A3A">
+<script>try{var th=(JSON.parse(localStorage.getItem('kikup:v2'))||{}).theme;if(th==='dark'||th==='light')document.documentElement.dataset.theme=th;}catch(e){}</script>
 <meta name="description" content="KikUp Soccer: drills, skill moves and a live camera rep counter for young players.">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
@@ -640,6 +641,13 @@ main .wrap{padding-block:24px 56px;display:grid;gap:28px}
   </div>
   <div class="wrap set-page" id="settingsView" hidden>
     <div class="pg-head"><div><h2>Settings</h2><p class="muted">Make KikUp work the way you like.</p></div><a class="btn-ghost pg-back" href="#train">Back to training</a></div>
+    <section class="panel" aria-labelledby="setLookH">
+      <div class="panel-head"><h3 id="setLookH">Appearance</h3></div>
+      <div class="set-list">
+        <div class="set-row set-col"><div><strong>Theme</strong><span class="muted">Dark mode is easier on the eyes at night. "Match phone" follows your phone's setting.</span></div>
+          <div class="set-opts" id="setTheme" role="group" aria-label="Theme"></div></div>
+      </div>
+    </section>
     <section class="panel" aria-labelledby="setCamH">
       <div class="panel-head"><h3 id="setCamH">Camera</h3></div>
       <div class="set-list">
@@ -1862,12 +1870,15 @@ $('#menuBtn').onclick=openMenu;$('#drawerX').onclick=closeMenu;
 $('#drawer').addEventListener('click',e=>{if(e.target.id==='drawer'||e.target.closest('a'))closeMenu();});
 $('#menuGuide').onclick=()=>{closeMenu();openOnb();};
 /* ---------- Settings ---------- */
+function applyTheme(){const r=document.documentElement;if(state.theme==='dark'||state.theme==='light')r.dataset.theme=state.theme;else delete r.dataset.theme;}
+applyTheme();
 const CD_OPTS=[3,5,10,15,20];
 const camCd=()=>CD_OPTS.includes(state.camCountdown)?state.camCountdown:10;
 function renderSettings(){
   const chips=(el,opts,cur,fn)=>{el.innerHTML=opts.map(([v,l])=>`<button class="chip" data-v="${v}" aria-pressed="${String(v)===String(cur)}">${l}</button>`).join('');
     el.onclick=e=>{const b=e.target.closest('[data-v]');if(!b)return;fn(b.dataset.v);save();renderSettings();};};
   chips($('#setCd'),CD_OPTS.map(n=>[n,`${n} sec`]),camCd(),v=>{state.camCountdown=+v;toast(`Camera drills now count down from ${v} seconds.`);});
+  chips($('#setTheme'),[['auto','Match phone'],['light','Light'],['dark','Dark']],state.theme||'auto',v=>{state.theme=v;applyTheme();});
   chips($('#setFacing'),[['user','Front'],['environment','Back']],state.camFacing||'user',v=>{state.camFacing=v;});
   chips($('#setWeak'),[['l','Left'],['r','Right']],state.weakFoot||'l',v=>{state.weakFoot=v;});
   const sw=(id,on,fn)=>{const b=$(id);b.setAttribute('aria-checked',String(!!on));b.onclick=()=>{fn(!on);save();renderSettings();};};
