@@ -364,6 +364,22 @@ main .wrap{padding-block:24px 56px;display:grid;gap:28px}
 .drawer-small{font-size:14px!important;font-weight:600!important;color:var(--muted)!important;padding:10px 12px!important}
 .drawer-h{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);padding:12px 12px 2px}
 .drawer{overflow-y:auto}
+.set-list{display:grid;gap:0}
+.set-row{display:flex;justify-content:space-between;align-items:center;gap:14px;padding:14px 0;border-top:1px solid var(--rule)}
+.set-row:first-child{border-top:0;padding-top:4px}
+.set-row>div:first-child{display:grid;gap:2px;min-width:0}
+.set-row strong{font-size:16px}
+.set-row span.muted{font-size:14px}
+.set-opts{display:flex;flex-wrap:wrap;gap:6px;justify-content:flex-end}
+.set-col{flex-direction:column;align-items:stretch}
+.set-col .set-opts{justify-content:flex-start}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.switch{position:relative;width:52px;height:30px;flex:none;border-radius:999px;border:0;background:var(--rule);transition:background .15s}
+.switch::after{content:"";position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.3);transition:transform .15s}
+.switch[aria-checked="true"]{background:var(--bib)}
+.switch[aria-checked="true"]::after{transform:translateX(22px)}
+.set-page{display:grid;gap:16px}
+.cd.big-cd{font-size:min(40vw,220px)}
 .pos-hero{color:#fff;border:0}
 .pos-hero h3{font-size:28px}
 .pos-hero p{color:rgba(255,255,255,.9)}
@@ -501,7 +517,7 @@ main .wrap{padding-block:24px 56px;display:grid;gap:28px}
     <a href="#friends" data-nav="friends"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.5" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="17" cy="9" r="2.6" fill="none" stroke="currentColor" stroke-width="2"/><path d="M2.5 20c.6-3.6 3.3-5.5 6.5-5.5s5.9 1.9 6.5 5.5M15 14.6c2.8-.3 5 1.3 5.6 4.4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>Friends</a>
     <a href="#progress" data-nav="progress"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>My progress</a>
     <button id="menuGuide"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 11v6M12 7.5v.5" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>Getting started guide</button>
-    <button class="drawer-small" id="testToggle"></button>
+    <a href="#settings" data-nav="settings"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>Settings</a>
     <a href="privacy.html" class="drawer-small">Privacy policy</a>
   </nav>
 </div>
@@ -621,6 +637,44 @@ main .wrap{padding-block:24px 56px;display:grid;gap:28px}
   <div class="wrap" id="friendsView" hidden>
     <div class="pg-head"><div><h2>Friends</h2><p class="muted">Train together, keep streaks going, and challenge each other.</p></div><a class="btn-ghost pg-back" href="#train">Back to home</a></div>
     <div id="frBody" style="display:grid;gap:16px"></div>
+  </div>
+  <div class="wrap set-page" id="settingsView" hidden>
+    <div class="pg-head"><div><h2>Settings</h2><p class="muted">Make KikUp work the way you like.</p></div><a class="btn-ghost pg-back" href="#train">Back to training</a></div>
+    <section class="panel" aria-labelledby="setCamH">
+      <div class="panel-head"><h3 id="setCamH">Camera</h3></div>
+      <div class="set-list">
+        <div class="set-row set-col"><div><strong>Countdown before counting</strong><span class="muted">After you tap Start, how long you get to put the phone down and get into position.</span></div>
+          <div class="set-opts" id="setCd" role="group" aria-label="Countdown length"></div></div>
+        <div class="set-row"><div><strong>Which camera</strong><span class="muted">The camera a drill starts with. You can still switch during a drill.</span></div>
+          <div class="set-opts" id="setFacing" role="group" aria-label="Camera"></div></div>
+        <div class="set-row"><div><strong>Count beep</strong><span class="muted">A little beep every time the camera counts a rep.</span></div>
+          <button class="switch" role="switch" id="setBeep" aria-label="Count beep"></button></div>
+        <div class="set-row"><div><strong>Show the phone tip</strong><span class="muted">The reminder to stand your phone up straight.</span></div>
+          <button class="switch" role="switch" id="setTip" aria-label="Show the phone tip"></button></div>
+        <div class="set-row"><div><strong>Help fix camera counting</strong><span class="muted">Test mode: after each camera drill you can copy what the camera measured and send it in.</span></div>
+          <button class="switch" role="switch" id="testToggle" aria-label="Help fix camera counting"></button></div>
+      </div>
+    </section>
+    <section class="panel" aria-labelledby="setPlayH">
+      <div class="panel-head"><h3 id="setPlayH">Player</h3></div>
+      <div class="set-list">
+        <div class="set-row"><div><strong>Age group and level</strong><span class="muted" id="setLevel"></span></div><button class="btn-ghost" id="setChangeLvl">Change</button></div>
+        <div class="set-row"><div><strong>Weak foot</strong><span class="muted">Used by the weak foot drills.</span></div><div class="set-opts" id="setWeak" role="group" aria-label="Weak foot"></div></div>
+      </div>
+    </section>
+    <section class="panel" aria-labelledby="setSndH">
+      <div class="panel-head"><h3 id="setSndH">Sound</h3></div>
+      <div class="set-list">
+        <div class="set-row"><div><strong>Sounds and voice</strong><span class="muted">Countdown beeps, timers and spoken cues.</span></div><button class="switch" role="switch" id="setSound" aria-label="Sounds and voice"></button></div>
+      </div>
+    </section>
+    <section class="panel" aria-labelledby="setAbH">
+      <div class="panel-head"><h3 id="setAbH">About</h3></div>
+      <div class="set-list">
+        <div class="set-row"><div><strong>Getting started guide</strong><span class="muted">See the welcome steps again.</span></div><button class="btn-ghost" id="setGuide">Open</button></div>
+        <div class="set-row"><div><strong>Privacy policy</strong><span class="muted">What KikUp stores and why.</span></div><a class="btn-ghost" href="privacy.html">Read</a></div>
+      </div>
+    </section>
   </div>
   <div class="wrap" id="progressView" hidden>
     <div class="pg-head"><div><h2 id="pgTitle">My progress</h2><p class="muted" id="pgSub"></p></div><a class="btn-ghost pg-back" href="#train">Back to training</a></div>
@@ -1291,7 +1345,7 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape'){if(!$('#runner').hi
 /* ---------- Session helpers ---------- */
 const body=$('#runBody');
 let S={timeouts:[],intervals:[],raf:0,lock:null};
-let sound=true, actx=null;
+let sound=state.sound!==false, actx=null;
 function later(fn,ms){S.timeouts.push(setTimeout(fn,ms));}
 function every(fn,ms){S.intervals.push(setInterval(fn,ms));}
 function endSession(){try{S.cam&&S.cam.close();}catch(e){}stopTilt();S.timeouts.forEach(clearTimeout);S.intervals.forEach(clearInterval);cancelAnimationFrame(S.raf);
@@ -1300,7 +1354,7 @@ function beep(f=880,dur=.12){if(!sound)return;try{actx=actx||new (window.AudioCo
   const o=actx.createOscillator(),g=actx.createGain();o.frequency.value=f;o.connect(g);g.connect(actx.destination);
   g.gain.setValueAtTime(.25,actx.currentTime);g.gain.exponentialRampToValueAtTime(.001,actx.currentTime+dur);o.start();o.stop(actx.currentTime+dur);}catch(e){}}
 const fmt=s=>{s=Math.max(0,Math.ceil(s));return `${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`;};
-function setSound(on){sound=on;$('#runSound').textContent=`Sound: ${on?'on':'off'}`;}
+function setSound(on){sound=on;state.sound=on;save();$('#runSound').textContent=`Sound: ${on?'on':'off'}`;}
 $('#runSound').onclick=()=>setSound(!sound);
 $('#runClose').onclick=closeRunner;
 
@@ -1314,8 +1368,9 @@ function startRun(d){
   ({gap:runGap,scan:runScan,count:runCount,intervals:runIntervals,workout:runWorkout})[d.mode](d,p);
 }
 function closeRunner(){endSession();$('#runner').hidden=true;body.innerHTML='';renderHome();if(!$('#trainingView').hidden)renderTraining();if(!$('#enduranceView').hidden)renderEndurance();if(!$('#goalkeeperView').hidden)renderGoalkeeper();{const h=location.hash.slice(1);if(POSITIONS[h])renderPosition(h);}if(!$('#progressView').hidden)renderProgress();}
-function countdown(cb,see){const el=document.createElement('div');el.className=see?'cd see':'cd';body.appendChild(el);let n=3;
-  const step=()=>{if(n===0){el.remove();beep(1320,.25);cb();return;}el.textContent=n;beep(660);n--;later(step,800);};step();}
+function countdown(cb,see,secs){const el=document.createElement('div');el.className=(see?'cd see':'cd')+(secs?' big-cd':'');body.appendChild(el);let n=secs||3;
+  const step=()=>{if(!el.isConnected)return;if(n===0){el.remove();beep(1320,.25);cb();return;}el.textContent=n;if(!secs||n<=5)beep(660);n--;later(step,secs?1000:800);};step();
+  return el;}
 
 function showResult(d,stars,headline,lines,fb){
   const key=k(d),prev=state.stars[key]||0; state.stars[key]=Math.max(prev,stars); bumpStreak(); logSession(d,stars,lines[0]); save();
@@ -1433,14 +1488,14 @@ const CAM_HOW={
 const camHowFor=d=>d.camHow||CAM_HOW[d.auto];
 const camOK=()=>!!(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia)&&!window.claude;
 function runCount(d,p){
-  let count=0,phase='ready',endAt=0,lastAuto=0,cam=null,camMod=null,seenHits=[],autoStartAt=0;
+  let count=0,phase='ready',endAt=0,lastAuto=0,cam=null,camMod=null,camReady=false;
   const kidCatch=d.id==='juggle'&&state.age===0,best=d.best&&!kidCatch;   // Little Kickers count catches, not streaks
   const label=kidCatch?'Catches':best?'Best streak':'Count',auto=!!d.auto;
   body.innerHTML=`<div class="run-center">
     <div class="run-goal">Goal: <b>${p.target} ${p.unit}</b>${best?` · ${fmt(p.seconds)} to try`:` in ${fmt(p.seconds)}`}</div>
     ${auto?`<div class="cam-box" id="camBox">
       <div class="cam"><video id="camVideo" playsinline muted></video><canvas id="camCanvas"></canvas>
-        <div class="cam-tip" id="camTip"><svg viewBox="0 0 64 64" aria-hidden="true"><rect x="22" y="6" width="20" height="36" rx="4" fill="none" stroke="currentColor" stroke-width="3"/><circle cx="32" cy="36" r="2" fill="currentColor"/><path d="M14 52h36" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><path d="M32 42v10" stroke="currentColor" stroke-width="3"/><circle cx="52" cy="46" r="5" fill="none" stroke="currentColor" stroke-width="2.5"/></svg>
+        <div class="cam-tip" id="camTip"${state.camTip===false?' hidden':''}><svg viewBox="0 0 64 64" aria-hidden="true"><rect x="22" y="6" width="20" height="36" rx="4" fill="none" stroke="currentColor" stroke-width="3"/><circle cx="32" cy="36" r="2" fill="currentColor"/><path d="M14 52h36" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><path d="M32 42v10" stroke="currentColor" stroke-width="3"/><circle cx="52" cy="46" r="5" fill="none" stroke="currentColor" stroke-width="2.5"/></svg>
           <div><strong>Stand your phone up straight</strong><span>Prop it upright at about knee height, not tilted down or lying flat, so the camera can see your feet and the ball.</span><em id="tiltMsg" hidden></em></div></div>
         <div class="cam-hud"><span class="cam-count" id="camCount">0</span><span class="cam-clock" id="camClock">${fmt(p.seconds)}</span></div>
         <div class="cam-sub" id="camSub" hidden></div></div>
@@ -1459,9 +1514,9 @@ function runCount(d,p){
       <button class="tap" id="plus" aria-label="Add one">+1</button>
       <button class="btn-ghost round" id="plus5" aria-label="Add five"${state.age===0?' hidden':''}>+5</button>
     </div>
-    <p class="run-goal" id="hint">${auto?(d.auto==='checks'?'Get into position. The drill starts by itself when the camera can see your head and shoulders.':'Get into position. The drill starts by itself when the camera can see the ball.'):state.age===0?'Tap +1 every time you do it!':best?'Juggle, then enter your best streak here.':'Tap +1 as you go, or count in your head and enter it at the end.'}</p>
+    <p class="run-goal" id="hint">${auto?`Set up your phone, then tap Start. You'll have ${camCd()} seconds to get into position before the camera starts counting.`:state.age===0?'Tap +1 every time you do it!':best?'Juggle, then enter your best streak here.':'Tap +1 as you go, or count in your head and enter it at the end.'}</p>
     ${auto?`<button class="btn-ghost cam-toggle" id="camRetry" hidden>Try the camera again</button>`:''}
-    <button class="btn-primary big" id="go"${auto?' hidden':''}>Start</button></div>`;
+    <button class="btn-primary big" id="go">Start</button></div>`;
   const upd=()=>{$('#cnt').textContent=count;const cc=$('#camCount');if(cc)cc.textContent=count;};
   const setClock=txt=>{const k=$('#clock');if(k)k.textContent=txt;const c=$('#camClock');if(c)c.textContent=txt;};
   $('#plus').onclick=()=>{count++;upd();};
@@ -1470,7 +1525,7 @@ function runCount(d,p){
 
   const pulse=()=>{const el=$('#camCount');if(!el)return;el.classList.remove('pop');void el.offsetWidth;el.classList.add('pop');};
   async function startCam(facing){
-    if(cam){cam.close();cam=null;}
+    camReady=false;if(cam){cam.close();cam=null;}
     $('#camMsg').textContent='Starting camera…';$('#camRetry').hidden=true;
     try{
       if(!camOK())throw {name:'NoCamera'};
@@ -1480,18 +1535,13 @@ function runCount(d,p){
         onStatus:st=>{const m=$('#camMsg');if(!m)return;if(st.text)m.textContent=st.text;
           if('body' in st){$('#dotBody').classList.toggle('on',st.body);const db=$('#dotBall');if(db&&st.ball!==null)db.classList.toggle('on',st.ball);
             const ok='ready' in st?st.ready:st.body&&st.ball!==false;
-            if(phase==='ready'){const now=performance.now();seenHits.push(ok);if(seenHits.length>10)seenHits.shift();   // last 10 frames, any phone speed
-              const left=autoStartAt?Math.max(0,Math.ceil((autoStartAt-now)/1000)):null,tail=left!=null?` Starting in ${left}s either way.`:'';
-              const hits=seenHits.filter(Boolean).length;
-              if(hits>=3){m.textContent='Got you! Starting…';begin();}            // 3 sightings in the last 10 frames is enough: detection flickers
-              else m.textContent=(hits?'Almost there, hold still…':camHowFor(d))+tail;}
+            if(phase==='ready')m.textContent=ok?'The camera can see you. Tap Start when you\'re ready.':camHowFor(d);
+            else if(phase==='count')m.textContent=ok?'Got you! Get ready…':camHowFor(d);
             else if(phase==='run')m.textContent=ok?'Counting…':(d.auto==='checks'?'Can\'t see your head. ':'Can\'t see the ball. ')+camHowFor(d);}},
-        onCount:r=>{if(!$('#cnt'))return;const rc=kidCatch?r.total:r.count;if(rc>lastAuto){count+=rc-lastAuto;lastAuto=rc;upd();pulse();beep(1250,.05);}
+        onCount:r=>{if(!$('#cnt'))return;const rc=kidCatch?r.total:r.count;if(rc>lastAuto){count+=rc-lastAuto;lastAuto=rc;upd();pulse();if(state.countBeep!==false)beep(1250,.05);}
           const sub=$('#camSub');if(sub&&d.auto==='juggle'&&!kidCatch){sub.hidden=false;sub.textContent=`Streak ${r.streak}`;}}});
       S.cam=cam;
-      await cam.open();
-      // Never leave them waiting: if the camera hasn't locked on after 15 s, start anyway and keep looking during the drill.
-      if(phase==='ready'&&!autoStartAt){autoStartAt=performance.now()+15000;later(()=>{if(phase==='ready'){$('#camMsg').textContent='Starting! The camera keeps looking for the ball as you go.';begin();}},15000);}
+      await cam.open();camReady=true;
       if(phase==='run'){lastAuto=0;cam.setCounting(true);}
     }catch(e){
       const denied=e&&['NotAllowedError','SecurityError','PermissionDeniedError'].includes(e.name);
@@ -1501,7 +1551,8 @@ function runCount(d,p){
     }
   }
   if(auto){
-    let facing='user';
+    let facing=state.camFacing==='environment'?'environment':'user';
+    if(facing==='environment')$('#camFlip').textContent='Use front camera';
     watchTilt();
     startCam(facing);
     $('#camRetry').onclick=()=>startCam(facing);
@@ -1517,8 +1568,8 @@ function runCount(d,p){
     showResult(d,st,headline(st),[`${count} ${p.unit}. Goal was ${p.target}.`],fb);};
   function begin(){
     if(phase!=='ready')return;phase='count';$('#go').hidden=true;const tip=$('#camTip');if(tip)tip.hidden=true;stopTilt();
-    if(auto)$('#hint').textContent='The camera counts every rep for you.';
-      countdown(()=>{phase='run';$('#go').hidden=false;$('#go').textContent='Finish early';endAt=performance.now()+p.seconds*1000;
+    if(auto)$('#hint').textContent='Get into position! The camera starts counting when the countdown ends.';
+      countdown(()=>{if(auto)$('#hint').textContent='The camera counts every rep for you.';phase='run';$('#go').hidden=false;$('#go').textContent='Finish early';endAt=performance.now()+p.seconds*1000;
       if(cam){lastAuto=0;cam.setCounting(true);$('#camMsg').textContent='Counting…';}
       if(p.beat){beep(1400,.06);every(()=>{if(phase==='run')beep(1400,.06);},p.beat);}
       every(()=>{const left=(endAt-performance.now())/1000;
@@ -1526,9 +1577,9 @@ function runCount(d,p){
         if(left<=0){S.intervals.forEach(clearInterval);S.intervals=[];phase='done';setClock('Time!');beep(1000,.5);
           if(cam){cam.setCounting(false);}
           $('#go').textContent='Save score';$('#hint').textContent=auto?'Nice work! Save your score.':`Fix your count if you need to, then save.`;}
-        else setClock(fmt(left));},150);},auto);
+        else setClock(fmt(left));},150);},auto,auto?camCd():0);
   }
-  $('#go').onclick=()=>{if(phase==='ready')begin();else if(phase==='run'||phase==='done')finish();};
+  $('#go').onclick=()=>{if(phase==='ready'){if(auto&&!camReady){toast('Wait for the camera to turn on first. This drill needs it to count.');return;}begin();}else if(phase==='run'||phase==='done')finish();};
 }
 
 
@@ -1810,13 +1861,29 @@ function closeMenu(){$('#drawer').hidden=true;$('#menuBtn').setAttribute('aria-e
 $('#menuBtn').onclick=openMenu;$('#drawerX').onclick=closeMenu;
 $('#drawer').addEventListener('click',e=>{if(e.target.id==='drawer'||e.target.closest('a'))closeMenu();});
 $('#menuGuide').onclick=()=>{closeMenu();openOnb();};
-const testLabel=()=>{$('#testToggle').textContent=state.testMode?'Camera counting test: ON (tap to turn off)':'Help fix camera counting (test mode)';};testLabel();
-$('#testToggle').onclick=()=>{state.testMode=!state.testMode;save();testLabel();closeMenu();toast(state.testMode?'Test mode on: after each camera drill you can copy what the camera measured.':'Test mode off');};
+/* ---------- Settings ---------- */
+const CD_OPTS=[3,5,10,15,20];
+const camCd=()=>CD_OPTS.includes(state.camCountdown)?state.camCountdown:10;
+function renderSettings(){
+  const chips=(el,opts,cur,fn)=>{el.innerHTML=opts.map(([v,l])=>`<button class="chip" data-v="${v}" aria-pressed="${String(v)===String(cur)}">${l}</button>`).join('');
+    el.onclick=e=>{const b=e.target.closest('[data-v]');if(!b)return;fn(b.dataset.v);save();renderSettings();};};
+  chips($('#setCd'),CD_OPTS.map(n=>[n,`${n} sec`]),camCd(),v=>{state.camCountdown=+v;toast(`Camera drills now count down from ${v} seconds.`);});
+  chips($('#setFacing'),[['user','Front'],['environment','Back']],state.camFacing||'user',v=>{state.camFacing=v;});
+  chips($('#setWeak'),[['l','Left'],['r','Right']],state.weakFoot||'l',v=>{state.weakFoot=v;});
+  const sw=(id,on,fn)=>{const b=$(id);b.setAttribute('aria-checked',String(!!on));b.onclick=()=>{fn(!on);save();renderSettings();};};
+  sw('#setBeep',state.countBeep!==false,v=>state.countBeep=v);
+  sw('#setTip',state.camTip!==false,v=>state.camTip=v);
+  sw('#setSound',sound,v=>{setSound(v);state.sound=v;});
+  sw('#testToggle',!!state.testMode,v=>{state.testMode=v;if(v)toast('Test mode on: after each camera drill you can copy what the camera measured.');});
+  $('#setLevel').textContent=`${AGES[state.age].name} · ${TIERS[state.tier].name}`;
+}
+$('#setChangeLvl').onclick=()=>openOnb();
+$('#setGuide').onclick=()=>openOnb();
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('#drawer').hidden)closeMenu();});
-function route(){if(!$('#sheet').hidden)closeSheet();const pg={'#progress':'progress','#training':'training','#endurance':'endurance','#goalkeeper':'goalkeeper','#defender':'defender','#midfielder':'midfielder','#forward':'forward','#friends':'friends'}[location.hash]||'train';
-  $('#homeView').hidden=pg!=='train';$('#progressView').hidden=pg!=='progress';$('#trainingView').hidden=pg!=='training';$('#enduranceView').hidden=pg!=='endurance';$('#goalkeeperView').hidden=pg!=='goalkeeper';$('#positionView').hidden=!POSITIONS[pg];$('#friendsView').hidden=pg!=='friends';
+function route(){if(!$('#sheet').hidden)closeSheet();const pg={'#progress':'progress','#training':'training','#endurance':'endurance','#goalkeeper':'goalkeeper','#defender':'defender','#midfielder':'midfielder','#forward':'forward','#friends':'friends','#settings':'settings'}[location.hash]||'train';
+  $('#homeView').hidden=pg!=='train';$('#progressView').hidden=pg!=='progress';$('#trainingView').hidden=pg!=='training';$('#enduranceView').hidden=pg!=='endurance';$('#goalkeeperView').hidden=pg!=='goalkeeper';$('#positionView').hidden=!POSITIONS[pg];$('#friendsView').hidden=pg!=='friends';$('#settingsView').hidden=pg!=='settings';
   document.querySelectorAll('.drawer [data-nav]').forEach(a=>a.toggleAttribute('aria-current',a.dataset.nav===pg)&&a.setAttribute('aria-current','page'));
-  if(pg==='progress')renderProgress();if(pg==='training')renderTraining();if(pg==='endurance')renderEndurance();if(pg==='goalkeeper')renderGoalkeeper();if(POSITIONS[pg])renderPosition(pg);if(pg==='friends'){renderFriends();if(SOC&&SOC.configured()&&ME)SOC.getFriendships(ME).then(l=>{FR=l;renderFriendsIfOpen();}).catch(()=>{});}if(pg==='train')renderHome();window.scrollTo(0,0);}
+  if(pg==='progress')renderProgress();if(pg==='training')renderTraining();if(pg==='endurance')renderEndurance();if(pg==='goalkeeper')renderGoalkeeper();if(POSITIONS[pg])renderPosition(pg);if(pg==='friends'){renderFriends();if(SOC&&SOC.configured()&&ME)SOC.getFriendships(ME).then(l=>{FR=l;renderFriendsIfOpen();}).catch(()=>{});}if(pg==='train')renderHome();if(pg==='settings')renderSettings();window.scrollTo(0,0);}
 window.addEventListener('hashchange',route);
 
 /* ---------- Training page: passing, shooting, dribbling ---------- */
