@@ -380,6 +380,7 @@ main .wrap{padding-block:24px 56px;display:grid;gap:28px}
 .switch[aria-checked="true"]{background:var(--bib)}
 .switch[aria-checked="true"]::after{transform:translateX(22px)}
 .set-page{display:grid;gap:16px}
+.sup-btn{justify-self:start;text-decoration:none;display:inline-block}
 .cd.big-cd{font-size:min(40vw,220px)}
 .pos-hero{color:#fff;border:0}
 .pos-hero h3{font-size:28px}
@@ -519,7 +520,7 @@ main .wrap{padding-block:24px 56px;display:grid;gap:28px}
     <a href="#progress" data-nav="progress"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>My progress</a>
     <button id="menuGuide"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 11v6M12 7.5v.5" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>Getting started guide</button>
     <a href="#settings" data-nav="settings"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>Settings</a>
-    <a href="support.html"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.6 2.2c-.7.4-1.1.9-1.1 1.8M12 16.5v.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>Support</a>
+    <a href="#support" data-nav="support"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.6 2.2c-.7.4-1.1.9-1.1 1.8M12 16.5v.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>Support</a>
     <a href="privacy.html" class="drawer-small">Privacy policy</a>
   </nav>
 </div>
@@ -640,6 +641,24 @@ main .wrap{padding-block:24px 56px;display:grid;gap:28px}
     <div class="pg-head"><div><h2>Friends</h2><p class="muted">Train together, keep streaks going, and challenge each other.</p></div><a class="btn-ghost pg-back" href="#train">Back to home</a></div>
     <div id="frBody" style="display:grid;gap:16px"></div>
   </div>
+  <div class="wrap set-page" id="supportView" hidden>
+    <div class="pg-head"><div><h2>Support</h2><p class="muted">Questions, problems or ideas? We'd love to hear from you.</p></div><a class="btn-ghost pg-back" href="#train">Back to training</a></div>
+    <section class="panel" aria-labelledby="supFormH">
+      <div class="panel-head"><h3 id="supFormH">Contact us</h3></div>
+      <p>Found a bug, the camera counted wrong, need help with an account, or have an idea for a new drill? Tap below to fill in a quick form.</p>
+      <a class="btn-primary sup-btn" href="https://docs.google.com/forms/d/e/1FAIpQLSdvWaEwg0uWgJFLjjFPdbcN67jFGgUlZoUPmec5dn5ypQ4wrw/viewform?usp=publish-editor" target="_blank" rel="noopener">KikUp Support</a>
+    </section>
+    <section class="panel" aria-labelledby="supHelpH">
+      <div class="panel-head"><h3 id="supHelpH">Quick help</h3></div>
+      <div class="set-list">
+        <div class="set-row"><div><strong>The camera isn't counting right</strong><span class="muted">Stand the phone up straight at about knee height, 3–4 big steps away, so your feet and the ball are in the picture. Good light helps a lot.</span></div></div>
+        <div class="set-row"><div><strong>The camera won't turn on</strong><span class="muted">Allow camera access for KikUp in your phone's settings, and close any other app that's using the camera.</span></div></div>
+        <div class="set-row"><div><strong>I need more time to get ready</strong><span class="muted">Pick a longer countdown in <a href="#settings">Settings → Camera</a>.</span></div></div>
+        <div class="set-row"><div><strong>Deleting an account</strong><span class="muted">Go to <a href="#friends">Friends</a> → Account → Delete account.</span></div></div>
+        <div class="set-row"><div><strong>Privacy</strong><span class="muted">See what KikUp stores and why in the <a href="privacy.html">privacy policy</a>.</span></div></div>
+      </div>
+    </section>
+  </div>
   <div class="wrap set-page" id="settingsView" hidden>
     <div class="pg-head"><div><h2>Settings</h2><p class="muted">Make KikUp work the way you like.</p></div><a class="btn-ghost pg-back" href="#train">Back to training</a></div>
     <section class="panel" aria-labelledby="setLookH">
@@ -681,7 +700,7 @@ main .wrap{padding-block:24px 56px;display:grid;gap:28px}
       <div class="panel-head"><h3 id="setAbH">About</h3></div>
       <div class="set-list">
         <div class="set-row"><div><strong>Getting started guide</strong><span class="muted">See the welcome steps again.</span></div><button class="btn-ghost" id="setGuide">Open</button></div>
-        <div class="set-row"><div><strong>Support</strong><span class="muted">Questions, problems or ideas.</span></div><a class="btn-ghost" href="support.html">Get help</a></div>
+        <div class="set-row"><div><strong>Support</strong><span class="muted">Questions, problems or ideas.</span></div><a class="btn-ghost" href="#support">Get help</a></div>
         <div class="set-row"><div><strong>Privacy policy</strong><span class="muted">What KikUp stores and why.</span></div><a class="btn-ghost" href="privacy.html">Read</a></div>
       </div>
     </section>
@@ -1893,8 +1912,8 @@ function renderSettings(){
 $('#setChangeLvl').onclick=()=>openOnb();
 $('#setGuide').onclick=()=>openOnb();
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('#drawer').hidden)closeMenu();});
-function route(){if(!$('#sheet').hidden)closeSheet();const pg={'#progress':'progress','#training':'training','#endurance':'endurance','#goalkeeper':'goalkeeper','#defender':'defender','#midfielder':'midfielder','#forward':'forward','#friends':'friends','#settings':'settings'}[location.hash]||'train';
-  $('#homeView').hidden=pg!=='train';$('#progressView').hidden=pg!=='progress';$('#trainingView').hidden=pg!=='training';$('#enduranceView').hidden=pg!=='endurance';$('#goalkeeperView').hidden=pg!=='goalkeeper';$('#positionView').hidden=!POSITIONS[pg];$('#friendsView').hidden=pg!=='friends';$('#settingsView').hidden=pg!=='settings';
+function route(){if(!$('#sheet').hidden)closeSheet();const pg={'#progress':'progress','#training':'training','#endurance':'endurance','#goalkeeper':'goalkeeper','#defender':'defender','#midfielder':'midfielder','#forward':'forward','#friends':'friends','#settings':'settings','#support':'support'}[location.hash]||'train';
+  $('#homeView').hidden=pg!=='train';$('#progressView').hidden=pg!=='progress';$('#trainingView').hidden=pg!=='training';$('#enduranceView').hidden=pg!=='endurance';$('#goalkeeperView').hidden=pg!=='goalkeeper';$('#positionView').hidden=!POSITIONS[pg];$('#friendsView').hidden=pg!=='friends';$('#settingsView').hidden=pg!=='settings';$('#supportView').hidden=pg!=='support';
   document.querySelectorAll('.drawer [data-nav]').forEach(a=>a.toggleAttribute('aria-current',a.dataset.nav===pg)&&a.setAttribute('aria-current','page'));
   if(pg==='progress')renderProgress();if(pg==='training')renderTraining();if(pg==='endurance')renderEndurance();if(pg==='goalkeeper')renderGoalkeeper();if(POSITIONS[pg])renderPosition(pg);if(pg==='friends'){renderFriends();if(SOC&&SOC.configured()&&ME)SOC.getFriendships(ME).then(l=>{FR=l;renderFriendsIfOpen();}).catch(()=>{});}if(pg==='train')renderHome();if(pg==='settings')renderSettings();window.scrollTo(0,0);}
 window.addEventListener('hashchange',route);
