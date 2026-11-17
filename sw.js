@@ -2,7 +2,7 @@
 // Big files (tracking models, videos, libraries, icons): cached the first time they're used.
 // Only KikUp's own files are handled; Firebase and other sites go straight to the network.
 const CACHE = 'kikup-v1';
-const SHELL = ['./', './index.html', './manifest.webmanifest', './js/reps.js', './js/feedback.js', './js/camera.js', './js/social.js', './js/firebase-config.js', './icon.svg', './icon-192.png', './icon-512.png', './privacy.html', './support.html'];
+const SHELL = ['./', './index.html', './manifest.webmanifest', './js/reps.js', './js/feedback.js', './js/camera.js', './js/social.js', './js/firebase-config.js', './icon.svg', './icon-192.png', './icon-512.png', './privacy.html'];
 
 self.addEventListener('install', (e) => { e.waitUntil(caches.open(CACHE).then((c) => c.addAll(SHELL)).then(() => self.skipWaiting())); });
 self.addEventListener('activate', (e) => { e.waitUntil(caches.keys().then((keys) => Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k)))).then(() => self.clients.claim())); });

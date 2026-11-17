@@ -381,6 +381,15 @@ main .wrap{padding-block:24px 56px;display:grid;gap:28px}
 .switch[aria-checked="true"]::after{transform:translateX(22px)}
 .set-page{display:grid;gap:16px}
 .sup-btn{justify-self:start;text-decoration:none;display:inline-block}
+.faq-group{display:grid;gap:0}
+.faq-group h4{margin:10px 0 4px;font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.faq{border-top:1px solid var(--rule)}
+.faq summary{cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center;gap:12px;padding:14px 0;font-weight:700;font-size:16px}
+.faq summary::-webkit-details-marker{display:none}
+.faq summary::after{content:"+";font-size:24px;line-height:1;color:var(--bib);flex:none;transition:transform .15s}
+.faq[open] summary::after{transform:rotate(45deg)}
+.faq p{margin:0 0 14px;color:var(--muted);max-width:65ch}
+.faq a{color:inherit;font-weight:700}
 .cd.big-cd{font-size:min(40vw,220px)}
 .pos-hero{color:#fff;border:0}
 .pos-hero h3{font-size:28px}
@@ -642,21 +651,41 @@ main .wrap{padding-block:24px 56px;display:grid;gap:28px}
     <div id="frBody" style="display:grid;gap:16px"></div>
   </div>
   <div class="wrap set-page" id="supportView" hidden>
-    <div class="pg-head"><div><h2>Support</h2><p class="muted">Questions, problems or ideas? We'd love to hear from you.</p></div><a class="btn-ghost pg-back" href="#train">Back to training</a></div>
-    <section class="panel" aria-labelledby="supFormH">
-      <div class="panel-head"><h3 id="supFormH">Contact us</h3></div>
-      <p>Found a bug, the camera counted wrong, need help with an account, or have an idea for a new drill? Tap below to fill in a quick form.</p>
-      <a class="btn-primary sup-btn" href="https://docs.google.com/forms/d/e/1FAIpQLSdvWaEwg0uWgJFLjjFPdbcN67jFGgUlZoUPmec5dn5ypQ4wrw/viewform?usp=publish-editor" target="_blank" rel="noopener">KikUp Support</a>
-    </section>
-    <section class="panel" aria-labelledby="supHelpH">
-      <div class="panel-head"><h3 id="supHelpH">Quick help</h3></div>
-      <div class="set-list">
-        <div class="set-row"><div><strong>The camera isn't counting right</strong><span class="muted">Stand the phone up straight at about knee height, 3–4 big steps away, so your feet and the ball are in the picture. Good light helps a lot.</span></div></div>
-        <div class="set-row"><div><strong>The camera won't turn on</strong><span class="muted">Allow camera access for KikUp in your phone's settings, and close any other app that's using the camera.</span></div></div>
-        <div class="set-row"><div><strong>I need more time to get ready</strong><span class="muted">Pick a longer countdown in <a href="#settings">Settings → Camera</a>.</span></div></div>
-        <div class="set-row"><div><strong>Deleting an account</strong><span class="muted">Go to <a href="#friends">Friends</a> → Account → Delete account.</span></div></div>
-        <div class="set-row"><div><strong>Privacy</strong><span class="muted">See what KikUp stores and why in the <a href="privacy.html">privacy policy</a>.</span></div></div>
+    <div class="pg-head"><div><h2>Support</h2><p class="muted">Answers to common questions, and a way to reach us.</p></div><a class="btn-ghost pg-back" href="#train">Back to training</a></div>
+    <section class="panel" aria-labelledby="supFaqH">
+      <div class="panel-head"><h3 id="supFaqH">FAQs</h3></div>
+      <div class="faq-group"><h4>Getting started</h4>
+        <details class="faq"><summary>What is KikUp?</summary><p>KikUp is a soccer training app for players to practice on their own. Pick your age group and skill level, and you get drills with goals that match. Many drills use your phone's camera to count your reps for you.</p></details>
+        <details class="faq"><summary>Is KikUp free?</summary><p>Yes. There are no ads and nothing to buy.</p></details>
+        <details class="faq"><summary>Do I need an account?</summary><p>No. Every drill works without an account, and your progress is saved on your device. You only need an account for Friends: friend streaks, the leaderboard and challenges.</p></details>
+        <details class="faq"><summary>Which age groups is it for?</summary><p>Little Kickers (4–8), Juniors (9–12) and Teens (13+), each with Beginner, Developing and Advanced levels. You can change yours any time in <a href="#settings">Settings</a>.</p></details>
       </div>
+      <div class="faq-group"><h4>Camera counting</h4>
+        <details class="faq"><summary>How does the camera count my reps?</summary><p>The camera finds your feet and the ball and counts each rep as you go. It all happens on your phone: video is never recorded, saved or uploaded.</p></details>
+        <details class="faq"><summary>How do I start a camera drill?</summary><p>Tap Start drill, set your phone up, then tap Start. You get a countdown to get into position, and the camera starts counting when it ends.</p></details>
+        <details class="faq"><summary>Where should I put my phone?</summary><p>Stand it up straight at about knee height, 3–4 big steps away, so your feet and the ball are in the picture. Your whole body is fine too. Some drills tell you a better spot on the camera screen.</p></details>
+        <details class="faq"><summary>The camera isn't counting right. What can I do?</summary><p>Check the phone is upright and not tilted down, the ball is in the picture the whole time, and there's good light. If it's still off, turn on <strong>Help fix camera counting</strong> in <a href="#settings">Settings → Camera</a>, do the drill, enter your real count and send the test data through the form below.</p></details>
+        <details class="faq"><summary>The camera won't turn on.</summary><p>Allow camera access for KikUp in your phone's settings, close any other app using the camera, then tap Try the camera again.</p></details>
+        <details class="faq"><summary>Can I get more time before it starts counting?</summary><p>Yes. Pick a countdown from 3 to 20 seconds in <a href="#settings">Settings → Camera</a>. You can also choose the front or back camera there.</p></details>
+      </div>
+      <div class="faq-group"><h4>Stars, streaks and progress</h4>
+        <details class="faq"><summary>How do stars work?</summary><p>Each drill gives up to 3 stars: 3 for reaching the goal, 2 for getting close, and 1 for finishing it. Your best result for each drill and level is kept.</p></details>
+        <details class="faq"><summary>How does my streak work?</summary><p>Train at least one drill a day to keep your streak going. Miss a whole day and it starts again from 1.</p></details>
+        <details class="faq"><summary>Where can I see my progress?</summary><p>Open the menu and tap <a href="#progress">My progress</a> to see your stars, streaks and the days you trained.</p></details>
+        <details class="faq"><summary>Will I lose my progress?</summary><p>Without an account, progress is saved on your device, so clearing your browser data or deleting the app removes it. With a Friends account, it's backed up and syncs to your other devices.</p></details>
+      </div>
+      <div class="faq-group"><h4>Friends and accounts</h4>
+        <details class="faq"><summary>How do I add friends?</summary><p>Each player has a friend code. Share it in person, and your friend enters it on the <a href="#friends">Friends</a> page. Players can't search for each other.</p></details>
+        <details class="faq"><summary>How do friend streaks work?</summary><p>A friend streak grows on every day you and your friend both train. If one of you misses a day, it resets.</p></details>
+        <details class="faq"><summary>Can kids under 13 use Friends?</summary><p>Yes, but a parent or guardian creates the account and adds the child as a player with a made-up nickname. Teens 13 and up can make their own account.</p></details>
+        <details class="faq"><summary>Is there chat?</summary><p>No. Friends can see each other's stars and streaks and send challenges with preset messages, but there's no chat or free-text messaging.</p></details>
+        <details class="faq"><summary>How do I delete my account?</summary><p>Go to <a href="#friends">Friends</a> → Account → Delete account. This deletes the account and all its players, stats, friends and challenges.</p></details>
+      </div>
+    </section>
+    <section class="panel" aria-labelledby="supFormH">
+      <div class="panel-head"><h3 id="supFormH">Still need help?</h3></div>
+      <p>Found a bug, the camera counted wrong, or have an idea for a new drill? Tap below to fill in a quick form.</p>
+      <a class="btn-primary sup-btn" href="https://docs.google.com/forms/d/e/1FAIpQLSdvWaEwg0uWgJFLjjFPdbcN67jFGgUlZoUPmec5dn5ypQ4wrw/viewform?usp=publish-editor" target="_blank" rel="noopener">KikUp Support</a>
     </section>
   </div>
   <div class="wrap set-page" id="settingsView" hidden>
