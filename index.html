@@ -380,6 +380,9 @@ main .wrap{padding-block:24px 56px;display:grid;gap:28px}
 .switch[aria-checked="true"]{background:var(--bib)}
 .switch[aria-checked="true"]::after{transform:translateX(22px)}
 .set-page{display:grid;gap:16px}
+.set-time{font:inherit;font-size:16px;font-weight:700;padding:8px 10px;border-radius:10px;border:1.5px solid var(--rule);background:var(--surface);color:var(--ink);flex:none}
+.set-time:disabled,.switch:disabled{opacity:.45}
+.set-note{margin:4px 0 0;font-size:14px}
 .sup-btn{justify-self:start;text-decoration:none;display:inline-block}
 .faq-group{display:grid;gap:0}
 .faq-group h4{margin:10px 0 4px;font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
@@ -697,6 +700,16 @@ main .wrap{padding-block:24px 56px;display:grid;gap:28px}
           <div class="set-opts" id="setTheme" role="group" aria-label="Theme"></div></div>
       </div>
     </section>
+    <section class="panel" aria-labelledby="setNotH">
+      <div class="panel-head"><h3 id="setNotH">Notifications</h3></div>
+      <div class="set-list">
+        <div class="set-row"><div><strong>Streak reminders</strong><span class="muted">A reminder each day you haven't trained yet, so you don't lose your streak.</span></div>
+          <button class="switch" role="switch" id="setRemind" aria-label="Streak reminders"></button></div>
+        <div class="set-row"><div><strong>Reminder time</strong><span class="muted">When to remind you. No reminder on days you've already trained.</span></div>
+          <input type="time" class="set-time" id="setRemindAt" aria-label="Reminder time"></div>
+        <p class="muted set-note" id="setRemindNote" hidden>Streak reminders work in the KikUp iPhone app. Websites can't send reminders when they're closed.</p>
+      </div>
+    </section>
     <section class="panel" aria-labelledby="setCamH">
       <div class="panel-head"><h3 id="setCamH">Camera</h3></div>
       <div class="set-list">
@@ -729,7 +742,6 @@ main .wrap{padding-block:24px 56px;display:grid;gap:28px}
       <div class="panel-head"><h3 id="setAbH">About</h3></div>
       <div class="set-list">
         <div class="set-row"><div><strong>Getting started guide</strong><span class="muted">See the welcome steps again.</span></div><button class="btn-ghost" id="setGuide">Open</button></div>
-        <div class="set-row"><div><strong>Support</strong><span class="muted">Questions, problems or ideas.</span></div><a class="btn-ghost" href="#support">Get help</a></div>
         <div class="set-row"><div><strong>Privacy policy</strong><span class="muted">What KikUp stores and why.</span></div><a class="btn-ghost" href="privacy.html">Read</a></div>
       </div>
     </section>
@@ -1269,7 +1281,8 @@ const k=(d)=>`${d.id}|${state.age}|${state.tier}`;
 const dayStr=(dt)=>`${dt.getFullYear()}-${dt.getMonth()+1}-${dt.getDate()}`;
 function bumpStreak(){const today=dayStr(new Date()),y=new Date();y.setDate(y.getDate()-1);
   if(state.lastDay===today)return; state.streak=state.lastDay===dayStr(y)?(state.streak||0)+1:1; state.lastDay=today;
-  state.bestStreak=Math.max(state.bestStreak||0,state.streak);}
+  state.bestStreak=Math.max(state.bestStreak||0,state.streak);
+  setTimeout(()=>{try{scheduleReminders();}catch(e){}},0);}   // trained today: no reminder tonight
 function liveStreak(){const today=dayStr(new Date()),y=new Date();y.setDate(y.getDate()-1);
   return (state.lastDay===today||state.lastDay===dayStr(y))?state.streak:0;}
 
@@ -1937,6 +1950,7 @@ function renderSettings(){
   sw('#setSound',sound,v=>{setSound(v);state.sound=v;});
   sw('#testToggle',!!state.testMode,v=>{state.testMode=v;if(v)toast('Test mode on: after each camera drill you can copy what the camera measured.');});
   $('#setLevel').textContent=`${AGES[state.age].name} · ${TIERS[state.tier].name}`;
+  renderReminderSettings();
 }
 $('#setChangeLvl').onclick=()=>openOnb();
 $('#setGuide').onclick=()=>openOnb();
@@ -2297,6 +2311,45 @@ function renderProgress(){
 
 renderHome();
 route();
+/* ---------- Streak reminders ----------
+   In the iPhone app these are local notifications: scheduled on the phone, no server.
+   The next 7 days are scheduled, skipping today if they've already trained, and redone
+   whenever the app opens or a drill is finished, so the message always matches the streak. */
+function ln(){const C=window.Capacitor;if(!(C&&C.isNativePlatform&&C.isNativePlatform()))return null;
+  return ln.p||(ln.p=(C.Plugins&&C.Plugins.LocalNotifications)||(C.registerPlugin&&C.registerPlugin('LocalNotifications'))||null);}
+var REM_IDS=[101,102,103,104,105,106,107];
+function remTime(){return /^\d\d:\d\d$/.test(state.remindAt||'')?state.remindAt:'18:00';}
+async function scheduleReminders(){
+  const LN=ln();if(!LN)return;
+  try{await LN.cancel({notifications:REM_IDS.map(id=>({id}))});}catch(e){}
+  if(!state.remindOn)return;
+  const [h,m]=remTime().split(':').map(Number),now=new Date(),trained=state.lastDay===dayStr(now),streak=liveStreak(),kid=state.age===0,list=[];
+  for(let i=0;i<7;i++){const at=new Date(now);at.setDate(now.getDate()+i);at.setHours(h,m,0,0);
+    if(at<=now||(i===0&&trained))continue;
+    // the streak they'd be protecting that day, if they don't train again before it
+    const s=i===0?streak:i===1&&trained?state.streak||0:0;
+    const body=s>0?(kid?`Don't lose your ${s}-day streak! Do one drill today.`:`Your ${s}-day streak ends tonight. One drill keeps it going.`)
+      :(kid?'Time to play! Do a drill and start a streak.':'Time to train! One drill a day builds your streak.');
+    list.push({id:REM_IDS[i],title:s>0?`🔥 ${s}-day streak`:'KikUp',body,schedule:{at,allowWhileIdle:true}});}
+  if(list.length)try{await LN.schedule({notifications:list});}catch(e){}
+}
+async function setReminders(on){const LN=ln();
+  if(on&&LN){let ok=false;try{let p=await LN.checkPermissions();if(p.display!=='granted')p=await LN.requestPermissions();ok=p.display==='granted';}catch(e){}
+    if(!ok){state.remindOn=false;save();renderReminderSettings();toast('Notifications are turned off for KikUp. Turn them on in your iPhone Settings → KikUp → Notifications, then try again.',6000);return;}}
+  state.remindOn=on;save();renderReminderSettings();await scheduleReminders();
+  if(on)toast(`Streak reminders on for ${fmtTime(remTime())}.`);
+}
+function fmtTime(hm){const [h,m]=hm.split(':').map(Number);return `${(h%12)||12}:${String(m).padStart(2,'0')} ${h<12?'AM':'PM'}`;}
+function renderReminderSettings(){
+  const LN=ln(),sw=$('#setRemind'),tm=$('#setRemindAt'),on=!!(LN&&state.remindOn);
+  sw.setAttribute('aria-checked',String(on));sw.disabled=!LN;$('#setRemindNote').hidden=!!LN;
+  tm.value=remTime();tm.disabled=!on;
+  sw.onclick=()=>setReminders(!state.remindOn);
+  tm.onchange=()=>{if(!/^\d\d:\d\d$/.test(tm.value))return;state.remindAt=tm.value;save();scheduleReminders();toast(`Reminders moved to ${fmtTime(tm.value)}.`);};
+}
+scheduleReminders();
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')scheduleReminders();});
+
 if(!state.onboarded)openOnb();
 // Offline support (also needed to install KikUp as an app)
 if('serviceWorker' in navigator&&location.protocol==='https:')navigator.serviceWorker.register('./sw.js').catch(()=>{});
