@@ -36,7 +36,7 @@ TRAIN WITH FRIENDS (optional)
 • Friends leaderboard and challenges
 • No chat. Parents set up accounts for kids under 13.
 
-Every drill has an animated video to show you how. No ads, nothing to buy.
+Every drill has an animated video to show you how.
 
 ## Keywords (max 100 characters)
 soccer,football,drills,training,kids,skills,practice,juggling,coach,youth,dribbling,shooting
