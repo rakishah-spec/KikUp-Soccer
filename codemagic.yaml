@@ -47,7 +47,7 @@ workflows:
     instance_type: mac_mini_m2
     environment:
       android_signing:
-        - KikUp upload key          # the name you give the keystore in Codemagic
+        - Android upload key        # the name of the keystore in Codemagic
       node: 22
       java: 21
     scripts:

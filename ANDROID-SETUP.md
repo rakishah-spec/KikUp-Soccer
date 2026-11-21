@@ -17,7 +17,7 @@ The Android app is built in the cloud by **Codemagic**, the same way as the iPho
 1. Codemagic → **Personal Account** settings → **Code signing identities** → **Android keystores**.
 2. Upload `kikup-upload.jks` and fill in from `KEEP-THIS-SAFE.txt`:
    - Keystore password, Key alias: `upload`, Key password
-   - Reference name: exactly `KikUp upload key`
+   - Reference name: exactly `Android upload key`
 3. Save.
 
 ## 3. Build
