@@ -9,7 +9,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="icon-192.png">
-<style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px/1.4 system-ui,-apple-system,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style>
+<style>:root{color-scheme:light;padding-top:var(--safe-area-inset-top,env(safe-area-inset-top,0px));padding-bottom:var(--safe-area-inset-bottom,env(safe-area-inset-bottom,0px))}body{margin:0;font:14px/1.4 system-ui,-apple-system,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style>
 <title>KikUp Soccer</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -40,7 +40,7 @@ body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16p
 button{font:inherit;color:inherit;cursor:pointer}
 button:focus-visible,.card:focus-visible{outline:3px solid var(--bib);outline-offset:2px}
 h1,h2,h3{font-family:var(--display);line-height:1.05;text-wrap:balance;margin:0;letter-spacing:.01em}
-.wrap{max-width:1080px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.wrap{max-width:1080px;margin:0 auto;padding-left:max(16px,var(--safe-area-inset-left,env(safe-area-inset-left,0px)));padding-right:max(16px,var(--safe-area-inset-right,env(safe-area-inset-right,0px)))}
 .muted{color:var(--muted)}
 
 /* Header */
@@ -127,10 +127,10 @@ main .wrap{padding-block:24px 56px;display:grid;gap:28px}
 
 /* Sheet */
 .sheet-wrap{position:fixed;inset:0;background:rgba(5,15,9,.6);z-index:20;display:flex;align-items:flex-end;justify-content:center}
-.sheet{background:var(--bg);width:100%;max-width:640px;max-height:92%;overflow:auto;border-radius:18px 18px 0 0;padding:0 0 calc(20px + env(safe-area-inset-bottom,0px))}
+.sheet{background:var(--bg);width:100%;max-width:640px;max-height:92%;overflow:auto;border-radius:18px 18px 0 0;padding:0 0 calc(20px + var(--safe-area-inset-bottom,env(safe-area-inset-bottom,0px)))}
 @media (min-width:700px){.sheet-wrap{align-items:center}.sheet{border-radius:18px;max-height:90%}}
 .sheet svg{display:block;width:100%;height:auto;aspect-ratio:200/110}
-.sheet-in{padding:18px max(20px,env(safe-area-inset-left,0px)) 0 max(20px,env(safe-area-inset-right,0px));display:grid;gap:18px}
+.sheet-in{padding:18px max(20px,var(--safe-area-inset-left,env(safe-area-inset-left,0px))) 0 max(20px,var(--safe-area-inset-right,env(safe-area-inset-right,0px)));display:grid;gap:18px}
 .sheet-top{position:relative}
 .x{position:absolute;top:10px;right:10px;width:40px;height:40px;border-radius:50%;border:0;background:rgba(0,0,0,.45);color:#fff;font-size:20px}
 .sheet h2{font-size:36px;text-transform:uppercase}
@@ -144,7 +144,7 @@ main .wrap{padding-block:24px 56px;display:grid;gap:28px}
 .sheet .btn-primary{width:100%}
 
 /* Runner (deliberate single night-pitch look) */
-.runner{position:fixed;inset:0;z-index:30;background:var(--run-bg);color:var(--run-ink);display:flex;flex-direction:column;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.runner{position:fixed;inset:0;z-index:30;background:var(--run-bg);color:var(--run-ink);display:flex;flex-direction:column;padding-top:var(--safe-area-inset-top,env(safe-area-inset-top,0px));padding-bottom:var(--safe-area-inset-bottom,env(safe-area-inset-bottom,0px));padding-left:max(16px,var(--safe-area-inset-left,env(safe-area-inset-left,0px)));padding-right:max(16px,var(--safe-area-inset-right,env(safe-area-inset-right,0px)))}
 .run-top{display:flex;justify-content:space-between;align-items:center;gap:10px;padding-block:12px}
 .run-top .t{font-family:var(--display);font-size:20px;font-weight:700;text-transform:uppercase;text-align:center;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .run-top button{background:rgba(255,255,255,.1);border:1px solid var(--run-line);color:var(--run-ink);border-radius:8px;padding:8px 12px;font-weight:700;font-size:14px}
@@ -234,7 +234,7 @@ main .wrap{padding-block:24px 56px;display:grid;gap:28px}
 /* Getting started (first visit) */
 .onb{position:fixed;inset:0;z-index:40;overflow:auto;color:#F4F8F2;background:repeating-linear-gradient(90deg,#1D6A3A 0 64px,#227740 64px 128px)}
 .onb::before{content:"";position:fixed;left:50%;top:50%;width:min(140vw,900px);aspect-ratio:1;border:3px solid rgba(255,255,255,.12);border-radius:50%;transform:translate(-50%,-50%);pointer-events:none}
-.onb-in{position:relative;max-width:560px;min-height:100%;margin:0 auto;display:flex;flex-direction:column;padding:calc(12px + env(safe-area-inset-top,0px)) max(20px,env(safe-area-inset-right,0px)) calc(24px + env(safe-area-inset-bottom,0px)) max(20px,env(safe-area-inset-left,0px))}
+.onb-in{position:relative;max-width:560px;min-height:100%;margin:0 auto;display:flex;flex-direction:column;padding:calc(12px + var(--safe-area-inset-top,env(safe-area-inset-top,0px))) max(20px,var(--safe-area-inset-right,env(safe-area-inset-right,0px))) calc(24px + var(--safe-area-inset-bottom,env(safe-area-inset-bottom,0px))) max(20px,var(--safe-area-inset-left,env(safe-area-inset-left,0px)))}
 .onb-top{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:44px}
 .onb-back,.onb-skip{background:rgba(0,0,0,.25);border:1px solid rgba(255,255,255,.25);color:#fff;border-radius:999px;padding:8px 14px;font-weight:700}
 .onb-back,.onb-skip{min-width:72px;height:44px}
@@ -270,11 +270,11 @@ main .wrap{padding-block:24px 56px;display:grid;gap:28px}
 .link-btn{background:none;border:0;padding:0;color:var(--muted);font-weight:600;text-decoration:underline;justify-self:start;font-size:14px}
 
 /* Menu */
-.menu-btn{position:absolute;top:calc(14px + env(safe-area-inset-top,0px));right:max(12px,env(safe-area-inset-right,0px));z-index:2;width:46px;height:46px;border-radius:12px;border:1px solid rgba(255,255,255,.3);background:rgba(0,0,0,.28);display:grid;align-content:center;justify-items:center;gap:5px;padding:0}
+.menu-btn{position:absolute;top:calc(14px + var(--safe-area-inset-top,env(safe-area-inset-top,0px)));right:max(12px,var(--safe-area-inset-right,env(safe-area-inset-right,0px)));z-index:2;width:46px;height:46px;border-radius:12px;border:1px solid rgba(255,255,255,.3);background:rgba(0,0,0,.28);display:grid;align-content:center;justify-items:center;gap:5px;padding:0}
 .menu-btn span{display:block;width:22px;height:2.5px;border-radius:2px;background:var(--chalk)}
-.hdr .wrap{padding-right:max(72px,env(safe-area-inset-right,0px))}
+.hdr .wrap{padding-right:max(72px,var(--safe-area-inset-right,env(safe-area-inset-right,0px)))}
 .drawer-wrap{position:fixed;inset:0;z-index:35;background:rgba(5,15,9,.55)}
-.drawer{position:absolute;top:0;right:0;bottom:0;width:min(300px,86vw);background:var(--bg);box-shadow:-8px 0 30px rgba(0,0,0,.3);display:flex;flex-direction:column;gap:4px;padding:calc(14px + env(safe-area-inset-top,0px)) max(14px,env(safe-area-inset-right,0px)) 20px 14px}
+.drawer{position:absolute;top:0;right:0;bottom:0;width:min(300px,86vw);background:var(--bg);box-shadow:-8px 0 30px rgba(0,0,0,.3);display:flex;flex-direction:column;gap:4px;padding:calc(14px + var(--safe-area-inset-top,env(safe-area-inset-top,0px))) max(14px,var(--safe-area-inset-right,env(safe-area-inset-right,0px))) 20px 14px}
 .drawer-top{display:flex;justify-content:space-between;align-items:center;padding:0 4px 12px;border-bottom:1px solid var(--rule);margin-bottom:8px}
 .drawer-logo{font-family:var(--display);font-weight:800;font-size:30px;text-transform:uppercase}
 .drawer-logo span{color:var(--bib)}
@@ -464,7 +464,7 @@ main .wrap{padding-block:24px 56px;display:grid;gap:28px}
 .chips2{display:flex;flex-wrap:wrap;gap:6px}
 .chips2 button{border:1.5px solid var(--rule);background:var(--surface);border-radius:999px;padding:6px 12px;font-weight:700;font-size:14px;color:var(--ink)}
 .chips2 button[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
-.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(20px + env(safe-area-inset-bottom,0px));z-index:60;background:var(--ink);color:var(--bg);padding:12px 18px;border-radius:12px;font-weight:700;max-width:min(92vw,420px);box-shadow:0 8px 24px rgba(0,0,0,.3)}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(20px + var(--safe-area-inset-bottom,env(safe-area-inset-bottom,0px)));z-index:60;background:var(--ink);color:var(--bg);padding:12px 18px;border-radius:12px;font-weight:700;max-width:min(92vw,420px);box-shadow:0 8px 24px rgba(0,0,0,.3)}
 
 .or{display:flex;align-items:center;gap:10px;color:rgba(255,255,255,.7);font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.08em}
 .or::before,.or::after{content:"";flex:1;height:1px;background:rgba(255,255,255,.3)}
@@ -709,7 +709,7 @@ main .wrap{padding-block:24px 56px;display:grid;gap:28px}
           <button class="switch" role="switch" id="setFriendRemind" aria-label="Friend streak reminders"></button></div>
         <div class="set-row"><div><strong>Reminder time</strong><span class="muted">When to remind you. No reminder on days you've already trained.</span></div>
           <input type="time" class="set-time" id="setRemindAt" aria-label="Reminder time"></div>
-        <p class="muted set-note" id="setRemindNote" hidden>Streak reminders work in the KikUp iPhone app. Websites can't send reminders when they're closed.</p>
+        <p class="muted set-note" id="setRemindNote" hidden>Streak reminders work in the KikUp app for iPhone and Android. Websites can't send reminders when they're closed.</p>
       </div>
     </section>
     <section class="panel" aria-labelledby="setCamH">
@@ -2058,7 +2058,7 @@ function renderPosition(id){
 }
 
 /* ---------- Friends: accounts, friend streaks, leaderboard, challenges ---------- */
-const IN_APP=!!(window.Capacitor&&window.Capacitor.isNativePlatform&&window.Capacitor.isNativePlatform());   // running as the iPhone app
+const IN_APP=!!(window.Capacitor&&window.Capacitor.isNativePlatform&&window.Capacitor.isNativePlatform());   // running as the iPhone or Android app
 let SOC=null,ACC=null,ME=null,FR=[],CH={incoming:[],sent:[]},frOff=null,chOff=null,authStep='start',authData={};
 const PID_KEY='kikup:pid';
 const lsGet=k=>{try{return localStorage.getItem(k)}catch(e){return null}},lsSet=(k,v)=>{try{v==null?localStorage.removeItem(k):localStorage.setItem(k,v)}catch(e){}};
@@ -2235,7 +2235,7 @@ function renderAuth(){
   if(authStep==='done')b.innerHTML=`<h2 id="authTitle">You're all set${ME?`, ${esc(ME.name)}`:''}!</h2><p class="lead">Share your friend code so friends can add you:</p>
     <div class="code-box" style="background:rgba(0,0,0,.25);justify-content:center"><code>${ME?fmtCode(ME.friendCode):''}</code></div>
     <button class="btn-primary" id="authDone">Go to Friends</button>`;
-  if(IN_APP)b.querySelectorAll('.g-btn,.or').forEach(x=>x.remove());   // Google sign-in isn't available inside the iPhone app
+  if(IN_APP)b.querySelectorAll('.g-btn,.or').forEach(x=>x.remove());   // Google sign-in isn't available inside the app
   const f=b.querySelector('h2');if(f){f.tabIndex=-1;f.focus({preventScroll:true});}
 }
 $('#authBody').addEventListener('click',async e=>{
@@ -2314,7 +2314,7 @@ function renderProgress(){
 renderHome();
 route();
 /* ---------- Streak reminders ----------
-   In the iPhone app these are local notifications: scheduled on the phone, no server.
+   In the iPhone and Android apps these are local notifications: scheduled on the phone, no server.
    The next 7 days are scheduled, skipping today if they've already trained, and redone
    whenever the app opens or a drill is finished, so the message always matches the streak. */
 function ln(){const C=window.Capacitor;if(!(C&&C.isNativePlatform&&C.isNativePlatform()))return null;
@@ -2346,7 +2346,7 @@ async function scheduleReminders(){
 }
 async function setReminders(on){const LN=ln();
   if(on&&LN){let ok=false;try{let p=await LN.checkPermissions();if(p.display!=='granted')p=await LN.requestPermissions();ok=p.display==='granted';}catch(e){}
-    if(!ok){state.remindOn=false;save();renderReminderSettings();toast('Notifications are turned off for KikUp. Turn them on in your iPhone Settings → KikUp → Notifications, then try again.',6000);return;}}
+    if(!ok){state.remindOn=false;save();renderReminderSettings();toast(window.Capacitor&&window.Capacitor.getPlatform&&window.Capacitor.getPlatform()==='android'?'Notifications are turned off for KikUp. Turn them on in your phone\'s Settings → Apps → KikUp Soccer → Notifications, then try again.':'Notifications are turned off for KikUp. Turn them on in your iPhone Settings → KikUp → Notifications, then try again.',6000);return;}}
   state.remindOn=on;save();renderReminderSettings();await scheduleReminders();
   if(on)toast(`Streak reminders on for ${fmtTime(remTime())}.`);
 }

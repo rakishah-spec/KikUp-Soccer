@@ -38,3 +38,28 @@ workflows:
         # Just upload. The build shows up in TestFlight for you (internal testing needs no Apple review).
         # Submitting to beta review is only for outside testers and needs TestFlight test info filled in first.
         submit_to_testflight: false
+
+  # Builds the KikUp Android app (.aab) for Google Play. Download the .aab from the build's
+  # Artifacts and upload it in Google Play Console. One-time setup is in ANDROID-SETUP.md.
+  android-play:
+    name: KikUp Android app (Google Play)
+    max_build_duration: 60
+    instance_type: mac_mini_m2
+    environment:
+      android_signing:
+        - KikUp upload key          # the name you give the keystore in Codemagic
+      node: 22
+      java: 21
+    scripts:
+      - name: Install
+        script: npm ci
+      - name: Bundle KikUp into the Android project
+        script: npm run android:sync
+      - name: Point Gradle at the Android SDK
+        script: echo "sdk.dir=$ANDROID_SDK_ROOT" > android/local.properties
+      - name: Build the app
+        script: |
+          cd android
+          ./gradlew bundleRelease -PversionCode=$((BUILD_NUMBER + 1))
+    artifacts:
+      - android/app/build/outputs/bundle/release/*.aab

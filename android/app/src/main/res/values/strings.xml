@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">KikUp Soccer</string>
+    <string name="title_activity_main">KikUp Soccer</string>
+    <string name="package_name">com.kikupsoccer.app</string>
+    <string name="custom_url_scheme">com.kikupsoccer.app</string>
+</resources>
